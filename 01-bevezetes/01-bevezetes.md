@@ -442,6 +442,101 @@ break, continue, return
 `goto` van, de fenntartott szó, nem működik...
 
 ## +/- Feladatok ##
+
+### Print the args! ###
+Írj egy olyan programot, ami kiírja a parancsori argumentumait egymás után.
+``` java
+class F1 {
+    public static void main(String[] args) {
+        if(args.length == 0) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }        
+    
+        for(String str : args) {
+            System.out.println(str);
+        }
+    }
+}
+```
+
+### Oszto-e vagy!? ###
+Készíts olyan programot, ami az elso parancsori argumentumként kapott számról eldönti, hogy osztható-e a második parancssori argumentumként kapott számmal.
+``` java
+class F2 {
+    public static void main(String[] args) {
+        if(args.length < 2) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }
+
+        int arg1 = Integer.parseInt(args[0]);
+        int arg2 = Integer.parseInt(args[1]);
+        System.out.println(arg2 + (arg1 % arg2 == 0 ? "" : " nem" ) +  " osztoja " 
+                                   + arg1 + "-nek!");
+    }
+}
+```
+
+### Faktoriális ###
+Írj programot, mely a parancssori argumentumként kapott számnak kiszámolja a faktoriálisát.
+``` java
+class F3 {
+    public static int fakt(int number) {
+        if(number == 0) {
+            return 1;
+        }
+        
+        int ret = 1;
+        for(int i=1; i<=number; ++i) {
+            ret *= i;
+        }
+        return ret;
+    }
+
+    public static void main(String[] args) {
+        if(args.length == 0) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }
+
+        int arg = Integer.parseInt(args[0]);
+        System.out.println("A " + arg + " faktorialisa : " + fakt(arg));    
+    }
+}
+```
+
+### Prímszám ###
+Írj olyan programot, mely a parancssori argumentumként kapott számig kiírja az összes prímszámot.
+``` java
+class F4 {
+
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }
+
+        int arg = Integer.parseInt(args[0]);
+        for (int i = 2; i <= arg; i++) {
+            if(isPrime(i)) {
+                System.out.println(i + " primszam.");
+            }
+        }
+    }
+
+    public static boolean isPrime(int number) {
+
+        for(int i=2; i<number; ++i) {
+            if(number % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
 ### Fizz-Buzz Test ###
 Írj egy programot, amely kiírja a számokat 1-től 100-ig! Azon számokhoz, amelyek
 hárommal oszthatók, a szám helyett `"Fizz"`-t írjon ki, és azok helyett, amelyek
