@@ -1,9 +1,23 @@
-# EmlÃ©keztetÅ‘ #
+# Emlékeztetõ #
 
-## KÃ¶rnyezet beÃ¡llÃ­tÃ¡sa ##
-EmlÃ©keztetÅ‘:
+## Kérdések ##
+1. Milyen elnevezési konveciót használunk csomagokra?
+2. Mi a kapcsolat a csomag és a fájlrendszeren elhelyezkedõ mappaszerkezet között?
+2. Milyen láthatósági módosítokkal találkoztál?
+3. Mit nevezünk a függvény szignatúrájának?
+4. Túlterhelhetõ-e a függvény a visszatérési értékére nézve?
+5. Milyen paraméterátadási mód(ok) vannak?
+6. Hogy használunk másik csomagban lévõ osztályokat?
+7. Mit jelent az `import pkg.*;`?
+8. Rekurzív-e az `import`?
+9. Csak statikus metódusokat és mezõket szeretnénk importálni, milyen lehetõségünk van?
+10. Mi történik, ha egy adott néven két osztály is szerepel különbözõ csomagokban, és mind a kettõt importáljuk? Hogy oldjuk meg a problémát?
 
-	Microsoft Windows XP [verziÃ³szÃ¡m: 5.1.2600]
+## Környezet beállítása ##
+Emlékeztetõ:
+
+``` dos
+	Microsoft Windows XP [verziószám: 5.1.2600]
 	(C) Copyright 1985-2001 Microsoft Corp.
 	
 	c:\tmp>set PATH=%PATH%;c:\Program Files\Java\jdk1.6.0_12\bin\
@@ -17,35 +31,36 @@ EmlÃ©keztetÅ‘:
 	Hello World!
 	
 	c:\tmp>
-
-# Csomagok #
-ModularizÃ¡ciÃ³, nÃ©vÃ¼tkÃ¶zÃ©sek feloldÃ¡sa, hozzÃ¡fÃ©rÃ©s szabÃ¡lyozÃ¡s, etc. (mint a
-C++ namespace). OsztÃ¡lyok, interfÃ©szek gyÅ±jtemÃ©nye. HasznÃ¡lhatÃ³ a `*` wildcard.
-AlapÃ©rtelmezetten lÃ¡tszik a `java.lang.*` csomag minden eleme, minden mÃ¡st
-importÃ¡lni kell (anÃ©lkÃ¼l Ãºn. _fully qualified classname_ segÃ­tsÃ©gÃ©vel
-hivatkozhatunk, pl. `java.util.Vector`):
-
-``` java
-import java.util.Vector;	// 1 tipushoz
-import java.math.*;			// Minden package-beli tipus lathatova valik
-	
-import java.awt.*;			// GUI
-import java.awt.event.*;	// GUI - esemenykezeles
-import javax.swing.*;		// Advancedebb GUI
-import java.util.*;			// Adatstrukturak
-import java.io.*;			// IO
-import java.util.regex.*;	// Regexp
-	
-// static import: minden static konstans lathato az adott osztalybol
-// fenntartasokkal hasznalni
-import static java.lang.Math.*;
 ```
 
-A fordÃ­tÃ¡s nehÃ©zkes, nincs rekurzÃ­v `javac -R *.java`. LekÃ©pezÃ©s a
-fÃ¡jlrendszerre: minden `.` karakterrel szeparÃ¡lt rÃ©sz egy kÃ¶nyvtÃ¡rat jelent,
-fordÃ­tÃ¡s a gyÃ¶kÃ©rkÃ¶nyvtÃ¡rbÃ³l tÃ¶rtÃ©nik. Static importot csak offtosan
-(strukturÃ¡ltsÃ¡g, enkapszulÃ¡ciÃ³, egysÃ©gbezÃ¡rÃ¡s ellen hat - hasznÃ¡ljatok helyette
-dedikÃ¡lt osztÃ¡lyt vagy interfÃ©szt). Csomag definÃ­ciÃ³ja a Java fÃ¡jl legelejÃ©n:
+# Csomagok #
+Modularizáció, névütközések feloldása, hozzáférés szabályozás, etc. (mint a
+C++ namespace). Osztályok, interfészek gyûjteménye. Használható a `*` wildcard.
+Alapértelmezetten látszik a `java.lang.*` csomag minden eleme, minden mást
+importálni kell (anélkül ún. _fully qualified classname_ segítségével
+hivatkozhatunk, pl. `java.util.Vector`): 
+
+``` java
+import java.util.Vector;	// 1 tipushoz  
+import java.math.*;			// Minden package-beli tipus lathatova valik  
+	  
+import java.awt.*;			// GUI  
+import java.awt.event.*;	// GUI - esemenykezeles  
+import javax.swing.*;		// Advancedebb GUI  
+import java.util.*;			// Adatstrukturak  
+import java.io.*;			// IO  
+import java.util.regex.*;	// Regexp  
+	  
+// static import: minden static konstans lathato az adott osztalybol  
+// fenntartasokkal hasznalni  
+import static java.lang.Math.*;  
+```
+
+A fordítás nehézkes, nincs rekurzív `javac -R *.java`. Leképezés a
+fájlrendszerre: minden `.` karakterrel szeparált rész egy könyvtárat jelent,
+fordítás a gyökérkönyvtárból történik. Static importot csak offtosan
+(strukturáltság, enkapszuláció, egységbezárás ellen hat - használjatok helyette
+dedikált osztályt vagy interfészt). Csomag definíciója a Java fájl legelején:
 
 ``` java
 package pkg;
@@ -59,28 +74,28 @@ public class HelloWorldApp {
 };
 ```
 
-> **Fontos** Ha csomagokat hasznÃ¡lunk, akkor mindig a *package root* alÃ³l adjuk ki a fordÃ­tÃ¡shoz/futtatÃ¡shoz szÃ¼ksÃ©ges parancsokat (azaz abbÃ³l a kÃ¶nyvtÃ¡rbÃ³l, ami a legfelsÅ‘ szintÅ± csomagokat tartalmazza)! Erre azÃ©rt van szÃ¼ksÃ©g, mert ha nem Ã¡llÃ­tod be kÃ©zzel a `CLASSPATH` vÃ¡ltozÃ³ Ã©rtÃ©kÃ©t (ez azon Ãºtvonal, ahol a Java alapÃ©rtelmezÃ©s szerint keresi a szÃ¼ksÃ©ges osztÃ¡lyokat), akkor az a `.` (azaz az aktuÃ¡lis) kÃ¶nyvtÃ¡r. Ãgy ha pl. a `foo.A` osztÃ¡ly hivatkozik egy `foo.bar.B` osztÃ¡lyra, Ã©s a `foo` kÃ¶nyvtÃ¡rbÃ³l fordÃ­tod az `A` osztÃ¡lyt, akkor a fordÃ­tÃ³/futtatÃ³kÃ¶rnyezet a `foo` konyvtÃ¡rban keres egy mÃ¡sik `foo`, majd abban egy `bar` kÃ¶nyvtÃ¡rat!
+> **Fontos** Ha csomagokat használunk, akkor mindig a *package root* alól adjuk ki a fordításhoz/futtatáshoz szükséges parancsokat (azaz abból a könyvtárból, ami a legfelsõ szintû csomagokat tartalmazza)! Erre azért van szükség, mert ha nem állítod be kézzel a `CLASSPATH` változó értékét (ez azon útvonal, ahol a Java alapértelmezés szerint keresi a szükséges osztályokat), akkor az a `.` (azaz az aktuális) könyvtár. Így ha pl. a `foo.A` osztály hivatkozik egy `foo.bar.B` osztályra, és a `foo` könyvtárból fordítod az `A` osztályt, akkor a fordító/futtatókörnyezet a `foo` konyvtárban keres egy másik `foo`, majd abban egy `bar` könyvtárat!
 > 
-> TehÃ¡t a lÃ©nyeg: **mindig a package root kÃ¶nyvtÃ¡rbÃ³l fordÃ­tsunk, futtassunk!**
+> Tehát a lényeg: **mindig a package root könyvtárból fordítsunk, futtassunk!**
 
-**FordÃ­tÃ¡s** a Java fÃ¡jl **teljes ÃºtvonalÃ¡nak** megadÃ¡sÃ¡val:
+**Fordítás** a Java fájl **teljes útvonalának** megadásával:
 
 	C:\tmp>javac pkg/HelloWorldApp.java
 
-**FuttatÃ¡shoz** azonban a **teljes hivatkozÃ¡si nÃ©v** szÃ¼ksÃ©ges (*fully qualified classname*):
+**Futtatáshoz** azonban a **teljes hivatkozási név** szükséges (*fully qualified classname*):
 	
 	C:\tmp>java pkg.HelloWorldApp
 	Hello World!
 
-Ha esetleg nÃ©vÃ¼tkÃ¶zÃ©s van (2 azonos nevÅ± osztÃ¡ly), akkor minÅ‘sÃ­tett nÃ©vvel
-Ã©rhetjÃ¼k el az egyiket (pl. `java.util.List`, `java.awt.List`). Importokat
-hasznÃ¡ljatok nyugodtan, nem gÃ¡z, nem emÃ©szt erÅ‘forrÃ¡st (nem C++, dinamikus
-osztÃ¡lybetÃ¶ltÃ©s van).
+Ha esetleg névütközés van (2 azonos nevû osztály), akkor minõsített névvel
+érhetjük el az egyiket (pl. `java.util.List`, `java.awt.List`). Importokat
+használjatok nyugodtan, nem gáz, nem emészt erõforrást (nem C++, dinamikus
+osztálybetöltés van).
 
 
-## RekurzÃ­v fordÃ­tÃ¡s ##
-AlapbÃ³l nincs rekurzÃ­v fordÃ­tÃ¡s, viszont megadhatÃ³ a fordÃ­tÃ³nak egy fÃ¡jl,
-ami a fordÃ­tani kÃ­vÃ¡nt fÃ¡jlok listÃ¡jÃ¡t tartalmazza - ezt a `@` karakterrel
+## Rekurzív fordítás ##
+Alapból nincs rekurzív fordítás, viszont megadható a fordítónak egy fájl,
+ami a fordítani kívánt fájlok listáját tartalmazza - ezt a `@` karakterrel
 jelezheted.
 
 	# Linux
@@ -91,38 +106,38 @@ jelezheted.
 	> dir /s /B *.java > sources.txt
 	> javac @sources.txt
 
-> **RÃ©szletesen** [Itt](http://stackoverflow.com/questions/6623161/javac-option-to-compile-recursively/8769536#8769536)
+> **Részletesen** [Itt](http://stackoverflow.com/questions/6623161/javac-option-to-compile-recursively/8769536#8769536)
 
-# FÃ¼ggvÃ©nyek #
-ÃltalÃ¡nos prototÃ­pus:
+# Függvények #
+Általános prototípus:
 
-	<mÃ³dosÃ­tÃ³szavak> <visszatÃ©rÃ©si Ã©rtÃ©k> <nÃ©v>( <paramÃ©terek listÃ¡ja> )
-	        [ throws <kivÃ©tel lista> ] {
-	    <utasÃ­tÃ¡s1>;
-	    <utasÃ­tÃ¡s2>;
+	<módosítószavak> <visszatérési érték> <név>( <paraméterek listája> )
+	        [ throws <kivétel lista> ] {
+	    <utasítás1>;
+	    <utasítás2>;
 	    ...
 	}
 
-ParamÃ©ter Ã¡tadÃ¡s Ã©rtÃ©k szerint tÃ¶rtÃ©nik (mÃ©g a referenciÃ¡k is!).
+Paraméter átadás érték szerint történik (még a referenciák is!).
 
-* MÃ³dosÃ­tÃ³szavak:
-	* LÃ¡thatÃ³sÃ¡g: `public`, `protected`, `private`. Ha nem definiÃ¡lt, akkor Ãºn.
-	  _package-private_ lÃ¡thatÃ³sÃ¡g.
-	* Lehet `abstract`: ekkor nincs implementÃ¡ciÃ³ (mint a C++ _pure virtual_
-	  fÃ¼ggvÃ©nyei) leszÃ¡rmazottban kÃ¶telezÅ‘en felÃ¼ldefiniÃ¡landÃ³
-	* Lehet `final`: felÃ¼ldefiniÃ¡lhatÃ³sÃ¡g letiltÃ¡sÃ¡ra
-	* Lehet `static`: osztÃ¡ly szintÅ± fÃ¼ggvÃ©ny (**Fontos:** static kontextusbÃ³l
-	  csak static mÃ³dosÃ­tÃ³val ellÃ¡tott hivatkozÃ¡s szerepelhet)
-	* EgyÃ©b, pl. `strictfp`, `native`, `synchronized`, `transient`, `volatile`
-	  (utÃ³bbi kettÅ‘ **csak** fieldekre). EzekrÅ‘l kÃ©sÅ‘bb.
-* VisszatÃ©rÃ©si Ã©rtÃ©k szerinti csoportosÃ­tÃ¡s:
-	* `void`: eljÃ¡rÃ¡s
-	* Minden egyÃ©b: fÃ¼ggvÃ©ny
-* MetÃ³dusnÃ©v: _lowerCamelCase_ formÃ¡tumban
-* ParamÃ©ter Ã¡tadÃ¡s: minden paramÃ©ter Ã©rtÃ©k szerint adÃ³dik Ã¡t
-_mÃ©g a referenciÃ¡k is_.
+* Módosítószavak:
+	* Láthatóság: `public`, `protected`, `private`. Ha nem definiált, akkor ún.
+	  *default* / _package-private_ / *package-level* láthatóság.
+	* Lehet `abstract`: ekkor nincs implementáció (mint a C++ _pure virtual_
+	  függvényei) leszármazottban kötelezõen felüldefiniálandó
+	* Lehet `final`: felüldefiniálhatóság letiltására
+	* Lehet `static`: osztály szintû függvény (**Fontos:** static kontextusból
+	  csak static módosítóval ellátott hivatkozás szerepelhet)
+	* Egyéb, pl. `strictfp`, `native`, `synchronized`, `transient`, `volatile`
+	  (utóbbi kettõ **csak** fieldekre). Ezekrõl késõbb.
+* Visszatérési érték szerinti csoportosítás:
+	* `void`: eljárás
+	* Minden egyéb: függvény
+* Metódusnév: _lowerCamelCase_ formátumban
+* Paraméter átadás: minden paraméter érték szerint adódik át
+_még a referenciák is_.
 
-**SzignatÃºra** a fÃ¼ggvÃ©ny neve Ã©s paramÃ©tereinek tÃ­pusa -- mÃ¡s **nem**. PÃ©ldÃ¡ul:
+**Szignatúra** a függvény neve és paramétereinek típusa -- más **nem**. Például:
 
 ``` java
 eredmenyMeghatarozasa( double, int, int )
@@ -132,27 +147,68 @@ Overloading, overriding.
 
 # +/- Feladatok #
 
-A feladatokat a `gyak2.f1` ill. `gyak2.f2` csomagba rakjÃ¡tok!
+A feladatokat a `gyak2.f1` ill. `gyak2.f2`, ... csomagba rakjátok!
 
-## Euclid ##
-KÃ©szÃ­tsetek egy fÃ¼ggvÃ©nyt, amely az Euklideszi-algoritmus alapjÃ¡n meghatÃ¡rozza
-kÃ©t szÃ¡m legnagyobb kÃ¶zÃ¶s osztÃ³jÃ¡t! Az algoritmus pszeudokÃ³dja:
+### Faktoriális ###
+Írjatok programot, mely kiszámítja a paraméterül kapott szám faktoriálisát.
 
-	function gcd(a, b)
-	    if a = 0
-	       return b
-	    while b != 0
-	        if a > b
-	           a := a - b
-	        else
-	           b := b - a
-	    return a
+``` java
+    class F1 {
+        public static void main(String[] args) {
+            System.out.println(fakt(5));
+        }
+        
+        public static int fakt(int n) {
+            int res = 1;
+            for (int i = 1; i < n; ++i) {
+                res *= i;
+            }
+            return res;
+        }
+    }
+```
 
-KÃ©szÃ­tsd el a fÃ¼ggvÃ©ny rekurzÃ­v vÃ¡ltozatÃ¡t is!
+### Rekfakt ###
+Írj faktoriálist megoldó programot, melyben a függvény rekurzív.
 
-## Quadratic ##
-KÃ©szÃ­tsetek egy fÃ¼ggvÃ©nyt, amely megadja egy mÃ¡sodfokÃº egyenlet gyÃ¶keit! A
-fÃ¼ggvÃ©ny definÃ­ciÃ³ja legyen a kÃ¶vetkezÅ‘:
+``` java
+    class F2 {
+        public static void main(String[] args) {
+            System.out.println(fakt(5));
+        }
+        
+        public static int fakt(int n) {
+            if( n == 0 ) {
+                return 1;
+            } else {
+                return n * fakt(n-1);
+            }
+        }
+    }
+```
+
+### Fib ###
+Add össze az összes páratlan rész-fibonacci számot egészen addig, amíg az adott rész-fibonacci szám értéke nem éri el 400000.
+
+### Euclid ###
+Készítsetek egy függvényt, amely az Euklideszi-algoritmus alapján meghatározza
+két szám legnagyobb közös osztóját! Az algoritmus pszeudokódja:
+
+	function gcd(a, b)  
+	    if a = 0  
+	       return b  
+	    while b != 0  
+	        if a > b  
+	           a := a - b  
+	        else  
+	           b := b - a  
+	    return a  
+
+Készítsd el a függvény rekurzív változatát is!
+
+### Quadratic ###
+Készítsetek egy függvényt, amely megadja egy másodfokú egyenlet gyökeit! A
+függvény definíciója legyen a következõ:
 
 ``` java
 private static double[] sqroots(final double a, final double b, final double c) {
@@ -160,12 +216,11 @@ private static double[] sqroots(final double a, final double b, final double c) 
 }
 ```
 
-A fÃ¼ggvÃ©ny visszatÃ©rÃ©si Ã©rtÃ©ke legyen:
+A függvény visszatérési értéke legyen:
 
-* Ã¼res tÃ¶mb (nem `null` Ã©rtÃ©k!), ha `a == 0` vagy a diszkriminÃ¡ns negatÃ­v,
-* egyelemÅ± tÃ¶mb, ha egyetlen megoldÃ¡s van (`D == 0`), illetve
-* kÃ©telemÅ± tÃ¶mb, amennyiben kÃ©t kÃ¼lÃ¶nbÃ¶zÅ‘ megoldÃ¡s lÃ©tezik!
+* üres tömb (nem `null` érték!), ha `a == 0` vagy a diszkrimináns negatív,
+* egyelemû tömb, ha egyetlen megoldás van (`D == 0`), illetve
+* kételemû tömb, amennyiben két különbözõ megoldás létezik!
 
-A paramÃ©tereket a parancssori argumentumok hatÃ¡rozzÃ¡k meg, amiket a
-`Double.parseDouble()` segÃ­tsÃ©gÃ©vel tudsz Ã©rtelmezni.
-
+A paramétereket a parancssori argumentumok határozzák meg, amiket a
+`Double.parseDouble()` segítségével tudsz értelmezni.

@@ -1,5 +1,17 @@
 # Alapozás #
 
+## Kérdések ##
+1. Milyen megkötést tudunk mondani a többdimenziós tömb inicializálása kapcsán?
+2. Primitív típusú értékeket tartalmazó tömb inicializálásakor mi lesz a tömb elemeinek az értéke?
+3. És ha Object-eket tartalmaz?
+4. Milyen paraméterátadási mód(ok) vannak?
+5. Mit jelent a függvény szignatúrája?
+6. Mit jelent, hogy egy String immutable(megváltoztathatatlan)?
+7. Mi ennek az oka?
+8. Milyen literálokat ismersz, melyek referenciatípusokhoz köthetőek?
+9. Lehet-e egy String típusú változó értéke `null`?
+10. Mit csinál az `indexOf` függvény?
+
 ## Változók ##
 * Deklaráció, inicializáció
 * Kezdeti érték?
@@ -7,8 +19,7 @@
 * Kifejezések? Kiértékelési sorrend? Szigorúan balról jobbra (v.ö. C++)
 
 ## Felhasználói interakció ##
-Használjátok a `java.io.Console` osztályt (JDK 1.6 óta van csak, erre
-figyeljetek!).
+Használjátok a `java.io.Console` osztályt (JDK 1.6 óta van csak, erre figyeljetek!).
 
 ``` java
 java.io.Console c = System.console();
@@ -21,8 +32,7 @@ int lineAsInt = Integer.parseInt( line );
 * Minden `T` típushoz van `T[]`
 * Referencia: `null` értéke lehet!
 * Indexelés nullától
-* Túl-, ill. alul indexelés: `ArrayIndexOutOfBoundsException` (futásidejű
-  kivétel)
+* Túl-, ill. alul indexelés: `ArrayIndexOutOfBoundsException` (futásidejű kivétel)
 * Inicializáció:
 
 	``` java
@@ -100,7 +110,7 @@ megírod kézzel).
 	public static void printMessages(String... messages) {
 	    System.out.println("# of params: " + messages.length);
 	    for (String act : messages) {
-		System.out.println(act);
+            System.out.println(act);
 	    }
 	}
 	...
@@ -126,8 +136,7 @@ megírod kézzel).
 	String s = "hai!";
 	```
 
-* Objektum, így lehet az értéke `null`! Ha `null` értéket próbáljátok feloldani
-akkor az eredmény egy `NullPointerException` lesz.
+* Objektum, így lehet az értéke `null`! Ha `null` értéket próbáljátok feloldani akkor az eredmény egy `NullPointerException` lesz.
 
 	``` java
 	String nullString = null;
@@ -202,8 +211,7 @@ dokumentációja <http://download.oracle.com/javase/6/docs/api/java/util/regex/P
 	System.out.println( sb.toString() ); // ""
 	```
 
-* Összehasonlítás: `equals()` metódussal (az `==` operátor referencia szerinti
-összehasonlítást végez csak, nem tartalom szerintit).
+* Összehasonlítás: `equals()` metódussal (az `==` operátor referencia szerinti összehasonlítást végez csak, nem tartalom szerintit).
 
 	``` java
 	boolean b1 = "a" == "a";      // lehet hamis!
@@ -227,7 +235,47 @@ meglévőket. Például az átlagolás, normálás esetén szükség van az öss
 használjátok azt a függvényt, amit az adott feladatban megírtatok!
 
 1. Készíts egy függvényt, amely kiszámítja egy tömb elemeinek az összegét!
+
+    ``` java
+    class T1 {
+        public static void main(String[] args) {
+            int[] arr = {1, 2, 3, 4, 5, 10, 15, 20};
+            System.out.println(sum(arr));
+        }
+
+        public static int sum(int[] parr) {
+            int result = 0;
+            for(int i : parr) {
+                result += i;
+            }
+            return result;
+        }
+    }
+    ```
+
 2. Készíts egy függvényt, amely kiszámítja egy tömb elemeinek az átlagát!
+
+    ``` java
+    class T2 {
+        public static void main(String[] args) {
+            int[] arr = {1, 4, 6, 4};
+            System.out.println(avg(arr));
+        }
+
+        public static float avg(int[] parr) {
+            return (float)sum(parr) / (float)parr.length;
+        }
+
+        public static int sum(int[] parr) {
+            int result = 0;
+            for(int i : parr) {
+                result += i;
+            }
+            return result;
+        }
+    }
+    ```
+
 3. Készíts egy függvényt, amely normálja egy tömb összes elemeit (az elemek
    összege legyen kb. 1)!
 4. Készíts egy függvényt, amely növekvő sorrendbe rendezi egy tömb elemeit!
@@ -299,6 +347,31 @@ sorban megoldhatók a megfelelő API függvények használatával!
 	1. Minden numerikus karaktert változatlanul hagy
 	2. Minden betűt kisbetűvé alakít
 	3. Minden egyéb karaktert lecserél egy `_` karakterre
+    
+    ``` java
+    class S1 {
+        public static void main(String[] args) {
+            if(args.length < 1) {
+                System.out.println("Keves parameter!");
+                System.exit(0);
+            }
+            System.out.println(transform(args[0]));
+        }
+
+        public static String transform(String str) {
+            char[] chars = str.toCharArray();
+            String result = "";
+            for(char c : chars) {
+                if(Character.isDigit(c) ||  Character.isLetter(c) ) {
+                    result += Character.toString(Character.toLowerCase(c));
+                } else {
+                    result += "_";
+                }
+            }
+            return result;
+        }
+    }
+    ```
 
 2. Készítsetek egy programot, amely minden ékezetes karaktert lecserél a
 megfelelő, ékezet nélküli változatára!

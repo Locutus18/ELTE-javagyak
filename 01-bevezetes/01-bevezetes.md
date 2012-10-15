@@ -23,19 +23,28 @@ A Java nyelvről, általánosan.
 	* Konzol (ld. a megfelelő mellékletet)
 	* Eclipse <http://www.eclipse.org/downloads/>
 	* NetBeans <http://netbeans.org/downloads/>
+
+## Kérdések ##
+1. Milyen kommenteket különböztetsz meg?
+2. Milyen primitív típusok vannak?
+3. Mi az a wrapper vagy burkoló osztály?
+4. Mi a különbség az `equals()` és a `==` operátor között?
+5. Mit csinál a `continue` utasítás?
+6. Mit jelentenek a suffixek: d, f, l?
+7. Hasonlítsd össze a float és a double típusokat!
 	
 ## Hello World ##
 Hozzatok létre egy `HelloWorldApp.java` nevű állományt a következő tartalommal:
 
 ``` java
-/**
- * Hello world program.
- */
-public class HelloWorldApp {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
-}
+/**  
+ * Hello world program.  
+ */  
+public class HelloWorldApp {  
+    public static void main(String[] args) {  
+        System.out.println("Hello World!");  
+    }  
+}  
 ```
 
 * **Fontos**, hogy a fájl neve megegyezzen a benne definiált publikus osztály
@@ -52,11 +61,11 @@ public class HelloWorldApp {
 ## Környezet beállítása ##
 Windows alatt _Windows + R_, majd `cmd.exe`:
 
-	C:\Users\rlegendi> PATH=%PATH%;C:\Program Files\Java\jdk1.6.0_21\bin
-	C:\Users\rlegendi> echo %PATH%
-	...;C:\Pogram Files\Java\jdk1.6.0_21\bin
-	C:\Users\rlegendi> javac -version
-	javac 1.6.0_21
+	C:\Users\rlegendi> PATH=%PATH%;C:\Program Files\Java\jdk1.6.0_21\bin  
+	C:\Users\rlegendi> echo %PATH%  
+	...;C:\Pogram Files\Java\jdk1.6.0_21\bin   
+	C:\Users\rlegendi> javac -version    
+	javac 1.6.0_21  
 
 Ha nem akarod minden használat előtt ezt eljátszani, akkor _Windows + Break_,
 _Advanced system settings_, _Environment variables..._, és a `PATH` végéhez
@@ -87,58 +96,60 @@ Használható `*.java` a default package fordítására.
 
 
 ## Kódolási konvenciók ##
+
 ``` java
-package java.blah; // top-level domain, kisbetus karakterek
-	
-/**
- * Osztalyleiras..
- *
- * @version  1.0
- * @author   Mr. T
- */
-public class Foo extends Bar {
-	
-    /** classVar1 egysoros comment. */
-    public int classVar1;
-	
-    /**
-     * classVar2, aminek meg tobbsoros
-     * a leirasa.
-     */
-    private static String classVar2;
-	
-    /**
-     * Konstruktor komment...
-     */
-    public Foo() {
-        // ...
+    package java.blah; // top-level domain, kisbetus karakterek  
+          
+    /**  
+     * Osztalyleiras..  
+     *  
+     * @version  1.0  
+     * @author   Mr. T  
+     */  
+    public class Foo extends Bar {  
+        
+        /** classVar1 egysoros comment. */  
+        public int classVar1;  
+        
+        /**  
+         * classVar2, aminek meg tobbsoros  
+         * a leirasa.
+         */
+        private static String classVar2;
+        
+        /**
+         * Konstruktor komment...
+         */
+        public Foo() {
+            // ...
+        }
+        
+        /**
+         * Fuggveny komment...
+         */
+        public void doSomething() {
+            // ...
+        }
+        
+        /**
+         * Valami masik fuggveny komment...
+         *
+         * @param someParam valami parameter
+         * @return valami ertek
+         */
+        public int returnSomeValue(Object someParam) {
+            // ...
+        }
+            
+       /**
+        * Logikai fuggveny...
+        */
+       public boolean isSomething() {
+          // ...
+       }
     }
-	
-    /**
-     * Fuggveny komment...
-     */
-    public void doSomething() {
-        // ...
-    }
-	
-    /**
-     * Valami masik fuggveny komment...
-     *
-     * @param someParam valami parameter
-     * @return valami ertek
-     */
-    public int returnSomeValue(Object someParam) {
-        // ...
-    }
-	    
-   /**
-    * Logikai fuggveny...
-    */
-   public boolean isSomething() {
-      // ...
-   }
-}
 ```
+
 
 > **Egyelőre ökölszabály** Osztály név = fájl név, nagybetűvel kezdődik. Csomag
 > név = könyvtár név, kisbetűvel kezdődik (később lesz több osztály is egy
@@ -188,8 +199,8 @@ A legtöbb programozási nyelv az 1985-ben elfogadott IEE 754 szabvány szerint 
 Ami a lényeg: ha leírsz egy számot, az *közelítés*, hiába gondolsz bármi mást. Mutatok egy példát:
 
 ``` java
-// Az eredmenye: 1
-System.out.println( 0.2 + 0.2 + 0.2 + 0.2 + 0.2 );
+    // Az eredmenye: 1
+    System.out.println( 0.2 + 0.2 + 0.2 + 0.2 + 0.2 );
 ```
 
 Ez többé-kevésbé egybevág az ember intuitív elvárásával. Ez viszont teljesen véletlen, a csillagok állásának köszönhető: azon múlt, hogy a `0.2d` egyike azon ritka valós számoknak, amely *viszonylag kis numerikus hiba mellett ábrázolható*.
@@ -197,11 +208,11 @@ Ez többé-kevésbé egybevág az ember intuitív elvárásával. Ez viszont tel
 Próbáljuk meg például a fenti kódot `0.1` értékekkel:
 
 ``` java
-// Az eredmenye: 1.0000001
-System.out.println( 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f );
+    // Az eredmenye: 1.0000001
+    System.out.println( 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f );
 
-// Az eredmenye: 0.9999999999999999
-System.out.println( 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d );
+    // Az eredmenye: 0.9999999999999999
+    System.out.println( 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d );
 ```
 
 Ezzel sajnos nem tudsz mit csinálni. Sőt, további gondokhoz vezet. Nézzünk erre most néhány példát a következő alfejezetekben!
@@ -211,28 +222,28 @@ Ezzel sajnos nem tudsz mit csinálni. Sőt, további gondokhoz vezet. Nézzünk 
 A fenti pont egy következménye, hogy ha leírunk egy ilyen kifejezést:
 
 ``` java
-// Akkor az bizony hamis lesz:
-System.out.println( 0.3 == 0.1d + 0.1d + 0.1d );
+    // Akkor az bizony hamis lesz:
+    System.out.println( 0.3 == 0.1d + 0.1d + 0.1d );
 ```
 
 Ebbe a csapdába egy kezdő programozó könnyen beleeshet, vegyük például a következő számlálós ciklust:
 
 ``` java
-for (double d=0.0; d != 0.3; d += 0.1) {
-	// Hopp! Vegtelen ciklus!
-}
+    for (double d=0.0; d != 0.3; d += 0.1) {
+        // Hopp! Vegtelen ciklus!
+    }
 ```
 
 Mit tudunk akkor hát ezekkel kezdeni? Nos, a legegyszerűbb megoldás az, ha a programozó felállít egy *önkényes hibahatárt*, amin belül egyezőnek vél két valós számot - azaz annak epszilon környezetébe való tartozást vizsgáljuk egyenlőség helyett. Például:
 
 ``` java
-final double DELTA = 1.0E-5; // Hibahatar
-final double d1 = 0.3;
-final double d2 = 0.1 + 0.1 + 0.1;
+    final double DELTA = 1.0E-5; // Hibahatar
+    final double d1 = 0.3;
+    final double d2 = 0.1 + 0.1 + 0.1;
 
-if ( Math.abs( d1 - d2 ) < DELTA ) {
-	System.out.println("d1 == d2");
-}
+    if ( Math.abs( d1 - d2 ) < DELTA ) {
+        System.out.println("d1 == d2");
+    }
 ```
 
 #### Túl-, és alulcsordulás #####
@@ -242,8 +253,8 @@ Ilyet már valószínűleg az egyszerű egész típusosztály körében is látt
 A valós számok esetén is előjönnek ezek a problémák, hatványozottan. Tekintsük a következő példát:
 
 ``` java
-final double big = 1.0e307 * 2000 / 2000;
-System.out.println( big == 1.0e307 ); // Hamis lesz!
+    final double big = 1.0e307 * 2000 / 2000;
+    System.out.println( big == 1.0e307 ); // Hamis lesz!
 ```
 
 A programkódtól ránézésre intuitív módon az ember igaz értéket várna, azonban hamis lesz! Miért is? Beszorzok egy számot X értékkel, aztán azzal le is osztok, így az eredeti értéket kellene kapnom. Nos, a magyarázat jelen esetben a túlcsordulás: Java szigorú kiértékelési sorrendel rendelkezik (*balról jobbra azonos precedenciák esetében*). Mikor beszorozzuk a számot, kimegyünk az ábrázolható tartományból, kapunk valami teljesen más értéket (ami jelen esetben ez az `Infinity`), így azt elosztva X értékkel közel sem az eredeti számot kapjuk vissza. S minderről a programozó semmi visszajelzést nem kap...
@@ -254,22 +265,22 @@ A lebegőpontos számábrázolásnak van egy speciális problémája. Matematik�
 Például:
 
 ``` java
-System.out.println( 1234.0d + 1.0e-13d == 1234.0d ); // Igaz lesz!
+    System.out.println( 1234.0d + 1.0e-13d == 1234.0d ); // Igaz lesz!
 ```
 
 #### WYSINWYG - What You See Is Not What You Get ####
 Cseles módon, mikor kiírunk a konzolra egy valós számot, az *nem a reprezentációban használt közelített érték lesz*. Azt már tudjuk, hogy a `0.1` nincs tökéletesen ábrázolva, ugyanakkoor ha kiírjuk a képernyőre az értékét, a következőt látjuk:
 
 ``` java
-System.out.println( 0.1d ); // Megjeleno ertek: 0.1
+    System.out.println( 0.1d ); // Megjeleno ertek: 0.1
 ```
 
 Ajjjaj! Sőt, hogy bonyolítsuk a helyzetet, nézzük csak meg, mi lesz a következő kódrészlet eredménye:
 
 ``` java
-System.out.println(0.1 == 0.099999999999999998); // Hamis
-System.out.println(0.1 == 0.099999999999999999); // Igaz
-System.out.println(0.1 == 0.100000000000000001); // Igaz
+    System.out.println(0.1 == 0.099999999999999998); // Hamis
+    System.out.println(0.1 == 0.099999999999999999); // Igaz
+    System.out.println(0.1 == 0.100000000000000001); // Igaz
 ```
 
 Puff neki. Az első furcsaság, hogy kerekít a kód, ez teljesen jó, de `...998` felett? Nem `...995` körül kéne? *Nem.*
@@ -279,8 +290,8 @@ A másik, hogy a 0.1 ugyanaz, mint 0.099999999999999999? *Igen.*
 Mi ennek az oka? Nos, hogy ezt kicsit megvilágítsuk, nézzük meg a közelített értéket egy speciális osztály segítségével:
 
 ``` java
-// A kiirt ertek: 0.1000000000000000055511151231257827021181583404541015625
-System.out.println( new BigDecimal(0.1) );
+    // A kiirt ertek: 0.1000000000000000055511151231257827021181583404541015625
+    System.out.println( new BigDecimal(0.1) );
 ```
 
 Fura, mi?
@@ -302,26 +313,25 @@ Fura, mi?
 > <http://firstclassthoughts.co.uk/java/traps/java_double_traps.html>
 
 ## Tömbök ##
-* Minden `T` típushoz van `T[]`
+* Minden `T` típushoz van `T[]`  
 * Példakód:
 
 ``` java
-int[] arr1 = new int[5];
-int arr2[];
+    int[] arr1 = new int[5];  
+    int arr2[];  
 
-int arr3[] = { 1, 2, 3, 4, 5 };
-		
-for (int i=0; i<arr3.length; ++i) {
-	System.out.println(arr3[i]);
-}
-```
+    int arr3[] = { 1, 2, 3, 4, 5 };  
+            
+    for (int i=0; i<arr3.length; ++i) {  
+        System.out.println(arr3[i]);  
+    }  
+```  
 
 * Inicializálásnál az 1. dimenzió megadása kötelező (pl.
-`int[][] arr = new int[5][];` teljesen legális definíció!)
+    `int[][] arr = new int[5][];` teljesen legális definíció!)
 
 ## Operátorok ##
-Szokásos operátorok (`==`, `!=`, `&&`, `||`, `%`, `++`, `--` (prefix, postfix),
-...), részletes táblázat itt található: <http://download.oracle.com/javase/tutorial/java/nutsandbolts/operators.html>.
+Szokásos operátorok (`==`, `!=`, `&&`, `||`, `%`, `++`, `--` (prefix, postfix), ...), részletes táblázat itt található: <http://download.oracle.com/javase/tutorial/java/nutsandbolts/operators.html>.
 
 *Fontos* Az operátorok eredményének típusa _mindig_ a bővebb paraméter típusa
 (`double d = 1 / 2;` eredménye `0.0` lesz!), de minimum `int` (pl. `byte b = 1+2` nem megy
@@ -329,26 +339,28 @@ explicit típuskényszerítés nélkül, mert itt 3 egy `int` értékként szere
 
 * Prefix és postfix operátorok (`++i`, `i++`)
 
-	``` java
+``` java
 	int i = 0;
-	System.out.println(i++); // kiir, megnovel: "0"
-	System.out.println(++i); // megnovel, kiir: "2"
-	```
+	System.out.println(i++); // kiir, megnovel: "0"  
+	System.out.println(++i); // megnovel, kiir: "2"  
+```
 
 	* Mi az eredménye (v.ö. C++)?
-	``` java
-	int i = 0;
-	System.out.println("" + i++ + ++i); // C++: architektura fuggo
-	```
+    
+``` java
+	int i = 0;  
+	System.out.println("" + i++ + ++i); // C++: architektura fuggo  
+```
 
 	* Szintén, mi lesz az eredménye?
-	```java
-	int i=0; 
+
+``` java
+	int i=0;   
 	i=i++; 
-	i=i++; 
-	i=++i; 
-	System.out.println(i);
-	```
+	i=i++;   
+	i=++i;   
+	System.out.println(i);  
+```  
 
 ### Objektumok összehasonlítása ###
 Az `equals()` metódussal: az `==` operátor referencia szerinti összehasonlítást
@@ -358,8 +370,8 @@ végez csak, nem tartalom szerintit.
 Mint az objektumokat, ugyanúgy az `equals()` függvény segítségével.
 
 ``` java
-boolean b1 = "a" == "a";      // lehet hamis!
-boolean b2 = "a".equals("a"); // mindig megfeleloen mukodik
+    boolean b1 = "a" == "a";      // lehet hamis!  
+    boolean b2 = "a".equals("a"); // mindig megfeleloen mukodik  
 ```
 
 ### Összehasonlító operátor feltételekben ###
@@ -368,11 +380,11 @@ Baloldalra lehetőleg konstanst írjunk. C++ probléma itt nem lehet, mert `0`,
 logikai feltétel, de kellemetlen helyzetek így is adódhatnak:
 
 ``` java
-boolean b = false;
-	
-if ( b = true ) {
-    // ...
-}
+    boolean b = false;  
+          
+    if ( b = true ) {  
+        // ...  
+    }  
 ```
 
 Igyekezzünk baloldalra konstansokat írni.
@@ -381,16 +393,17 @@ Igyekezzünk baloldalra konstansokat írni.
 A nyitó, záró `{`, `}` párok kirakása nem kötelező, ellenben javallott.
 
 ### Elágazások ###
+
 ``` java
-if ( ... ) {
-    ...
-} else if (...) {
-    ...
-} else if ( ... ) {
-    ...
-} else {
-    ...
-}
+    if ( ... ) {  
+        ...  
+    } else if (...) {  
+        ...  
+    } else if ( ... ) {  
+        ...  
+    } else {  
+        ...  
+    }  
 ```
 
 #### Switch ####
@@ -398,143 +411,150 @@ if ( ... ) {
 `Character`, `Byte`, `Short`, `Integer`) használható (`long` típusra *nem*).
 
 ``` java
-final int month = 8;
-switch (month) {
-    case 1:  System.out.println("Jan"); break;
-    case 2:  System.out.println("Feb"); break;
-    case 3:  System.out.println("Mar"); break;
-    case 4:
-    case 5:
-    case 6:  System.out.println("Apr, Maj vagy Jun"); break;
-    default: System.out.println("Egyeb honap");break;
-}
+    final int month = 8;
+    switch (month) {
+        case 1:  System.out.println("Jan"); break;
+        case 2:  System.out.println("Feb"); break;
+        case 3:  System.out.println("Mar"); break;
+        case 4:
+        case 5:
+        case 6:  System.out.println("Apr, Maj vagy Jun"); break;
+        default: System.out.println("Egyeb honap");break;
+    }
 ```
 
 ### Ciklusok ###
-``` java
-while ( true ) {
-     ...
-}
-	
-do {
-     ...
-} while ( true );
-	
-for (inicializalas; terminalo feltetel; leptetes) {
-    ...
-}
-	
-for ( ; ; ) {    // vegtelen ciklus
-    ...
-}
-	
-for (String act : args) {      // tombokre, iteralhato adatszerkezetekre
-    System.out.println(act);
-}
-```
+
+``` java  
+    while ( true ) {  
+         ...  
+    }  
+          
+    do {  
+         ...  
+    } while ( true );  
+          
+    for (inicializalas; terminalo feltetel; leptetes) {  
+        ...  
+    }  
+          
+    for ( ; ; ) {    // vegtelen ciklus  
+        ...  
+    }  
+        
+    for (String act : args) {      // tombokre, iteralhato adatszerkezetekre  
+        System.out.println(act);  
+    }  
+``` 
 
 ### Branching kifejezések ###
 
-``` java
-break, continue, return
-```
+    break, continue, return
 
 `goto` van, de fenntartott szó, nem működik...
+
 
 ## +/- Feladatok ##
 
 ### Print the args! ###
 Írj egy olyan programot, ami kiírja a parancsori argumentumait egymás után.
+
 ``` java
-class F1 {
-    public static void main(String[] args) {
-        if(args.length == 0) {
-            System.out.println("Nincs eleg argumentum");
-            System.exit(0);
-        }        
-    
-        for(String str : args) {
-            System.out.println(str);
+    class F1 {
+        public static void main(String[] args) {
+            if(args.length == 0) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }        
+        
+            for(String str : args) {
+                System.out.println(str);
+            }
         }
     }
-}
 ```
 
 ### Oszto-e vagy!? ###
 Készíts olyan programot, ami az elso parancsori argumentumként kapott számról eldönti, hogy osztható-e a második parancssori argumentumként kapott számmal.
-``` java
-class F2 {
-    public static void main(String[] args) {
-        if(args.length < 2) {
-            System.out.println("Nincs eleg argumentum");
-            System.exit(0);
-        }
 
-        int arg1 = Integer.parseInt(args[0]);
-        int arg2 = Integer.parseInt(args[1]);
-        System.out.println(arg2 + (arg1 % arg2 == 0 ? "" : " nem" ) +  " osztoja " 
-                                   + arg1 + "-nek!");
+``` java
+    class F2 {
+        public static void main(String[] args) {
+            if(args.length < 2) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }
+
+            int arg1 = Integer.parseInt(args[0]);
+            int arg2 = Integer.parseInt(args[1]);
+            System.out.println(arg2 + (arg1 % arg2 == 0 ? "" : " nem" ) +  " osztoja " 
+                                       + arg1 + "-nek!");
+        }
     }
-}
 ```
+
+### Szumma! ###
+Írj olyan programot, mely összeadja az összes 3-mal és 5-tel osztható számot 1000-ig.
 
 ### Faktoriális ###
 Írj programot, mely a parancssori argumentumként kapott számnak kiszámolja a faktoriálisát.
+
 ``` java
-class F3 {
-    public static int fakt(int number) {
-        if(number == 0) {
-            return 1;
-        }
-        
-        int ret = 1;
-        for(int i=1; i<=number; ++i) {
-            ret *= i;
-        }
-        return ret;
-    }
-
-    public static void main(String[] args) {
-        if(args.length == 0) {
-            System.out.println("Nincs eleg argumentum");
-            System.exit(0);
+    class F3 {
+        public static int fakt(int number) {
+            if(number == 0) {
+                return 1;
+            }
+            
+            int ret = 1;
+            for(int i=1; i<=number; ++i) {
+                ret *= i;
+            }
+            return ret;
         }
 
-        int arg = Integer.parseInt(args[0]);
-        System.out.println("A " + arg + " faktorialisa : " + fakt(arg));    
+        public static void main(String[] args) {
+            if(args.length == 0) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }
+
+            int arg = Integer.parseInt(args[0]);
+            System.out.println("A " + arg + " faktorialisa : " + fakt(arg));    
+        }
     }
-}
 ```
 
 ### Prímszám ###
 Írj olyan programot, mely a parancssori argumentumként kapott számig kiírja az összes prímszámot.
+
 ``` java
-class F4 {
+    class F4 {
 
-    public static void main(String[] args) {
-        if (args.length == 0) {
-            System.out.println("Nincs eleg argumentum");
-            System.exit(0);
-        }
+        public static void main(String[] args) {
+            if (args.length == 0) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }
 
-        int arg = Integer.parseInt(args[0]);
-        for (int i = 2; i <= arg; i++) {
-            if(isPrime(i)) {
-                System.out.println(i + " primszam.");
+            int arg = Integer.parseInt(args[0]);
+            for (int i = 2; i <= arg; i++) {
+                if(isPrime(i)) {
+                    System.out.println(i + " primszam.");
+                }
             }
         }
-    }
 
-    public static boolean isPrime(int number) {
+        public static boolean isPrime(int number) {
 
-        for(int i=2; i<number; ++i) {
-            if(number % i == 0) {
-                return false;
+            for(int i=2; i<number; ++i) {
+                if(number % i == 0) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
-}
 ```
 
 ### Fizz-Buzz Test ###
@@ -564,7 +584,7 @@ kezdőtagból kiindulva (`N<100` parancssori paraméter, ezt ellenőrizzük is!)
 egészen addig, míg `a_n = 1`! A sorozat tagjait a következő szabályok alapján
 generáljuk:
 
-![Collatz-probléma](https://github.com/rlegendi/ELTE-javagyak/raw/master/01-bevezetes/collatz_equation.png "Collatz-probléma")
+![Collatz-probléma](images/collatz_equation.png "Collatz-probléma")
 
 Példa:
 
@@ -603,4 +623,3 @@ legkisebb ilyen szám 6, 28, 496, és 8128.
 határig minden számot ellenőrizzen le, hogy tökéletes szám-e, valamint adja meg,
 hogy hány ilyen számot talált! Ha nem talált egyetlen számot sem, írja ki, hogy
 *"Egyetlen szám sincs a megadott intervallumban."*!
-

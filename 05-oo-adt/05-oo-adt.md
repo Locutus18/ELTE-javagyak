@@ -1,44 +1,56 @@
 # Absztrakt Adattípus #
 
+## Kérdések ##
+1. Milyen abstract típusokat ismersz?
+2. Mit jelent, hogy egy osztály abstract?
+3. Hasonlítsd össze az abstract osztály és az interface tulajdonságait?
+4. Mit tudsz mondani az interface metódusairól?
+5. Mit tudsz mondani az interface mezőiről?
+6. Példányosítható-e egy interface?
+7. Példányosítható-e egy abstract osztály?
+8. Meghívható-e egy abstract osztály konstruktora?
+9. Lehet-e egy metódus egyszerre `abstract` és `final`?
+10. Lehet-e egy osztály egyszerre `abstract` és `final`?
+
 Absztrakt adattípus = adatabsztrakció, absztrakt adattípus és a rajta
 értelmezett műveletek.
 
 # Emlékeztető: Object Függvények felüldefiniálása #
 
 ``` java
-public class Student { // extends Object - ha nincs megadva, implicit ez lesz
-	private String name;
-	private String ETR;
-	private int yearsAtUni;
-	  
-	// ...
-	  
-	@Override
-	public int hashCode() {
-		return name.hashCode() + ETR.hashCode() + yearsAtUni;
-	}
-	  
-	@Override
-	public boolean equals(final Object obj) {
-		if (obj instanceof Student) {
-			final Student other = (Student) obj;
+public class Student { // extends Object - ha nincs megadva, implicit ez lesz  
+    private String name;  
+    private String ETR;   
+    private int yearsAtUni;   
+        
+    // ...   
+        
+    @Override   
+    public int hashCode() {  
+        return name.hashCode() + ETR.hashCode() + yearsAtUni;  
+    }  
+        
+    @Override  
+    public boolean equals(final Object obj) {   
+        if (obj instanceof Student) {   
+            final Student other = (Student) obj;   
 
-			// Esetleges null ellenorzeseket tessek elvegezni!
-			// Itt az attekinthetoseg kedveert ettol eltekintettem.
-			return ( name.equals( other.name) &&
-				ETR.equals( other.ETR ) &&
-				yearsAtUni == other.yearsAtUni );
-		}
-	    
-		return false;
-	}
-	  
-	@Override
-	public String toString() {
-		return "Student [name=" + name + "," + "ETR=" + ETR + ", " + "yearsAtUni=" + yearsAtUni + "]";
-	}
+            // Esetleges null ellenorzeseket tessek elvegezni!    
+            // Itt az attekinthetoseg kedveert ettol eltekintettem.   
+            return ( name.equals( other.name) &&   
+                ETR.equals( other.ETR ) &&   
+                yearsAtUni == other.yearsAtUni );   
+        }     
+           
+        return false;    
+    }    
+      
+    @Override    
+    public String toString() {    
+        return "Student [name=" + name + "," + "ETR=" + ETR + ", " + "yearsAtUni=" + yearsAtUni + "]";   
+    }   
 
-}
+}   
 ```
 
 
@@ -59,78 +71,78 @@ ekkor a leszármazottnak is absztraktnak kell lennie).
 
 Példa:
 
-``` java
-abstract class Sikidom {
-	protected boolean tukorszimmetrikus;
-	
-	public Sikidom(boolean tukorszimmetrikus) {
-		this.tukorszimmetrikus = tukorszimmetrikus;
-	}
-	
-	public abstract double kerulet();
-	public abstract double terulet();
-	
-	public boolean isTukorszimmetrikus() {
-		return tukorszimmetrikus;
-	}
-	
-	public void kiir() {
-		System.out.println( "K: " + kerulet() );
-		System.out.println( "T: " + terulet() );
-	}
-}
-	
-class Kor extends Sikidom {
-	private static final double PI = 3.1415;
-	private double r = 1.0;
-	
-	public Kor() {
-		super( true );
-	}
-	  
-	@Override
-	public double kerulet() {
-		return 2 * r * PI;
-	}
-	  
-	@Override
-	public double terulet() {
-		return Math.pow( r, 2 ) * PI;
-	}
-}
-	
-class Teglalap extends Sikidom {
-	private double a = 1.0, b = 1.0;
-	  
-	public Teglalap() {
-		super( true );
-	}
-	  
-	@Override
-	public double kerulet() {
-		return 2 * ( a + b );
-	}
-	  
-	@Override
-	public double terulet() {
-		return a * b;
-	}
-}
+``` java  
+abstract class Sikidom {   
+    protected boolean tukorszimmetrikus;     
+       
+    public Sikidom(boolean tukorszimmetrikus) {   
+        this.tukorszimmetrikus = tukorszimmetrikus;    
+    }    
+       
+    public abstract double kerulet();    
+    public abstract double terulet();    
+       
+    public boolean isTukorszimmetrikus() {   
+        return tukorszimmetrikus;   
+    }   
+       
+    public void kiir() {   
+        System.out.println( "K: " + kerulet() );   
+        System.out.println( "T: " + terulet() );   
+    }    
+}   
+      
+class Kor extends Sikidom {  
+    private static final double PI = 3.1415;  
+    private double r = 1.0;   
+      
+    public Kor() {   
+        super( true );  
+    }   
+        
+    @Override  
+    public double kerulet() {  
+        return 2 * r * PI;  
+    }  
+        
+    @Override  
+    public double terulet() {  
+        return Math.pow( r, 2 ) * PI;  
+    }  
+}  
+      
+class Teglalap extends Sikidom {  
+    private double a = 1.0, b = 1.0;  
+        
+    public Teglalap() {  
+        super( true );  
+    }  
+        
+    @Override  
+    public double kerulet() {  
+        return 2 * ( a + b );  
+    }  
+        
+    @Override  
+    public double terulet() {  
+        return a * b;  
+    }  
+}  
 ```
 
 Használatra példa:
 
 ``` java
-public class Main {
-	public static void keruletKiir(Sikidom sikidom) {
-		System.out.println( sikidom.kerulet() );
-	}
-	
-	public static void main(String[] args) {
-		Sikidom s = new Kor(); // v.o. statikus-dinamikus tipus
-		keruletKiir( s );
-	}
-}
+public class Main {  
+    public static void keruletKiir(Sikidom sikidom) {  
+        System.out.println( sikidom.kerulet() );  
+    }   
+      
+    public static void main(String[] args) {   
+        Sikidom s = new Kor(); // v.o. statikus-dinamikus tipus   
+        keruletKiir( s );   
+    }   
+}   
 ```
 
 ## Interfészek ##
@@ -157,7 +169,7 @@ Mint az osztályoké:
 
 ``` java
 interface A {}
-	
+    
 public interface B {}
 ```
 
@@ -184,8 +196,8 @@ fordítási hibát kapunk), és ez csak már ismert érték lehet
 
 ``` java
 interface I {
-	int A = B; // Hibas definicio!
-	int B = 0;
+    int A = B; // Hibas definicio!
+    int B = 0;
 }
 ```
 
@@ -198,16 +210,16 @@ Főleg tulajdonságok, viselkedés hozzáadására. Például:
 
 ``` java
 interface Beolvashato {
-	public abstract void beolvas();
+    public abstract void beolvas();
 }
-	
+    
 class Kor implements Beolvashato {
-	...
-	
-	public void beolvas() {
-		String sor = Console.readLine("r = ?");
-		r = Integer.parseInt( sor );
-	}
+    ...
+    
+    public void beolvas() {
+        String sor = Console.readLine("r = ?");
+        r = Integer.parseInt( sor );
+    }
 }
 ```
 
@@ -220,7 +232,7 @@ class Kor implements Beolvashato {
 ### Interfész ###
 ``` java
 public interface GroupedInterface
-	extends Interface1, Interface2, Interface3 { ... }
+    extends Interface1, Interface2, Interface3 { ... }
 ```
 
 vagy például:
@@ -232,17 +244,18 @@ class A extends B implements I1, I2 { ... }
 > **Részletesen** <http://download.oracle.com/javase/tutorial/java/IandI/interfaceDef.html>
 
 ### Absztrakt osztályra példa ###
+
 ``` java
 public abstract class Point {
-	private int x = 1, y = 1;
+    private int x = 1, y = 1;
 
-	public void move(final int dx, final int dy) {
-		x += dx;
-		y += dy;
-		alert();
-	}
+    public void move(final int dx, final int dy) {
+        x += dx;
+        y += dy;
+        alert();
+    }
 
-	protected abstract void alert();
+    protected abstract void alert();
 }
 ```
 
@@ -310,8 +323,8 @@ absztrakt osztályát (`AKodolo`), amely a következő definíciókat tartalmazz
 
 ``` java
 public abstract class AKodolo {
-	public abstract String kodol(String eredeti);
-	public abstract String dekodol(String kodolt);
+    public abstract String kodol(String eredeti);
+    public abstract String dekodol(String kodolt);
 }
 ```
 
@@ -342,11 +355,11 @@ Készíts egy `Util` osztályt, amely a következő definíciót tartalmazza:
 
 ``` java
 public final class Util {
-	public static ASorozat beolvas() {
-		//...
-	}
-		
-	private Util() {}
+    public static ASorozat beolvas() {
+        //...
+    }
+        
+    private Util() {}
 }
 ```
 

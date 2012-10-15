@@ -1,5 +1,27 @@
 # Objektumorientált alapok #
 
+## Kérdések ##
+1. Mit jelent, hogy hatókör?
+2. Mit jelent, hogy élettartam?
+3. Mi a motívációja az osztályok bevezetésének?
+4. Mi az osztály és mi az objektum?
+5. Mivel hozunk létre objektumot? Beszélj a `new` operátorról!
+6. Mit jelent az enkapszuláció?
+7. Mit jelent az adatelrejtés?
+8. Mit jelent az egyszeres és a többszörös öröklődés?
+9. Hol helyezkedik el az Object osztály az öröklődési láncban?
+10. Mit jelent a felüldefiniálás?
+11. Hogy lehet megtiltani a függvény felüldefiniálását?
+12. Hogy lehet megtiltani az osztályból való öröklődést?
+13. Mit jelent hogy egy mező konstans?
+14. Hol tudok inicializálni egy konstansot?
+15. Mire használható az `@Override` annotáció?
+16. Mit jelent a `static`?
+17. Hol használhatjuk ezt?
+18. Mi a különbség az osztály- és a példányváltozók, illetve -metódusok között?
+19. Mit jelent a `super`?
+20. Mi az a statikus blokk?
+
 ## Hatókör, Élettartam ##
 Alapvető fogalmak:
 
