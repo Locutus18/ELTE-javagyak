@@ -308,7 +308,7 @@ dimenziós tömböt!
 	Példa (az `asMatrix()` függvényt csak adja vissza Stringet!):
 	
 	``` java
-	doule[][] arr = new double[3][3];
+	double[][] arr = new double[3][3];
 	arr[1][1] = 1
 	System.out.println( asMatrix( arr) );
 	```
