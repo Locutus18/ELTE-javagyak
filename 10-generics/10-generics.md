@@ -61,7 +61,7 @@ A megoldás a wildcard használata: `Collection<?>` minden kollekcióra ráillik
 Ilyenkor `Objectként` hivatkozhatunk az elemekre:
 
 ``` java
-void print(Collection<?> c) {
+void print(Collection< ? > c) {
 	for (Object o : c) System.out.println(o);
 }
 ```
@@ -70,7 +70,7 @@ Vigyázat! A `? != Object`! Csak egy ismeretlen típust jelent. Így a következ
 kódrészlet is fordítási hibához vezet:
 
 ``` java
-List<?> c = ...;
+List< ? > c = ...;
 l.add(new Object()); // forditasi hiba
 ```
 
@@ -95,14 +95,14 @@ Probléma: `func()` csak `List<Super>` paraméterrel hívható meg, `List<Sub1>`
 `List<Sub2>` nem lehet paramétere (nem altípus). Megoldás: *bounded wildcard*:
 
 ``` java
-void func(List<? extends Super> l) {...}
+void func(List< ? extends Super> l) {...}
 ```
 
 Belepakolni ugyanúgy nem tudunk, mint a `?` esetén, azaz erre fordítási hibát
 kapunk:
 
 ``` java
-void func(List<? extends Super> l) {
+void func(List< ? extends Super> l) {
 	l.add(new Sub1()); // reccs
 }
 ```
@@ -183,7 +183,161 @@ public class ArrayUtils {
 
 > **Részletesen:** <http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf>
 
-## Feladatok ##
+## Bemelegítő feladat ##
+
+Valósítsuk meg a generikus Stack adatszerkezetet.
+Rendelkezzen két konstruktorral. Egy paraméterek nélküli és egy `int` típusú paramétert váróval.
+Abban az esetben, ha a paraméteres konstruktort hívjuk meg, figyeljünk arra, hogy a paraméterben megadott értéknél több elem nem kerülhet a verembe.
+Üres konstruktorhívás esetén végtelen (memória nagyságtól függően) mennyiségű adatot tudunk eltárolni.
+A stack adatszerkezet az alábbi öt művelettel rendelkezik.
+ 
+ * `push(T)`: `void`  :: berak egy elemet a verembe
+ * `pop()`: `T`  :: kivesz egy elemet a veremből
+ * `top()`: `T`  :: visszatér a verem tetején lévő elemmel.
+ * `size()`: `int`  :: visszatér a veremben lévő elemek számával
+ * `isEmpty()`: `boolean`  :: üres verem esetén igaz (true), más esetben hamis (false) a visszatérési értéke
+
+Dobjunk `FullStackException` kivételt, ha tele verem esetén meghívásra kerül a push művelet.
+Dobjunk `EmptyStackException` kivételt, ha üres veremre hívjuk meg a top és pop műveleteket.
+
+*Egy megoldás:*
+
+``` java
+package stackdemo;
+
+import stackdemo.util.Stack;
+import stackdemo.util.FullStackException;
+import stackdemo.util.EmptyStackException;
+
+public class StackDemo {
+
+    public static void main(String[] args) throws EmptyStackException {
+        Stack<Integer> sInt = new Stack<Integer>();
+        Stack<Character> sChar = new Stack<Character>(5);
+
+        try {
+            for (int i = 0; i < 10; ++i) {
+                // Berakjuk az elemekt: 0..9
+                sInt.push(i);
+            }
+        } catch (FullStackException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println(sInt.top());  // 9
+        for (int i = 0; i < 5; ++i) {
+            System.out.println(sInt.pop()); //9..5
+        }
+        System.out.println(sInt.top());  // 4
+        System.out.println(sInt.size());  // 5
+        System.out.println(sInt.isEmpty());  // false
+        for (int i = 0; i < 5; ++i) {
+            System.out.println(sInt.pop()); //4..0
+        }
+        System.out.println(sInt.isEmpty());  // true
+
+        try {
+            for (int i = 0; i < 6; ++i) {
+                sChar.push(Character.forDigit(i, 10));
+            }
+        } catch (FullStackException ex) {
+            ex.printStackTrace();
+        }
+    }
+}
+```
+
+``` java
+package stackdemo.util;
+
+/*
+ * Valósítsuk meg a generikus Stack adatszerkezetet.
+ * Rendelkezzen két konstruktorral. Egy paraméterek nélküli és egy int paramétert váróval.
+ * Abban az esetben, ha a paraméteres konstruktort hívjuk meg, figyeljünk arra, hogy a paraméterben megadott értéknél több elem nem kerülhet a verembe.
+ * Üres konstruktorhívás esetén végtelen (memória nagyságtól függően) mennyiségű adatot tudunk eltárolni.
+ * A stack adatszerkezet az alábbi öt művelettel rendelkezik.
+ *  * push(T): void  :: berak egy elemet a verembe
+ *  * pop(): T  :: kivesz egy elemet a veremből
+ *  * top(): T  :: visszatér a verem tetején lévő elemmel.
+ *  * size(): int  :: visszatér a veremben lévő elemek számával
+ *  * isEmpty(): boolean  :: üres verem esetén igaz (true), más esetben hamis (false) a visszatérési értéke
+ * Dobjunk FullStackException kivételt, ha tele verem esetén meghívásra kerül a push művelet.
+ * Dobjunk EmptyStackException kivételt, ha üres veremre hívjuk meg a top és pop műveleteket.
+ * */
+
+import java.util.List;
+import java.util.LinkedList;
+
+public class Stack<T> {
+    private List<T> stack = new LinkedList<T>();
+    private int maxSize = -1;   // -1 a kezdeti érték. Ha nem kerül átállításra a konstruktorban, akkor sem lesz gond maxSize == size() esetén.
+
+    public Stack() {
+    }
+
+    public Stack(int size) {
+        this.maxSize = size;
+    }
+
+    public void push(T e) throws FullStackException {
+        // Azért állítottuk a maxSize kezdeti értékét -1-re, hogy a push akkor is működjön, ha paraméter nélküli konstruktort hívtunk példányosításnál.
+        if(this.maxSize == this.size()) {
+            throw new FullStackException();
+        }
+        this.stack.add(e);
+    }
+
+    public T pop() throws EmptyStackException {
+        if(this.stack.size() == 0) {
+            throw new EmptyStackException();
+        }
+        T e = this.stack.get(this.stack.size() - 1);
+        //this.stack.remove(this.stack.size() - 1);
+        this.stack.remove(e);
+        return e;
+    }
+
+    public T top() {
+        return this.stack.get(this.stack.size() - 1);
+    }
+
+    public int size() {
+        return this.stack.size();
+    }
+
+    public boolean isEmpty() {
+        return this.stack.isEmpty();
+    }
+}
+```
+
+``` java
+package stackdemo.util;
+
+public class EmptyStackException extends Exception{
+    public EmptyStackException() {
+    }
+    
+    public EmptyStackException(String msg) {
+        super(msg);
+    }
+   
+}
+```
+
+``` java
+package stackdemo.util;
+
+public class FullStackException extends Exception {
+    public FullStackException() {
+    }
+    
+    public FullStackException(String msg) {
+        super(msg);
+    }
+}
+```
+
+## További feladatok ##
 
 A megoldáshoz készített osztályokat tegyétek a `javagyak.generics` csomagba,
 valamint a teszteléshez használt osztályokat (amik a `main()` definícióit is
