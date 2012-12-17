@@ -337,6 +337,272 @@ public class FullStackException extends Exception {
 }
 ```
 
+Írjunk raktárnyilvántartó programot.
+Olvassuk be az adatokat egy fájlból, melyenk felépítése a következő:
+típus : id : nev : ... egyéb adatok
+ruha:id:nev:meret:ár
+etel:id:nev:lejarat:ár
+butor:id:nev:fő részére:ár
+
+Írjunk egy raktár (Raktar) osztályt, mely tartalmazza az összes fáljban lévő terméket.
+Gyűjtsd külön a különböző típusú termékeket, ehhez használj Map<String, List<T>> adatszerkezetet.
+
+A Raktár osztály a következő függvényeket tartalmazza: 
+
+    * add(T):void
+    * remove(T):void Kitörli az első objectet, ami megegyezik T-vel
+    * removeAll(T): void Kitörli az összes elemet.
+    * removeAll(String key):void
+    * size(): int
+    * size(String key):int
+    * get(int id): T
+    * getAll(String key): List<T>
+
+Inputtext:
+ruha:111:pulover:S:12
+etel:112:konzerv:2025:25
+butor:113:kerti pad:6:250
+etel:114:szilva:2012:25
+etel:115:szilva:2012:25
+butor:116:sofa:2:25
+ruha:117:pulover:M:25
+etel:118:szilva:2012:25
+etel:119:szilva:2012:25
+etel:120:szilva:2012:25
+etel:121:szilva:2012:25
+etel:122:szilva:2012:25
+
+
+``` java
+package szallitmanydemo;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import szallitmanydemo.entities.Etel;
+import szallitmanydemo.entities.Ruha;
+import szallitmanydemo.entities.Termek;
+import szallitmanydemo.util.Raktar;
+
+public class SzallitmanyDemo {
+
+    private final static String RUHA = "ruha";
+    private final static String ETEL = "etel";
+    private final static String BUTOR = "butor";
+    
+    public static void main(String[] args) {
+        Raktar<Termek> raktar = readFromFile(args[0]);   
+        System.out.println(raktar.get(115));
+        System.out.println(raktar.size());
+        System.out.println(raktar.size(ETEL));
+        System.out.println(raktar.remove(raktar.get(115)));
+        raktar.removeAll(raktar.get(114));
+        for(Termek t : raktar.getAll(ETEL)) {
+            System.out.println(t);
+        }
+    }
+    
+    public static Raktar<Termek> readFromFile(String fileName) {
+        Raktar<Termek> retRaktar = new Raktar<Termek>();
+        Scanner sc = null;
+        try {
+            sc = new Scanner(new File(fileName));
+            while(sc.hasNextLine()) {
+                String[] datas = sc.nextLine().split(":");
+                if(RUHA.equals(datas[0].trim())) {
+                    retRaktar.add(new Ruha(
+                                    Integer.parseInt(datas[1].trim()),
+                                    datas[0].trim(),
+                                    datas[2].trim(),
+                                    Integer.parseInt(datas[4].trim()),
+                                    datas[3].trim()));
+                } else if(ETEL.equals(datas[0].trim())) {
+                    retRaktar.add(new Etel(
+                                    Integer.parseInt(datas[1].trim()),
+                                    datas[0].trim(),
+                                    datas[2].trim(),
+                                    Integer.parseInt(datas[3].trim()),
+                                    Integer.parseInt(datas[4].trim())));
+                } else if(BUTOR.equals(datas[0].trim())) {
+                    retRaktar.add(new Etel(
+                                    Integer.parseInt(datas[1].trim()),
+                                    datas[0].trim(),
+                                    datas[2].trim(),
+                                    Integer.parseInt(datas[3].trim()),
+                                    Integer.parseInt(datas[4].trim())));
+                }
+            }
+        } catch(FileNotFoundException ex) {
+            ex.printStackTrace();
+        } finally {
+            if( sc != null) {
+                sc.close();
+            }
+        }        
+        return retRaktar;
+    }    
+}
+
+```
+
+``` java
+package szallitmanydemo.util;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import szallitmanydemo.entities.Termek;
+
+public class Raktar<T extends Termek> {
+    private Map<String, List<T>> raktar = new LinkedHashMap<String, List<T>>();
+    
+    public void add(T e) {   
+        if(this.raktar.containsKey(e.getTipus())) {
+            List<T> l = this.raktar.get(e.getTipus());
+            l.add(e);
+        } else {
+            List<T> l = new LinkedList<T>();
+            l.add(e);
+            this.raktar.put(e.getTipus(), l);
+        }
+    }
+    
+    public boolean remove(T e) {
+        List<T> list = this.raktar.get(e.getTipus());
+        return list.remove(e);
+    }
+    
+    public void removeAll(T e) {
+        List<T> list = this.raktar.get(e.getTipus());
+        for(int i=list.size()-1; i>=0; --i) {
+            T t = list.get(i);
+            if(e.getNev().equals(t.getNev())) {
+                list.remove(t);
+            }
+        }
+    }
+    
+    public void removeAll(String key) {
+        this.raktar.remove(key);
+    }
+    
+    public int size() {
+        int count = 0;
+        for(String s : this.raktar.keySet()) {
+            count += this.raktar.get(s).size();
+        }
+        return count;
+    }
+    public int size(String key) {
+        return this.raktar.get(key).size();
+    }
+
+    public T get(int id) {
+        for(String key : this.raktar.keySet()) {
+            for(T t : this.raktar.get(key)) {
+                if(t.getId() == id) {
+                    return t;
+                }
+            }
+        }
+        return null;
+    }
+    
+    public List<T> getAll(String key) {
+        List<T> retList = this.raktar.get(key);
+        return retList;
+    }
+    
+}
+
+```
+
+``` java
+package szallitmanydemo.entities;
+
+public class Termek {
+    private final int id;
+    private final String tipus;
+    private final String nev;
+    private final int ar;
+    public Termek(final int id, final String tipus, final String nev, final int ar) {
+        this.id = id;
+        this.tipus = tipus;
+        this.nev = nev;
+        this.ar = ar;
+    }
+    
+    public int getId() {
+        return this.id;
+    }
+    public String getTipus() {
+        return this.tipus;
+    }
+    public String getNev() {
+        return this.nev;
+    }
+    public int getAr() {
+        return this.ar;
+    }
+    
+    public String toString() {
+        return this.id + ":" + this.nev;
+    }
+    
+}
+```
+
+``` java
+package szallitmanydemo.entities;
+
+public class Ruha extends Termek {
+    private final String meret;
+    public Ruha(final int id, final String tipus, final String nev, final int ar, final String meret) {
+        super(id, tipus, nev, ar);
+        this.meret = meret;
+    }
+    
+    public String getMeret() {
+        return this.meret;
+    }
+}
+```
+
+``` java
+package szallitmanydemo.entities;
+
+public class Etel extends Termek {
+    private final int lejarat;
+    public Etel(final int id, final String tipus, final String nev, final int ar, final int lejarat) {
+        super(id, tipus, nev, ar);
+        this.lejarat = lejarat;
+    }
+    
+    public int getLejarat() {
+        return this.lejarat;
+    }
+}
+```
+
+``` java
+package szallitmanydemo.entities;
+
+public class Butor extends Termek {
+    private final int foReszere;
+    public Butor(final int id, final String tipus, final String nev, final int ar, final int foReszere) {
+        super(id, tipus, nev, ar);
+        this.foReszere = foReszere;
+    }
+    
+    public int getFoReszere() {
+        return this.foReszere;
+    }
+}
+```
+
+
 ## További feladatok ##
 
 A megoldáshoz készített osztályokat tegyétek a `javagyak.generics` csomagba,
