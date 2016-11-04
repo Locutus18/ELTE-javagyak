@@ -1,0 +1,268 @@
+<h1>Reflection</h1>
+
+<p><em>"Önelemzés"</em> - futás közben a program lekérdezheti a lehetőségeit, milyen
+részekből áll, etc. Lehetőségek: program passzív vizsgálata (pl. ahol a program
+publikus szolgáltatásainak felderítése, <em>Java Beans</em>), ill. korlátozottan egyes
+részek módosítása (pl. láthatóság).</p>
+
+<p>A <em>Java Core Reflection</em> erősen típusos, biztonságos felület osztályok,
+objektumok vizsgálatára, használható a következőkre (amennyiben a biztonsági
+szabályok ezt lehetővé teszik):</p>
+
+<ul>
+<li>új objektumok, tömbök létrehozása</li>
+<li>adattagok lekérdezése, módosítása</li>
+<li>függvények lekérdezése, meghívása</li>
+<li>tömbelemek lekérdezése, módosítása</li>
+<li>új osztályok létrehozása</li>
+</ul>
+
+<p>Fontos osztályok: <code>java.lang.reflect.*</code> csomag:</p>
+
+<ul>
+<li><code>Field</code>, <code>Method</code>, <code>Constructor</code> adattagok, függvények (<code>invoke(...)</code>),
+konstruktorok (<code>newInstance(...)</code>) lekérdezéséhez</li>
+<li><code>Class</code> osztály-, ill. interfész információk eléréséhez</li>
+<li><code>Package</code> csomagok kezeléséhez</li>
+<li><code>Proxy</code> új osztályok létrehozásához</li>
+<li><code>Array</code> tömbök dinamikus létrehozása, lekérdezése</li>
+<li><code>Modifier</code> módosítók visszafejtésében segít (<code>public</code>, <code>protected</code>, <code>final</code>, etc.)</li>
+</ul>
+
+<h2>Class</h2>
+
+<p>Objektumreferencia megszerzése:</p>
+
+<ul>
+<li><p>Objektumtól lekérdezhető:</p>
+
+<p><code>java
+Class&lt;?&gt; clazz = this.getClass();
+</code></p></li>
+<li><p>Osztálytól lekérdezhető:</p>
+
+<p><code>java
+Class&lt;?&gt; intClazz = int.class;
+</code></p></li>
+<li><p>Közvetlenül név szerint lekérdezhető:</p>
+
+<p><code>java
+Class&lt;?&gt; clazz = Class.forName("java.lang.Boolean");
+</code></p></li>
+<li><p>Új osztály létrehozása:</p>
+
+<p><code>java
+Proxy.getProxyClass(clazz.getClassLoader(), clazz.getInterfaces());
+</code></p></li>
+</ul>
+
+<h2>Példa</h2>
+
+<p>``` java
+package reflection;</p>
+
+<p>import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;</p>
+
+<p>public class ReflectionTest {
+    public static void analyze(final Class<?> clazz) {
+        System.out.println("Osztaly neve: " + clazz.getName());
+        System.out.println("Csomagja: " + clazz.getPackage());
+        System.out.println("Osossztalyanak neve: " + clazz.getSuperclass());</p>
+
+<pre><code>    System.out.println("Deklaralt public fuggvenyek:");
+    for ( final Method act : clazz.getDeclaredMethods() ) {
+        if ( Modifier.isPublic( act.getModifiers() ) ) {
+            System.out.println(act.getName());
+        }
+    }
+}
+
+public static void main(final String[] args) {
+    analyze( ReflectionTest.class );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Feladatok</h3>
+
+<p>Készíts egy programot, amely egyetlen parancssori argumentumot kap, egy osztály
+teljes hivatkozási nevét (<em>fully qualified name</em>), és</p>
+
+<ul>
+<li>eldönti, hogy az adott osztály belső, névtelen, vagy lokális osztály-e. Ha
+egyik sem, akkor nézze meg, hogy felsorolási típus, annotáció vagy interfész-e
+(<em>a sorrendre figyeljetek, mert az annotáció is interfésznek minősül</em>).</li>
+<li>bejárja az osztályban deklarált összes adattagot, és kiírja azok nevét,
+típusát, és módosítószavait.</li>
+<li>megkeresi az osztály összes publikus, deklarált konstruktorát, valamint
+kiírja azok paramétereinek a számát.</li>
+<li>lekérdezi az összes adattagot, és megnézi, hogy hányhoz van getter, setter
+függvény definiálva, valamint hány olyan van, amelyhez mindkettő definiálva
+van.</li>
+<li>megvizsgálja, hogy az adott osztálynak van-e nullary (zero-arg) konstruktora,
+és ha talál ilyet, csinál belőle egy példányt, valamint az alapértelmezett
+<code>toString()</code> függvényének a segítségével kiírja a képernyőre.</li>
+<li>kiírja az összes (azaz nem csak a deklarált!) függvény módosítószavait,
+visszatérési értékének típusát, nevét, valamint paramétereinek típusát.</li>
+<li>végigmegy az adott osztály összes statikus függvényén, és készít egy listát az
+ezen függvények által dobható kivételekről.</li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletek</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/lang/reflect/package-frame.html">http://download.oracle.com/javase/6/docs/api/java/lang/reflect/package-frame.html</a></p>
+
+<p><strong>Megjegyzés</strong> Primitív típusok (+<code>void</code>), pl. <code>boolean</code> reprezentációjának
+  <code>Class</code> példánya <code>java.lang.Boolean.TYPE</code> (ezeknek van egy rövidebb formája
+  is, jelen esetben ez a <code>boolean.class</code>, többinél ugyanígy).</p>
+</blockquote>
+
+<h2>Tömbök</h2>
+
+<p>Az <code>Array</code> osztály segítségével manipulálhatók az elemek (getter, setter
+függvények), új tömbök hozhatók létre (<code>newInstance()</code>), ill. a <code>Class</code>
+osztálynak vannak hasznos függvényei, pl.:</p>
+
+<p>``` java
+package reflection;</p>
+
+<p>public class ReflectionArrayTest {
+    public static void arrayTest(final Class<?> clazz) {
+        if ( ! clazz.isArray()) {
+            System.out.println("Nem tomb");
+            return;
+        }</p>
+
+<pre><code>    Class&lt;?&gt; act = clazz;
+    int dim = 0;
+    while (act.isArray()) {
+        act = act.getComponentType();
+        dim++;
+    }
+
+    System.out.println( dim + " dimenzios");
+    System.out.println( "Belso tipusa: " +
+            act.getSimpleName());
+}
+
+public static void main(final String[] args) {
+    arrayTest( new int[][] { {1, 2}, {3}}.getClass() );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Hülye jelölés, nem szívrohamot kapni:</p>
+</blockquote>
+
+<p>``` java
+int[][] arr = { {1, 2}, {3} };
+System.out.println( arr );</p>
+
+<p>// Eredmeny: [[I@42e816
+```</p>
+
+<p>Ok: <code>B</code> - <code>byte</code>, <code>C</code> - <code>char</code>, <code>D</code> - <code>double</code>, <code>F</code> - <code>float</code>, <code>I</code>- <code>int</code>,
+<code>J</code> - <code>long</code>, <code>Losztálynév</code> - osztály vagy interfész, <code>S</code> - <code>short</code>,
+<code>Z</code> - <code>boolean</code>, <code>[</code> - tömb</p>
+
+<h3>Feladat</h3>
+
+<p>Készítsünk egy programot, amely képes létrehozni egy adott típusú tömböt, majd
+az elemeit beállítani egy kitüntetett értékre. A program a paramétereket
+parancssori argumentumként kapja (elég a 8 primitív típusra felkészülni,
+valamint <code>String</code> objektumokra).</p>
+
+<h3>Feladat</h3>
+
+<p>Készíts egy mélységi <code>String deepToString(Object[] arr)</code> segédeljárást
+tömbökhöz! A függvénynek egyetlen paramétere legyen: a kiírni kívánt tömb. A
+függvény menjen végig a az elemeken, és vizsgálja meg őket. Ha az nem tömb,
+akkor fűzze hozzá a szöveges reprezentációját az objektumnak a visszaadott
+Stringhez. Ha tömb, akkor vizsgálja meg mind a nyolc primitív típusra
+(<code>elementClass == byte[].class</code>, etc.), és annak megfelelően dolgozza fel az
+elemeket. Ha nem primitív típus az elemtípus, akkor hívja meg a rekurzív
+függvényt újabb feldolgozásra!</p>
+
+<h2>Függvények</h2>
+
+<p>Függvényeket meg is tudunk hívni, ld. <code>Method#invoke(Object o, Object... args)</code>
+függvény. Ha a függvény statikus, akkor az első paraméter lehet <code>null</code>
+(<em>különben reccs</em>), paraméterlista lehet üres, visszatérési értéke egy
+<code>Object</code>. Példa:</p>
+
+<p>``` java
+package reflection;</p>
+
+<p>import java.lang.reflect.Method;</p>
+
+<p>public class Invoking {
+    public static int add(final int a, final int b) {
+        return a + b;
+    }</p>
+
+<pre><code>public static void main(final String[] args) throws Exception {
+    final Method method = Invoking.class.getMethod("add",
+        new Class[] {
+            Integer.TYPE, Integer.TYPE
+        });
+
+    System.out.println( method.invoke(null, 1, 2) );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Feladat</h3>
+
+<p>Készíts egy tetszőleges objektumot, majd reflection segítségével keresd meg az
+összes, paraméter nélküli getter függvényét! Ezeket hívd is meg reflection
+segítségével, és az eredményüket írd ki a képernyőre!</p>
+
+<h2>Feladatok</h2>
+
+<h3>Osztályhierarchia</h3>
+
+<p>Készítsünk egy programot, amely képes egy adott osztály osztályhierarchiáját
+előállítani, valamint meg tudja mondani, hogy pontosan milyen interfészeket
+implementál (az ősosztályok által implementáltakat is)! Az osztály nevét
+parancssori argumentumként kapjuk. Példa:</p>
+
+<p>``` java
+interface I1 {}
+interface I2 extends I1 {}</p>
+
+<p>class A implements I2 {}
+class B extends A {}
+```</p>
+
+<p>A <code>B</code> osztály vizsgálata esetén a következő listát adja vissza a program:</p>
+
+<pre><code>[class reflection.B, class reflection.A, interface reflection.I2,
+  interface reflection.I1, class java.lang.Object]
+</code></pre>
+
+<h3>Here be dragons!</h3>
+
+<p>Bizonyítsd be, hogy a <code>String</code> osztály csak gyengén tekinthető <em>immutable</em>
+osztálynak (azaz reflection segítségével kiügyeskedhető az általa reprezentált
+szöveg megváltoztatása)!</p>
+
+<p>A szöveg legyen ugyanolyan hosszú, de egy karakterét tetszőlegesen változtasd
+meg. A program megírásához szükséged lesz a String osztály forráskódjára
+(esetleg reflectionnel történő vizsgálatára), ezt a <code>JDK/src.zip</code> fájlban
+találhatod meg (vagy a különböző IDE-k segíthetnek a felkutatásában, pl. Eclipse
+alatt a <em>Ctrl + Snift + T</em> billentyűkombináció).</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az ilyesmivel azért csak offtosan! Mivel magában a
+reprezentációban turkálunk, anélkül, hogy figyelnénk az objektum
+konzisztenciájának megőrzésére, gondok lehetnek a használatából (pl. a
+<code>String#hashCode()</code> is lazy instantiationnel cache-eli az eredményt)! Ugyanakkor
+- sajnos - néha elkerülhetetlen, ilyenkor rendkívül hasznos tud lenni ez a csel.</p>
+</blockquote>

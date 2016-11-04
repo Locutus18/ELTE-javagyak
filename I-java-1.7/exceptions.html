@@ -1,0 +1,154 @@
+<h1>Továbbfejlesztett típusellenőrzés: eltérő típusú kivételek egyidejű elkapása, kivételek újradobása</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.7 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Magyarkuti Barnának! </p>
+
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/language/catch-multiple.html">http://docs.oracle.com/javase/7/docs/technotes/guides/language/catch-multiple.html</a></p>
+</blockquote>
+
+<hr />
+
+<p>Ebben a fejezetben a következő témákat dolgozzuk fel:</p>
+
+<ul>
+<li>Eltérő típusú kivételek egyidejű kezelése</li>
+<li>Kivételek újradobása átfogobb típusellenőrzéssel</li>
+</ul>
+
+<h2>Eltérő típusú kivételek egyidejű kezelése</h2>
+
+<p>A Java 7 SE-től kezdődően egyetlen <code>catch</code>-blokk több, eltérő típusú
+kivétel kezelésére is alkalmas. A fejlesztők azt remélik, az új
+szolgáltatás révén kevesebbszer kell majd leprogramoznunk ugyanazt a kódot,
+és csökken az a kísértés is, hogy a fában túlságosan magasan definiált kivételt
+kapjunk el (pl. az <code>Exception</code>-t vagy a <code>Throwable</code>-t).</p>
+
+<p>Vegyük a következő kódot, melyben a <code>catch</code>-blokkok ugyanazt a feladatot
+hajtják végre:</p>
+
+<pre><code>catch (IOException ex) {
+    logger.log(ex);
+    throw ex;
+catch (SQLException ex) {
+    logger.log(ex);
+    throw ex;
+}
+</code></pre>
+
+<p>A 7-es kiadás előtt nehez lett volna megúszni a többszöri kódolást - még
+függvénybe sem tudtuk kiszervezni a többször felhasznált részletet, mivel
+az <code>ex</code> típusa a két <code>catch</code>-blokkban eltérő.</p>
+
+<p>Java 7 alatt azonban a következő példa már lefordul, ebben pedig már nem
+kell kétszer kódolnunk.</p>
+
+<pre><code>catch (IOException|SQLException ex) {
+    logger.log(ex);
+    throw ex;
+}
+</code></pre>
+
+<p>A <code>catch</code> által bevezetett kódrészlet két, különböző fajta
+kivételt kap el - a különböző típusok elválasztására az új
+szabályok a függőleges vonalat (<code>|</code>) írják elő.</p>
+
+<p><em>Megjegyzés:</em> Ha egyetlen <code>catch</code>-blokk eltérő típusú kivételeket kap el,
+az argumentumként megadott változó mindenképpen <code>final</code> lesz. A fenti
+kódban így az <code>ex</code> egy <code>final</code> változó, melyhez a <code>catch</code>-blokkon belül nem
+tudunk másik értéket rendelni.</p>
+
+<p>Amikor olyan kódot fordítunk, melyben egyetlen <code>catch</code>-blokk több különböző
+kivételt kezel, az előálló bájtkód kisebb lesz, mintha a fordítást olyan
+kódon végeztük volna, melyben <code>catch</code>-blokkok sorozata állt, és mindegyikük
+csak egyfajta kivételt kezelt le - az új szolgáltatás tehát hatékonyabb
+is. Ha tehát a <code>catch</code>-blokk egyidejűleg kezel többfajta kivételt, a fordító
+által előállított bájtkódban is csökken a redundancia, hiszen a bájtkódban sem
+ismétlődnek a kivételkezelést végző kódszakaszok.</p>
+
+<h2>Kivételek újradobása az Átfogóbb Típusellenőrzéssel</h2>
+
+<p>A Java 7 SE-ben lévő fordítóprogram alaposabban vizsgálja meg az újradobott
+kivételeket, mint ahogy az a korábbi verziókban történt. Így a
+függvénydeklarációk <code>throws</code> szakaszában pontosabban meghatározhatjuk majd,
+milyen kivételt dob a metódusunk.</p>
+
+<p>Vizsgáljuk meg a következő példát:</p>
+
+<pre><code>static class FirstException extends Exception { }
+static class SecondException extends Exception { }
+
+public void rethrowException(String exceptionName) throws Exception {
+    try {
+        if (exceptionName.equals("First")) {
+            throw new FirstException();
+        } else {
+            throw new SecondException();
+        }
+    } catch (Exception e) {
+        throw e;
+    }
+}
+</code></pre>
+
+<p>A példában szereplő <code>try</code>-blokk <code>FirstException</code>t vagy <code>SecondException</code>t
+dobhat. Ha azonban ezeket a típusokat a <code>rethrowException</code> deklarálásakor
+szeretnénk megnevezni, a 7-es Java előtt nem lenne rá lehetőségünk. Mivel a
+<code>catch</code>-kifejezés paramétere (a példánkban: <code>e</code>) <code>Exception</code>, a
+<code>catch</code>-blokk pedig ilyen típusú változót (sőt, ezt!) dobja újra, a
+<code>rethrowException</code> deklarációjában megjelenő <code>throws</code>-kifejezésben csak az
+<code>Exception</code>t jelölhetjük meg.</p>
+
+<p>A 7-es Javától kezdődően azonban már a <code>FirstException</code>t és a
+<code>SecondException</code>t is megadhatjuk a <code>rethrowException</code> deklarációjában lévő
+<code>throws</code>-kifejezésben. A Java SE 7 fordító ugyanis rájön, hogy a <code>throw e</code>
+kifejezésben szereplő változó csak a <code>try</code>-blokkból érkezhet, és hogy a
+blokk kizárólag <code>FirstException</code>t vagy <code>SecondException</code>t dobhat. Hiába
+tehát, hogy a <code>catch</code>-kifejezésben <code>Exception</code>t kapunk el; a fordító
+megérti, hogy az elkapott példányok valójában a <code>FirstException</code> vagy a
+<code>SecondException</code> lesznek:</p>
+
+<pre><code>public void rethrowException(String exceptionName)
+  throws FirstException, SecondException {
+    try {
+        // ...
+    } catch (Exception e) {
+        throw e;
+    }
+}
+</code></pre>
+
+<p>Ha a <code>catch</code>-kifejezés paraméterét a <code>catch</code>-blokkban később egy másik
+változónak értékül adjuk, a részletesebb elemzés nem történik meg. Ha
+tehát a <code>catch</code>-kifejezés paraméterét egy másik változóhoz rendeljük, a
+függvénydeklaráció <code>throws</code>-kifejezésében csak az <code>Exception</code>-t
+jelölhetjük meg.</p>
+
+<p>Részletesebben: a Java 7-től kezdődően, amikor egy <code>catch</code>-kifejezésben
+megadunk egy (vagy több) kivételtípust, majd ezt a kezelés során
+újradobjuk, a fordító ellenőrzi, hogy a dobott kivétel típusára
+teljesülnek-e a következő feltételek:</p>
+
+<ul>
+<li>valóban érkezhet ilyen típusú kivétel a <code>try</code>-blokkból</li>
+<li>a jelen <code>try</code>--<code>catch</code>-blokk korábbi <code>catch</code>-kifejezései nem
+kezelnék a kivételt</li>
+<li>a dobott kivétel al- vagy őstípusa a <code>catch</code>-kifejezésben
+argumentumként szereplő kivételek valamelyikének</li>
+</ul>
+
+<p>A Java 7 SE fordító azért engedi meg, hogy a <code>rethrowException</code> függvény
+deklarációjában szereplő <code>throws</code>-kifejezésben a <code>FirstException</code>t és a
+<code>SecondException</code>t nevezzük meg, mert az <code>Exception</code> a
+<code>throws</code>-kifejezésben említett kivételtípusok közül legalább az egyiknek
+- valójában itt persze mindkettőnek - őstípusa.</p>
+
+<p>A Java fordító korábbi változatai nem engedték, hogy olyan kivételt
+dobjunk, mely őstípusa a <code>catch</code>-kifejezés kivételparamétereinek. Egy
+ilyen fordító kódunk <code>throw e</code> részletéhez érve az "unreported
+exception Exception; must be caught or declared to be thrown" hibaüzenettel
+térne vissza. Az ilyen fordítók ugyanis a <code>throw e</code> részlethez érve
+ellenőrzik, hogy a kivétel, melyet dobni szeretnénk, megfelel-e a
+<code>rethrowException</code> függvény deklarálciójában lévő <code>throws</code>-kifejezésben
+felsorolt típusok valamelyikének. Az <code>Exception</code> azonban nem al-, hanem
+őstípusa a <code>FirstException</code> és a <code>SecondException</code>nek; a régebbi
+fordítók csak ezeket az osztályokat, vagy ezek leszármazottait fogadnák el.</p>

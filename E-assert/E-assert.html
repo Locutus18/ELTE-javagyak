@@ -1,0 +1,121 @@
+<h1>Assertek</h1>
+
+<blockquote>
+  <p><strong>Motiváció</strong> <a href="http://geekandpoke.typepad.com/geekandpoke/2010/02/simply-explained-edge-cases.html">http://geekandpoke.typepad.com/geekandpoke/2010/02/simply-explained-edge-cases.html</a></p>
+</blockquote>
+
+<p>Általános forma:</p>
+
+<pre><code>assert &lt;boolean&gt;;
+assert &lt;boolean&gt; : &lt;non-void&gt;;
+</code></pre>
+
+<p>Az első paraméter egy logikai feltétel, amely ha megsérül (<em>értsd: hamis</em>),
+akkor <code>AssertionError</code> kivétel váltódik ki, aminek a második paraméter lesz az
+üzenete (v.ö. C++ <code>"assert.h"</code>).</p>
+
+<p><em>Mire használható?</em> Futtatási idejű ellenőrzésekre, feltételezések
+biztosítására, azonban könnyen ki-, és bekapcsolhatók (esetenként
+erőforrás igényes lehet a kiértékelés, mint pl. minimum elem meghatározása egy
+komplex, rendezetlen adatszerkezetben). Fejlesztés során rendkívül hasznosak.</p>
+
+<h2>Mikor ne használjuk?</h2>
+
+<ul>
+<li>publikus függvények argumentumellenőrzésére: ezeknek akkor is teljesülniük
+kell, mikor az asserteket kikapcsolják (specification, contract). Használj
+<code>assert</code> helyett megfelelő kivételeket, mint pl. <code>NullPointerException</code>,
+<code>IllegalArgumentException</code>, stb.</li>
+<li>Mellékhatással ne járjon! Pl.:</li>
+</ul>
+
+<p><code>java
+boolean b = false;
+assert b = true; // Broken!
+</code></p>
+
+<h2>Mikor használjuk?</h2>
+
+<ul>
+<li><em>Belső invariánsok</em> Ha commentbe állítunk invariáns tulajdonságot, pl.:</li>
+</ul>
+
+<p><code>java
+if (i % 3 == 0) {
+    ...
+} else if (i % 3 == 1) {
+    ...
+} else { // i % 3 == 2
+    ...
+}
+</code></p>
+
+<pre><code>Ebből:
+</code></pre>
+
+<p><code>java
+if (i % 3 == 0) {
+    ...
+} else if (i % 3 == 1) {
+    ...
+} else {
+    assert i % 3 == 2 : "Hiba: " + i;
+    ...
+}
+</code></p>
+
+<ul>
+<li><em>Control flow invariant</em> Feltételezhetően elérhetetlen kódrészletekhez, pl.:</li>
+</ul>
+
+<p><code>java
+try {
+    ...
+} catch (Exception e) {
+    // Never happens - Hi Ray! :D
+}
+</code></p>
+
+<pre><code>Helyett:
+</code></pre>
+
+<p><code>java
+try {
+    ...
+} catch (Exception e) {
+    assert false : "Never happens";
+}
+</code></p>
+
+<ul>
+<li><p><em>Elő-, utófeltételek, invariánsok</em> Nem egy teljes <em>design-by-contract</em> eszköz,
+de segít informatívan, és ehhez hasonló módszerrel kódolni.</p>
+
+<blockquote>
+  <p><em>Megjegyzés:</em> <code>public</code> függvények paraméterének ellenőrzésére <strong>ne</strong>.</p>
+</blockquote>
+
+<p>Előfeltétel: paraméterek ellenőrzése, utófeltétel: return előtt. Invariáns:
+minden publikus metódus előtt-után ellenőrizhető (<code>private</code> esetben az
+objektum épp lehet köztes állapotban). Bonyolultabb feltétel kiemelhető
+<code>private</code> függvénybe.</p></li>
+</ul>
+
+<p>Alapból kikapcsolt, bekapcsolni a következő Java kapcsolóval lehet:</p>
+
+<pre><code>$ java -ea ...
+</code></pre>
+
+<h2>Design-by-Contract?</h2>
+
+<p><strong>Nem</strong> egy out-of-the-box DbC eszköz, mert:</p>
+
+<ul>
+<li>Nem transzparens a felhasználónak, összefolyik a tényleges kóddal</li>
+<li>Nincs kód újrafelhasználhatóság, nincsenek benne OO elvek</li>
+<li>... </li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://java.sun.com/j2se/1.4.2/docs/guide/lang/assert.html">http://java.sun.com/j2se/1.4.2/docs/guide/lang/assert.html</a></p>
+</blockquote>

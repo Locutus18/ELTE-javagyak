@@ -1,0 +1,418 @@
+<h1>Alapozás</h1>
+
+<h2>Kérdések</h2>
+
+<ol>
+<li>Milyen megkötést tudunk mondani a többdimenziós tömb inicializálása kapcsán?</li>
+<li>Primitív típusú értékeket tartalmazó tömb inicializálásakor mi lesz a tömb elemeinek az értéke?</li>
+<li>És ha Object-eket tartalmaz?</li>
+<li>Milyen paraméterátadási mód(ok) vannak?</li>
+<li>Mit jelent a függvény szignatúrája?</li>
+<li>Mit jelent, hogy egy String immutable(megváltoztathatatlan)?</li>
+<li>Mi ennek az oka?</li>
+<li>Milyen literálokat ismersz, melyek referenciatípusokhoz köthetőek?</li>
+<li>Lehet-e egy String típusú változó értéke <code>null</code>?</li>
+<li>Mit csinál az <code>indexOf</code> függvény?</li>
+</ol>
+
+<h2>Változók</h2>
+
+<ul>
+<li>Deklaráció, inicializáció</li>
+<li>Kezdeti érték?</li>
+<li>Primitív típus, érték? Objektum, referencia?</li>
+<li>Kifejezések? Kiértékelési sorrend? Szigorúan balról jobbra (v.ö. C++)</li>
+</ul>
+
+<h2>Felhasználói interakció</h2>
+
+<p>Használjátok a <code>java.io.Console</code> osztályt (JDK 1.6 óta van csak, erre figyeljetek!).</p>
+
+<p><code>java
+java.io.Console c = System.console();
+String line = c.readLine();
+int lineAsInt = Integer.parseInt( line );
+</code></p>
+
+<h2>Tömbök</h2>
+
+<ul>
+<li>Minden <code>T</code> típushoz van <code>T[]</code></li>
+<li>Referencia: <code>null</code> értéke lehet!</li>
+<li>Indexelés nullától</li>
+<li>Túl-, ill. alul indexelés: <code>ArrayIndexOutOfBoundsException</code> (futásidejű kivétel)</li>
+<li><p>Inicializáció:</p>
+
+<p><code>java
+// barr1, barr2, barr3 ekvivalens definicio
+boolean[] barr1 = { true, false };
+boolean[] barr2 = new boolean[] { true, false }; // kifejezesben kotelezo!
+boolean[] barr3 = new boolean[2];
+barr3[0] = true; barr3[1] = false;
+</code></p></li>
+<li><p>Tömbök elemei default értéket kapnak (pl. objektum <code>null</code>-t, <code>int</code> <code>0</code>-t, <code>boolean</code> <code>false</code>-t, stb.)</p></li>
+<li><p>Bejárás: tömb tudja a méretét</p>
+
+<p>``` java
+int iarr[] = { 1, 2, 3, 4, 5 };</p>
+
+<p>for (int i=0; i<iarr.length; ++i) {
+    System.out.println(iarr[i]);
+}
+```</p></li>
+<li><p>Többdimenziós példa:</p>
+
+<p><code>java
+public static void enumerate(int[][] arr) {
+    for (int i=0; i &lt; arr.length; ++i) {
+    for (int j=0; j &lt; arr[i].length; ++j) {
+        System.out.print( arr[i][j] + " " );
+    }
+    }
+}
+...
+enumerate( new int[][] {
+        {0, 1},
+        {2, 3}
+});
+</code></p></li>
+<li><p>Inicializálásnál az 1. dimenzió megadása kötelező (pl.</p>
+
+<p><code>int[][] arr = new int[5][];</code> teljesen legális definíció!)</p></li>
+</ul>
+
+<h3>Tömb értékű kifejezések</h3>
+
+<p>Inicializálásnál elég az <code>{ e_1, e_2, ... }</code> forma. DE! Mindenhol máshol, ahol tömb
+típusú kifejezést szeretnénk leírni (<code>new</code>), a fordítási hibák kiszűrése miatt a
+típust is meg kell jelölnünk. Pl.:</p>
+
+<p>``` java
+public static int sum(int[] arr) { ... }</p>
+
+<p>public static void main(String[] args) {
+    int result = sum( new int[] {1, 2, 3} );
+}
+```</p>
+
+<h3>Tömb segédosztály</h3>
+
+<p><code>java.util.Arrays</code>, hasznos pl. a <code>toString()</code>, <code>binarySearch()</code>, <code>fill()</code>, etc.</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/util/Arrays.html">http://download.oracle.com/javase/6/docs/api/java/util/Arrays.html</a></p>
+</blockquote>
+
+<h3>Összehasonlítás</h3>
+
+<p>Az <code>==</code> operátor <strong>nem</strong> használható (<em>referencia szerinti egyenlőség vizsgálat, nem érték szerinti</em>).
+A megoldás a <code>java.util.Arrays</code> osztály: <code>equals()</code>, <code>deepEquals()</code> (vagy
+megírod kézzel).</p>
+
+<h2>Függvények</h2>
+
+<ul>
+<li>Érték szerinti paraméterátadás.</li>
+<li>Referenciák? - Azok is!</li>
+<li>Tömbök, objektumok?</li>
+<li><p>Vararg paraméterek: tetszőleges számú formális paraméter, kezelés mintha tömb
+lenne:</p>
+
+<p><code>java
+public static void printMessages(String... messages) {
+    System.out.println("# of params: " + messages.length);
+    for (String act : messages) {
+        System.out.println(act);
+    }
+}
+...
+printMessages( "hello", "hi", "bye");
+</code></p></li>
+<li><p>Ha minden függvényben szükséges egy érték:</p>
+
+<p>``` java
+public class A {
+    public static int X = 1;</p>
+
+<pre><code>public static void inc() { X++; }
+public static void dec() { X--; }
+</code></pre>
+
+<p>}
+```</p></li>
+</ul>
+
+<h2>Stringek</h2>
+
+<ul>
+<li><p>Létrehozás:</p>
+
+<p><code>java
+String s = "hai!";
+</code></p></li>
+<li><p>Objektum, így lehet az értéke <code>null</code>! Ha <code>null</code> értéket próbáljátok feloldani akkor az eredmény egy <code>NullPointerException</code> lesz.</p>
+
+<p>``` java
+String nullString = null;</p>
+
+<p>if (nullString != null) { // Helyes ellenorzes
+    ...
+}</p>
+
+<p>nullString.isEmpty(); // NPE!
+```</p></li>
+<li><p>Rengeteg hasznos szolgálgatás:</p>
+
+<p>``` java
+int length = s.length();
+char firstChar = s.charAt(0);
+char[] carr = s.toCharArray();</p>
+
+<p>boolean isExecutable = s.endsWith(".exe");
+boolean isEmpty = s.isEmpty();
+boolean aidx = s.indexOf('a');
+boolean hasEM = s.contains('!');</p>
+
+<p>String upper = s.toUpperCase();
+String hai = s.substring(1, 3);
+String haiThere = hai + " there".
+String[] haiThereArr = haiThere.split(" ");
+```</p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/lang/String.html">http://download.oracle.com/javase/6/docs/api/java/lang/String.html</a></p>
+</blockquote>
+
+<ul>
+<li><p>Karakterenkénti bejárás:</p>
+
+<p>``` java
+for (int i=0; i<s.length(); ++i) {
+    char act = s.charAt(i);
+    ...
+}</p>
+
+<p>// vagy:
+for (char act : s.toCharArray()) {
+    ...
+}
+```</p></li>
+<li><p><code>replaceAll()</code>, <code>split()</code> használható regexp (ld. Pattern osztály
+dokumentációja <a href="http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html</a>)</p></li>
+<li><p>Immutable (megváltoztathatatlan) adatszerkezet</p>
+
+<p><code>java
+String string = "AAAxAAA";
+string.replace('x', 'A');
+System.out.println(string); // "AAAxAAA"
+string = string.replace('x', 'A');
+System.out.println(string); // "AAAAAAA"
+</code></p>
+
+<p>Vagy <code>StringBuilder</code>, <code>StringBuffer</code> használható:</p>
+
+<p><code>java
+StringBuffer sb = new StringBuffer();
+sb.append("Hello ").append("World");
+sb.reverse();
+System.out.println( sb.toString() ); // "dlroW olleH"
+sb.reverse();
+sb.setCharAt(6, '-');
+System.out.println( sb.toString() ); // "Hello-World"
+sb.deleteCharAt(6);
+System.out.println( sb.toString() ); // "HelloWorld"
+sb.delete(0, sb.length() );
+System.out.println( sb.toString() ); // ""
+</code></p></li>
+<li><p>Összehasonlítás: <code>equals()</code> metódussal (az <code>==</code> operátor referencia szerinti összehasonlítást végez csak, nem tartalom szerintit).</p>
+
+<p><code>java
+boolean b1 = "a" == "a";      // lehet hamis!
+boolean b2 = "a".equals("a"); // mindig megfeleloen mukodik
+</code></p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/lang/StringBuilder.html">http://download.oracle.com/javase/6/docs/api/java/lang/StringBuilder.html</a></p>
+</blockquote>
+
+<h2>Feladatok</h2>
+
+<p>A feladat megoldásához használjatok függvényeket, és megfelelő hibakezelést (pl.
+<code>IllegalArgumentException</code>, saját típust még nem kell definiálnotok)! Egyelőre
+minden függvényt lássatok el a <code>public static</code> módosítószavakkal! Az összes
+megoldást rakjátok egy <code>javagyak.basics</code> csomagba! A feladatok nem feltétlen
+nehézségi sorrendben követik egymást!</p>
+
+<p><strong>+/- Feladat</strong> Minden feladatcsoportból egy tetszőlegesen választott feladat.</p>
+
+<h3>Tömbök</h3>
+
+<p>A következő függvények implementálásához használjátok nyugodtan a már
+meglévőket. Például az átlagolás, normálás esetén szükség van az összegre, itt
+használjátok azt a függvényt, amit az adott feladatban megírtatok!</p>
+
+<ol>
+<li><p>Készíts egy függvényt, amely kiszámítja egy tömb elemeinek az összegét!</p>
+
+<p>``` java
+class T1 {
+    public static void main(String[] args) {
+        int[] arr = {1, 2, 3, 4, 5, 10, 15, 20};
+        System.out.println(sum(arr));
+    }</p>
+
+<pre><code>public static int sum(int[] parr) {
+    int result = 0;
+    for(int i : parr) {
+        result += i;
+    }
+    return result;
+}
+</code></pre>
+
+<p>}
+```</p></li>
+<li><p>Készíts egy függvényt, amely kiszámítja egy tömb elemeinek az átlagát!</p>
+
+<p>``` java
+class T2 {
+    public static void main(String[] args) {
+        int[] arr = {1, 4, 6, 4};
+        System.out.println(avg(arr));
+    }</p>
+
+<pre><code>public static float avg(int[] parr) {
+    return (float)sum(parr) / (float)parr.length;
+}
+
+
+public static int sum(int[] parr) {
+    int result = 0;
+    for(int i : parr) {
+        result += i;
+    }
+    return result;
+}
+</code></pre>
+
+<p>}
+```</p></li>
+<li><p>Készíts egy függvényt, amely normálja egy tömb összes elemeit (az elemek
+összege legyen kb. 1)!</p></li>
+<li>Készíts egy függvényt, amely növekvő sorrendbe rendezi egy tömb elemeit!</li>
+<li>Készíts egy függvényt, amely meghatározza egy tömb minimális és maximális
+elemét!</li>
+<li>Készíts egy függvényt, amely összefűzi egyetlen Stringbe a paraméterként
+kapott Strinkgeket. Az első paraméter legyen az elválasztó karakter (minden
+konkatenáció közé ezt kell beszúrni), és a függvény fogadjon el tetszőleges
+számú paramétert!</li>
+<li>Az előző pontban készített függvényhez készíts egy azonos nevű (túlterhelt)
+változatot, amelynek nincs szüksége az első paraméterre, és a <code>' '</code> karakterrel
+fűzi össze a karakterláncokat!</li>
+<li>Készíts egy függvényt, amely képes meghatározni két paraméterként kapott tömb
+skaláris szorzatát!</li>
+<li>Készíts egy függvényt, amely képes meghatározni két paraméterként kapott
+tömb vektoriális szorzatát az általuk bezárt szög alapján
+(3 dimenzióra, az eredmény egy vektor)!</li>
+<li>Készítsetek egy kódoló függvényt, amely egy <code>char[]</code> paraméterként
+megadott szöveget úgy kódol, hogy minden karaktert egy konstans értékkel
+XOR-ol (használjátok a <code>^</code> operátort!).</li>
+<li>Készítsétek el a dekódoló változatát (a kódolt <code>char[]</code> paramétert
+XOR-oljátok végig még egyszer ugyanazzal az értékkel, így megkapjátok az
+eredeti értékeket!).</li>
+</ol>
+
+<h3>Többdimenziós tömbök</h3>
+
+<ol>
+<li><p>Készíts egy függvényt, amely megfelelően formázva kiír a képernyőre egy 2
+dimenziós tömböt!</p>
+
+<p>Példa (az <code>asMatrix()</code> függvényt csak adja vissza Stringet!):</p>
+
+<p><code>java
+double[][] arr = new double[3][3];
+arr[1][1] = 1
+System.out.println( asMatrix( arr) );
+</code></p>
+
+<p>Eredmény:</p>
+
+<pre><code>0.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 0.0
+</code></pre></li>
+<li><p>Készíts egy függvényt, amely képes megmondani, hogy egy kapott, 2 dimenziós
+tömb soraiban, oszlopaiban, és főátlójában szereplő elemek összege mennyi!</p>
+
+<p>A program valami hasonló kimenetet generáljon:</p>
+
+<pre><code>0 1 2 | 3
+1 2 3 | 6
+2 3 4 | 9
+------/
+3 6 9   6
+</code></pre></li>
+<li><p>Készíts egy függvényt, amely képes meghatározni egy paraméterként kapott, 2
+dimenziós tömbként reprezentált mátrix és egy valós érték szorzatát!</p></li>
+<li>Készíts egy függvényt, amely képes meghatározni két paraméterként kapott, 2
+dimenziós tömb mátrix összegét!</li>
+<li>Készíts egy függvényt, amely képes meghatározni két paraméterként kapott, 2
+dimenziós tömb mátrix szorzatát!</li>
+</ol>
+
+<h3>Stringek</h3>
+
+<p>Igyekezzetek tanulmányozni a dokumentációt! A feladatok lényegi részei maximum 5
+sorban megoldhatók a megfelelő API függvények használatával!</p>
+
+<ol>
+<li><p>Készítsetek egy programot, amely egy parancssori argumentumként megadott
+Stringet átalakít a következőképpen:</p>
+
+<ol>
+<li>Minden numerikus karaktert változatlanul hagy</li>
+<li>Minden betűt kisbetűvé alakít</li>
+<li>Minden egyéb karaktert lecserél egy <code>_</code> karakterre</li>
+</ol>
+
+<p>``` java
+class S1 {
+    public static void main(String[] args) {
+        if(args.length &lt; 1) {
+            System.out.println("Keves parameter!");
+            System.exit(0);
+        }
+        System.out.println(transform(args[0]));
+    }</p>
+
+<pre><code>public static String transform(String str) {
+    char[] chars = str.toCharArray();
+    String result = "";
+    for(char c : chars) {
+        if(Character.isDigit(c) ||  Character.isLetter(c) ) {
+            result += Character.toString(Character.toLowerCase(c));
+        } else {
+            result += "_";
+        }
+    }
+    return result;
+}
+</code></pre>
+
+<p><p>}
+```</p></li>
+<li><p>Készítsetek egy programot, amely minden ékezetes karaktert lecserél a
+megfelelő, ékezet nélküli változatára!</p></li>
+<li><p>Készítsetek egy függvényt, amely egy  parancssori argumentumként megadott
+Stringben lecseréli az első karaktert nagybetűre! A visszatérési értéke legyen
+ez az új String!</p></li>
+<li><p>Készítsétek el az előző függvény fordított változatát: az első karaktert
+cserélje kisbetűre!</p></li>
+<li><p>Készítsetek egy függvényt, ami 2 String paramétert kap, és megmondja, hogy az
+első a másodikkal kezdődik-e. Az összehasonlításnál a kisbetű, nagybetű eltérés
+nem számít (azaz pl. <code>"Windows 7"</code>, <code>"win"</code>) paraméterekre adjon vissza igaz
+értéket!).</p></li>
+</ol></p>

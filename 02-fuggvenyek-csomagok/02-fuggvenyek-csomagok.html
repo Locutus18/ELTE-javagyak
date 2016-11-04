@@ -1,0 +1,260 @@
+<h1>Emlékeztetõ</h1>
+
+<h2>Kérdések</h2>
+
+<ol>
+<li>Milyen elnevezési konveciót használunk csomagokra?</li>
+<li>Mi a kapcsolat a csomag és a fájlrendszeren elhelyezkedõ mappaszerkezet között?</li>
+<li>Milyen láthatósági módosítokkal találkoztál?</li>
+<li>Mit nevezünk a függvény szignatúrájának?</li>
+<li>Túlterhelhetõ-e a függvény a visszatérési értékére nézve?</li>
+<li>Milyen paraméterátadási mód(ok) vannak?</li>
+<li>Hogy használunk másik csomagban lévõ osztályokat?</li>
+<li>Mit jelent az <code>import pkg.*;</code>?</li>
+<li>Rekurzív-e az <code>import</code>?</li>
+<li>Csak statikus metódusokat és mezõket szeretnénk importálni, milyen lehetõségünk van?</li>
+<li>Mi történik, ha egy adott néven két osztály is szerepel különbözõ csomagokban, és mind a kettõt importáljuk? Hogy oldjuk meg a problémát?</li>
+</ol>
+
+<h2>Környezet beállítása</h2>
+
+<p>Emlékeztetõ:</p>
+
+<p>``` dos
+    Microsoft Windows XP [verziószám: 5.1.2600]
+    (C) Copyright 1985-2001 Microsoft Corp.</p>
+
+<pre><code>c:\tmp&gt;set PATH=%PATH%;c:\Program Files\Java\jdk1.6.0_12\bin\
+
+c:\tmp&gt;javac -version
+javac 1.6.0_12
+
+c:\tmp&gt;javac HelloWorldApp.java
+
+c:\tmp&gt;java HelloWorldApp
+Hello World!
+
+c:\tmp&gt;
+</code></pre>
+
+<p>```</p>
+
+<h1>Csomagok</h1>
+
+<p>Modularizáció, névütközések feloldása, hozzáférés szabályozás, etc. (mint a
+C++ namespace). Osztályok, interfészek gyûjteménye. Használható a <code>*</code> wildcard.
+Alapértelmezetten látszik a <code>java.lang.*</code> csomag minden eleme, minden mást
+importálni kell (anélkül ún. <em>fully qualified classname</em> segítségével
+hivatkozhatunk, pl. <code>java.util.Vector</code>): </p>
+
+<p>``` java
+import java.util.Vector;    // 1 tipushoz <br />
+import java.math.*;         // Minden package-beli tipus lathatova valik  </p>
+
+<p>import java.awt.<em>;          // GUI <br />
+import java.awt.event.</em>;    // GUI - esemenykezeles <br />
+import javax.swing.<em>;       // Advancedebb GUI <br />
+import java.util.</em>;         // Adatstrukturak <br />
+import java.io.<em>;           // IO <br />
+import java.util.regex.</em>;   // Regexp  </p>
+
+<p>// static import: minden static konstans lathato az adott osztalybol <br />
+// fenntartasokkal hasznalni <br />
+import static java.lang.Math.*; <br />
+```</p>
+
+<p>A fordítás nehézkes, nincs rekurzív <code>javac -R *.java</code>. Leképezés a
+fájlrendszerre: minden <code>.</code> karakterrel szeparált rész egy könyvtárat jelent,
+fordítás a gyökérkönyvtárból történik. Static importot csak offtosan
+(strukturáltság, enkapszuláció, egységbezárás ellen hat - használjatok helyette
+dedikált osztályt vagy interfészt). Csomag definíciója a Java fájl legelején:</p>
+
+<p>``` java
+package pkg;</p>
+
+<p>// Import utasitasok</p>
+
+<p>public class HelloWorldApp {
+    public static void main(String args[]) {
+        System.out.println("Hello World!");
+    }
+};
+```</p>
+
+<blockquote>
+  <p><strong>Fontos</strong> Ha csomagokat használunk, akkor mindig a <em>package root</em> alól adjuk ki a fordításhoz/futtatáshoz szükséges parancsokat (azaz abból a könyvtárból, ami a legfelsõ szintû csomagokat tartalmazza)! Erre azért van szükség, mert ha nem állítod be kézzel a <code>CLASSPATH</code> változó értékét (ez azon útvonal, ahol a Java alapértelmezés szerint keresi a szükséges osztályokat), akkor az a <code>.</code> (azaz az aktuális) könyvtár. Így ha pl. a <code>foo.A</code> osztály hivatkozik egy <code>foo.bar.B</code> osztályra, és a <code>foo</code> könyvtárból fordítod az <code>A</code> osztályt, akkor a fordító/futtatókörnyezet a <code>foo</code> konyvtárban keres egy másik <code>foo</code>, majd abban egy <code>bar</code> könyvtárat!</p>
+
+<p>Tehát a lényeg: <strong>mindig a package root könyvtárból fordítsunk, futtassunk!</strong></p>
+</blockquote>
+
+<p><strong>Fordítás</strong> a Java fájl <strong>teljes útvonalának</strong> megadásával:</p>
+
+<pre><code>C:\tmp&gt;javac pkg/HelloWorldApp.java
+</code></pre>
+
+<p><strong>Futtatáshoz</strong> azonban a <strong>teljes hivatkozási név</strong> szükséges (<em>fully qualified classname</em>):</p>
+
+<pre><code>C:\tmp&gt;java pkg.HelloWorldApp
+Hello World!
+</code></pre>
+
+<p>Ha esetleg névütközés van (2 azonos nevû osztály), akkor minõsített névvel
+érhetjük el az egyiket (pl. <code>java.util.List</code>, <code>java.awt.List</code>). Importokat
+használjatok nyugodtan, nem gáz, nem emészt erõforrást (nem C++, dinamikus
+osztálybetöltés van).</p>
+
+<h2>Rekurzív fordítás</h2>
+
+<p>Alapból nincs rekurzív fordítás, viszont megadható a fordítónak egy fájl,
+ami a fordítani kívánt fájlok listáját tartalmazza - ezt a <code>@</code> karakterrel
+jelezheted.</p>
+
+<pre><code># Linux
+$ find -name "*.java" &gt; sources.txt
+$ javac @sources.txt
+
+:: Windows
+&gt; dir /s /B *.java &gt; sources.txt
+&gt; javac @sources.txt
+</code></pre>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://stackoverflow.com/questions/6623161/javac-option-to-compile-recursively/8769536#8769536">Itt</a></p>
+</blockquote>
+
+<h1>Függvények</h1>
+
+<p>Általános prototípus:</p>
+
+<pre><code>&lt;módosítószavak&gt; &lt;visszatérési érték&gt; &lt;név&gt;( &lt;paraméterek listája&gt; )
+        [ throws &lt;kivétel lista&gt; ] {
+    &lt;utasítás1&gt;;
+    &lt;utasítás2&gt;;
+    ...
+}
+</code></pre>
+
+<p>Paraméter átadás érték szerint történik (még a referenciák is!).</p>
+
+<ul>
+<li>Módosítószavak:
+<ul>
+<li>Láthatóság: <code>public</code>, <code>protected</code>, <code>private</code>. Ha nem definiált, akkor ún.
+<em>default</em> / <em>package-private</em> / <em>package-level</em> láthatóság.</li>
+<li>Lehet <code>abstract</code>: ekkor nincs implementáció (mint a C++ <em>pure virtual</em>
+függvényei) leszármazottban kötelezõen felüldefiniálandó</li>
+<li>Lehet <code>final</code>: felüldefiniálhatóság letiltására</li>
+<li>Lehet <code>static</code>: osztály szintû függvény (<strong>Fontos:</strong> static kontextusból
+csak static módosítóval ellátott hivatkozás szerepelhet)</li>
+<li>Egyéb, pl. <code>strictfp</code>, <code>native</code>, <code>synchronized</code>, <code>transient</code>, <code>volatile</code>
+(utóbbi kettõ <strong>csak</strong> fieldekre). Ezekrõl késõbb.</li>
+</ul></li>
+<li>Visszatérési érték szerinti csoportosítás:
+<ul>
+<li><code>void</code>: eljárás</li>
+<li>Minden egyéb: függvény</li>
+</ul></li>
+<li>Metódusnév: <em>lowerCamelCase</em> formátumban</li>
+<li>Paraméter átadás: minden paraméter érték szerint adódik át
+<em>még a referenciák is</em>.</li>
+</ul>
+
+<p><strong>Szignatúra</strong> a függvény neve és paramétereinek típusa -- más <strong>nem</strong>. Például:</p>
+
+<p><code>java
+eredmenyMeghatarozasa( double, int, int )
+</code></p>
+
+<p>Overloading, overriding.</p>
+
+<h1>+/- Feladatok</h1>
+
+<p>A feladatokat a <code>gyak2.f1</code> ill. <code>gyak2.f2</code>, ... csomagba rakjátok!</p>
+
+<h3>Faktoriális</h3>
+
+<p>Írjatok programot, mely kiszámítja a paraméterül kapott szám faktoriálisát.</p>
+
+<p>``` java
+    class F1 {
+        public static void main(String[] args) {
+            System.out.println(fakt(5));
+        }</p>
+
+<pre><code>    public static int fakt(int n) {
+        int res = 1;
+        for (int i = 1; i &lt; n; ++i) {
+            res *= i;
+        }
+        return res;
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Rekfakt</h3>
+
+<p>Írj faktoriálist megoldó programot, melyben a függvény rekurzív.</p>
+
+<p>``` java
+    class F2 {
+        public static void main(String[] args) {
+            System.out.println(fakt(5));
+        }</p>
+
+<pre><code>    public static int fakt(int n) {
+        if( n == 0 ) {
+            return 1;
+        } else {
+            return n * fakt(n-1);
+        }
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Fib</h3>
+
+<p>Add össze az összes páratlan rész-fibonacci számot egészen addig, amíg az adott rész-fibonacci szám értéke nem éri el 400000.</p>
+
+<h3>Euclid</h3>
+
+<p>Készítsetek egy függvényt, amely az Euklideszi-algoritmus alapján meghatározza
+két szám legnagyobb közös osztóját! Az algoritmus pszeudokódja:</p>
+
+<pre><code>function gcd(a, b)  
+    if a = 0  
+       return b  
+    while b != 0  
+        if a &gt; b  
+           a := a - b  
+        else  
+           b := b - a  
+    return a
+</code></pre>
+
+<p>Készítsd el a függvény rekurzív változatát is!</p>
+
+<h3>Quadratic</h3>
+
+<p>Készítsetek egy függvényt, amely megadja egy másodfokú egyenlet gyökeit! A
+függvény definíciója legyen a következõ:</p>
+
+<p><code>java
+private static double[] sqroots(final double a, final double b, final double c) {
+    // ...
+}
+</code></p>
+
+<p>A függvény visszatérési értéke legyen:</p>
+
+<ul>
+<li>üres tömb (nem <code>null</code> érték!), ha <code>a == 0</code> vagy a diszkrimináns negatív,</li>
+<li>egyelemû tömb, ha egyetlen megoldás van (<code>D == 0</code>), illetve</li>
+<li>kételemû tömb, amennyiben két különbözõ megoldás létezik!</li>
+</ul>
+
+<p>A paramétereket a parancssori argumentumok határozzák meg, amiket a
+<code>Double.parseDouble()</code> segítségével tudsz értelmezni.</p>

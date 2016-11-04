@@ -1,0 +1,484 @@
+<h1>Szoftvertesztelés</h1>
+
+<blockquote>
+  <p><strong>Motiváció</strong> <a href="http://geekandpoke.typepad.com/geekandpoke/2010/02/simply-explained-edge-cases.html">http://geekandpoke.typepad.com/geekandpoke/2010/02/simply-explained-edge-cases.html</a></p>
+</blockquote>
+
+<h3>Miért?</h3>
+
+<ul>
+<li>Hogy merj változtatni a kódon (ha elrontasz valamit a rendszer mélyén, a tesztek azonnal felszínre hozzák - legkésőbb a következő CI build után).</li>
+<li>Bizalom növelése a kódban</li>
+<li>Felkapott, hype téma :-) Értsd: A build ciklus fontos része a tesztek futtatása.</li>
+</ul>
+
+<h3>Hogyan?</h3>
+
+<p>Vannak, akik tesztvezérelt-fejlesztés (Test-Driven Development, TDD, vagy Behaviour Driven Development, BDD - végrehajtható specifikáció) elkötelezett hívei (v.ö. agile, eXtreme Programming, nincs terv, kódolnak egyből).</p>
+
+<p>A TDD három alapelve:</p>
+
+<ol>
+<li>Nem írsz tényleges kódot, amíg nem írtál hozzá tesztet.</li>
+<li>A tesztből annyit írj meg, amennyi a kudarchoz elég (ha nem fordul pl., az már kudarc).</li>
+<li>A tényleges kódból csak annyit írsz meg, ami elég a teszt sikeres teljesítéséhez.</li>
+</ol>
+
+<h2>Milyen legyen a teszt?</h2>
+
+<p>FIRST alapelvek:</p>
+
+<ul>
+<li>Fast - Ha lassú, nem futtatod.</li>
+<li>Independent - Ha függőség van, hibát rejthet el.</li>
+<li>Repeatable - Bárhol megismételhető (minden fejlesztőnél reprodukálható legyen a hiba).</li>
+<li>Self-validating - Ha kézzel kell hasonlítgatnod a teszt eredményét, úgysem fogsz vele foglalkozni.</li>
+<li>Timely - Rég nem támogatott API funkciók tesztje teljesen felesleges.</li>
+</ul>
+
+<h2>Mit követel meg?</h2>
+
+<p>A tervezést, kódstrukturálást is átalakítja.</p>
+
+<ul>
+<li>Kicsit más kódszervezés kell (mellékhatások elkerülése - azt nem tudod tesztelni)</li>
+<li>Sok POJO, minimális funkcionalitással (azt könnyű tesztelni)</li>
+<li>Lazy instantiationt kidobni (premature optimalizáció)
+<ul>
+<li>Osztály nem vállalja fel a másodlagos feladatokat (Single Resp. Princ.)</li>
+<li>Helyette inkább IoC/Dep. Inj. (AOP keretek, akkor hozza létre, amikor kell)</li>
+</ul></li>
+</ul>
+
+<h2>Tools</h2>
+
+<p>Ilyeneket mindenki szeret írni, mert kicsik és egyzserűek. Dunát lehet rekeszteni a különböző keretrendszerekkel.</p>
+
+<h3>Assert utasítás</h3>
+
+<p>Nem nagyon használják, pedig érdemes. Részletesen külön <a href="https://github.com/rlegendi/ELTE-javagyak/blob/master/E-assert/E-assert.md">anyag foglalkozik vele</a>.</p>
+
+<h3>JUnit</h3>
+
+<p><strong>Gyakorlaton csak ezzel foglalkozunk!</strong></p>
+
+<p><a href="http://en.wikipedia.org/wiki/Kent_Beck">Kent Beck</a> (XP megalkotója, Agile demigod), <a href="http://en.wikipedia.org/wiki/Erich_Gamma">Erich Gamma</a> (hasonló kaliberű úriember, pl. Eclipse JDT-ben volt benne a keze) haxolta össze egy repülőgépen a <a href="http://www.junit.org/">JUnit</a> első verzióját.</p>
+
+<h4>Példa</h4>
+
+<p>A tesztelendő osztály:</p>
+
+<p>``` java
+public class Utils {
+    public static int sum(int[] arr) {
+        if (null == arr) {
+            throw new IllegalArgumentException("arr == null");
+        }</p>
+
+<pre><code>    int sum = 0;
+    for (int i : arr) {
+        sum += i;
+    }
+
+    return sum;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A tesztelő osztály (a teljesség igénye nélkül):</p>
+
+<p>``` java
+import org.junit.* ;
+import static org.junit.Assert.* ;</p>
+
+<p>public class UtilsTest {</p>
+
+<pre><code>@Test
+public void assertSumForZeroArray() {
+    // Given
+    final int[] arr = new int[0];
+
+    // When
+    final int actual = Utils.sum(arr);
+
+    // Then
+    final int expected = 0;
+    assertEquals("Sum of empty array must be zero.", expected, actual);
+}
+
+@Test(expected=IllegalArgumentException.class)
+public void assertForIllegalArgument() {
+    Utils.sum(null);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Fordítás:</p>
+
+<pre><code>$ javac -cp .;lib/junit-4.10.jar *.java
+</code></pre>
+
+<p>Futtatás (fordítás után, persze):</p>
+
+<pre><code>$ java  -cp .;lib/junit-4.10.jar org.junit.runner.JUnitCore UtilsTest
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>JUnit version 4.10
+..
+Time: 0,016
+
+OK (2 tests)
+</code></pre>
+
+<h4>Egyéb hasznos annotációk</h4>
+
+<p>``` java</p>
+
+<p>@Ignore("John made this test fail yesterday")
+@Test
+public void someBuggyOrUnimplementedTest() {
+    // ...
+}</p>
+
+<p>@Test(timeout=1000)
+public void someMethodThatShouldRunInAMinute() {
+    // ...
+}</p>
+
+<p>@BeforeClass
+public void initializeStuffBeforeAnyTests() {
+    // ...
+}</p>
+
+<p>@AfterClass
+public void cleanupStuffAfterAllTests() {
+    // ...
+}</p>
+
+<p>@Before
+public void beforeEachTest() {
+    // ...
+}</p>
+
+<p>@After
+public void afterEachTest() {
+    // ...
+}</p>
+
+<p>```</p>
+
+<h4>Egyéb hasznos assert utasítások</h4>
+
+<p>Minden függvény kaphat opcionális üzenet paramétert. Részletesen az <a href="http://junit.org/apidocs/org/junit/Assert.html">API dokumentációban</a>.</p>
+
+<p><code>java
+assertTrue(...);
+assertFalse();
+fail();
+assertEquals(...);
+assertArrayEquals(...);
+assertEquals(...);
+assertNotNull(...);
+assertNull(...);
+assertSame(...);
+assertNotSame(...);
+assertEquals(...);
+assertThat(...); // Matcher
+</code></p>
+
+<h4>Common pitfalls</h4>
+
+<ul>
+<li>Egy teszt-egy állítás (nem feltétlen egy <code>assert</code> utasítás).</li>
+<li>Ajánlás: tényleges kód és a tesztek külön source mappában (production kódban semmi helye).</li>
+<li>Láthatóság: a legritkább esetben oldjuk fel tesztek miatt. Legyen ez az utolsó, amivel próbálkozunk!</li>
+<li>Vigyázz, 2 JUnit osztály van! A másik legacy...</li>
+<li><code>assertTrue(actual == 0)</code> vs. <code>assertEquals(expected, actual)</code></li>
+</ul>
+
+<h4>IDE integráció</h4>
+
+<ul>
+<li><strong>Eclipse</strong>
+<ul>
+<li>Hozzáadás: Project jobklikk -> Properties -> Java Build Path -> Libraries -> Add Library -> JUnit -> JUnit 4 (alapból benne van)</li>
+<li>Futtatás: Jobklikk -> Run As... -> JUnit</li>
+</ul></li>
+<li><strong>NetBeans</strong> Alapból benne van egy egyszerű Java Application projectben.</li>
+</ul>
+
+<h4>Linkek</h4>
+
+<ul>
+<li>Szükséges JUnit jar file: <a href="https://github.com/rlegendi/ELTE-javagyak/raw/master/20-testing/junit-4.10.jar">junit-4.10.jar</a></li>
+<li>JUnit weboldala: http://www.junit.org/</li>
+<li><a href="http://code.google.com/p/t2framework/wiki/JUnitQuickTutorial">Bevezető tuturial</a></li>
+</ul>
+
+<h3>Egyéb rendszerek</h3>
+
+<h4>Mocking</h4>
+
+<ul>
+<li>Motiváció (adatbázis nincs...)</li>
+<li>DAO-s példa, van interfész, van JdbcDao implementáció, aztán meg Test1Dao implementáció...</li>
+<li>DE! Helyette: lehet mockolni, ügyes cucc.</li>
+<li>Ebből is [van egy pár][http://code.google.com/p/jmockit/wiki/MockingToolkitComparisonMatrix] (Mockito/EasyMock/etc.)</li>
+</ul>
+
+<p>``` java
+ public void testBobsLogin() {
+    User results = new User();
+    String userName = "bob";
+    String password = "bob1234";
+    String passwordHash = "0340e21833f1291f673fcaab8d13b5b9";
+    expect(mockDao.queryUserData(eq(userName), eq(passwordHash)))
+                .andReturn(results);</p>
+
+<pre><code>replay(mockDao);
+assertTrue(service.login(userName, password));
+verify(mockDao);
+</code></pre>
+
+<p>}
+```</p>
+
+<h5>Powermock</h5>
+
+<ul>
+<li>Ha elértük a korlátokat, "jó lenne..." funkciók</li>
+<li>Támogat több platformot (Mockito/Easymock/...)</li>
+<li>Pl. statikus függvények mockolása, final classok</li>
+</ul>
+
+<h4>Hamcrest</h4>
+
+<ul>
+<li>"Literate programming" (Knuth, 1970)</li>
+<li><p>Példa:</p>
+
+<p><code>java
+assertThat("chocolate chips", theBiscuit.getChocolateChipCount(), equalTo(10));
+assertThat(Math.sqrt(-1), is(notANumber()));
+</code></p></li>
+</ul>
+
+<h4>DbC toolok</h4>
+
+<ul>
+<li>Ebből is van tonnányi (3 példa: comment, annotációs, konfigurációs osztályos)</li>
+<li>Invariáns, elő- és utófeltételek (vö. Eiffel)</li>
+<li>Assertekkel kiváltható? Nem igazán...</li>
+<li>AspectJ-vel lehet játszani egy szintig, de...</li>
+</ul>
+
+<p>Példa:
+``` java
+@Invariant("getCount() >= 0")
+public interface Stack<E> {</p>
+
+<pre><code>int getCount(); 
+
+...
+
+@Ensure("{result}==(getCount()==0)")
+public boolean isEmpty();
+
+@Require("getCount() &gt; 0 ")
+@Ensure("getCount() == {old getCount()} - 1 ")
+void remove();
+</code></pre>
+
+<p>}
+```</p>
+
+<h4>Code coverage</h4>
+
+<ul>
+<li>Reneteg tool, pl. Clover, Cobertura (generált doksik királyak)</li>
+<li>Vannak pluginok az IDE-kben, nézegessetek screenshotokat</li>
+<li>Érdemes? Nem érdemes?
+<ul>
+<li>Nem biztos, hogy megéri a 100%-ra hajtani - bár láttam már ilyet (és nem is mindig megoldható, pl. <code>BufferedReadert</code> megfelelően használni lehetetlen)</li>
+</ul></li>
+</ul>
+
+<h4>Continuous Integration rendszerek</h4>
+
+<ul>
+<li>Rengeteg tool: Hudson, Jenkins, ...</li>
+<li>Ha sok teszt van (integráció! pl. cm/inch), nem elég a GridGain farm pl.</li>
+</ul>
+
+<h4>Sonar</h4>
+
+<ul>
+<li>Mindenféle statisztikák - a <em>trend</em> miatt fontos.</li>
+<li>Összekötve a CI rendszerrel</li>
+<li>Mutatja a tesztelésre szoruló részeket</li>
+<li><a href="http://nemo.sonarsource.org/">Tonnányi projecthez példa</a></li>
+</ul>
+
+<h4>Acceptance tesztek</h4>
+
+<ul>
+<li>Rengeteg tool, framework, pl. FitNesse
+<ul>
+<li>Decision table --> Teszt, minimális kóddal</li>
+<li>Átruházható a tesztírás a kliensre</li>
+</ul></li>
+</ul>
+
+<h4>Amiről nem esett szó, de jó lenne</h4>
+
+<ul>
+<li>Stressz-teszt
+<ul>
+<li>JMeter - http://netbeans.org/kb/docs/javaee/ecommerce/test-profile.html</li>
+</ul></li>
+<li>Selenium IDE</li>
+<li>Mutation testing: kipróbálod, szar, tényleg reccsen? (pl. <a href="http://pitest.org">PIT</a>, a JUnitos srácok csinálják)</li>
+</ul>
+
+<h2>Összefoglalás</h2>
+
+<ul>
+<li>Megéri? Kódot megírni <code>~t</code> idő, tesztelve megírni <code>~3t</code> idő
+<ul>
+<li><strong>DE!</strong> 2-3 manuális teszt után már egyértelműen megéri a befektetés (szerintem)</li>
+<li>Tekintve, hogy <code>p</code> megírás, <code>q</code> fenntartás, és <code>p</code> &lt;&lt;&lt; <code>q</code>...</li>
+</ul></li>
+</ul>
+
+<h2>Feladatok</h2>
+
+<p>Ellenőrizd tesztekkel a viselkedést!</p>
+
+<h3>String manipuláció</h3>
+
+<p>Készíts két egyszerű függvényt:
+* <code>String rotate(int k, String str)</code>: Visszaadja egy adott String <code>k</code> karakterrel eltolt változatát (k lehet negatív szám is!). Például <code>rotate("abc", 1)</code> eredménye <code>"bca"</code>, és <code>rotate("abc", -1)</code> eredménye <code>"cab"</code>. Készíts teszteket legalább a <code>k = 1, 2, 3</code> esetekre, valamint a szélsőséges esetekre (<code>k=0, k=str.lengt()</code>). Külön ellenőrizd, hogy a függvény nem megfelelő paraméterezés esetén kivételt vált ki, valamint hogy 100-nál rövidebb input karakterláncra 1 másodperc alatt lefut!</p>
+
+<ul>
+<li><code>String join(String[] arr, String separator)</code>: Visszaadja az adott Stringek, a megadott <code>separator</code> karakterrel konkatenált változatát. Készíts teszteket legalább <code>1, 2, 3</code> hosszú tömbökre, valamint a szélsőséges esetre (<code>0</code> hosszú tömb). Külön ellenőrizd, hogy a függvény nem megfelelő paraméterezések esetén kivételt vált ki, <strong>valamint ellenőrizd a kivétel szövegét is</strong>! (Cseles)</li>
+</ul>
+
+<h3>Összetettebb példa</h3>
+
+<p>Adott a következő adatszerkezet:</p>
+
+<p>``` java
+public class Household {
+    private double deposit;
+    private int goods;</p>
+
+<pre><code>public double getDeposit() {
+    return deposit;
+}
+
+public void setDeposit(double deposit) {
+    this.deposit = deposit;
+}
+
+public int getGoods() {
+    return goods;
+}
+
+public void setGoods(int goods) {
+    this.goods = goods;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Valamint adottak a következő függvények, amiket valaki már elkezdett implementálni:</p>
+
+<p>``` java
+package test;</p>
+
+<p>import java.util.List;</p>
+
+<p>public class Utils {</p>
+
+<pre><code>public static int minGoods(final List&lt;Household&gt; households) {
+    int min = 10;
+
+    for (int i = 0; i &lt; households.size(); ++i) {
+        final Household act = (Household) households.get( i );
+        if ( min &gt; act.getDeposit() ) {
+            min = act.getGoods();
+        }
+    }
+
+    return min;
+}
+
+public static double avgGoods(final List&lt;Household&gt; households) {
+    double sum = 0;
+    final int N = households.size();
+
+    for (int i = 0; i &lt; households.size(); ++i) {
+        final Household act = (Household) households.get( i );
+
+        sum += act.getGoods();
+    }
+
+    return sum / N;
+}
+
+public static int maxGoods(final List&lt;Household&gt; households) {
+    int max = 0;
+
+    for (int i = 0; i &lt; households.size(); ++i) {
+        final Household act = (Household) households.get( i );
+        if ( max &lt; act.getDeposit() ) {
+            max = act.getGoods();
+        }
+    }
+
+    return max;
+}
+
+private Utils() {
+    throw new AssertionError( "Should not create instance." );
+}
+
+public static double avgHouseholdDeposit(final List&lt;Household&gt; households) {
+    double sum = 0.0;
+    final int N = households.size();
+
+    for (int i = 0; i &lt; N; ++i) {
+        final Household act = (Household) households.get( i );
+
+        sum += act.getDeposit();
+    }
+
+    return sum / N;
+}
+
+public static double[] householdDepositDistro(final List&lt;Household&gt; households) {
+    final double[] ret = new double[households.size()];
+
+    for (int i = 0; i &lt; households.size(); ++i) {
+        final Household act = (Household) households.get( i );
+
+        ret[i] = act.getDeposit();
+    }
+
+    return ret;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A függvények persze félig készek, ráadásul hiányosak is, viszont leadási határidő van, ezért neked kell befejezned.</p>
+
+<p>Tesztekkel ellenőrizd, és támaszd alá, hogy működnek-e vagy sem! Ha nem, változtass a kódon, majd futtasd a teszteket, hogy ellenőrizd, nem tört-e el valamit a módosítás egy már jól működő tesztben!</p>

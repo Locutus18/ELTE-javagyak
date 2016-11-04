@@ -1,0 +1,78 @@
+<h1>Jar fájlok</h1>
+
+<p>Java Archive, appletek aláírhatók (felemelt biztonsági korlát), tömörít (sima
+zip file), hordozhatóság (pl. mobilra), duplaklikkre indul, verziókövetés
+(manifest entry-ken keresztül).</p>
+
+<pre><code>jar --help
+</code></pre>
+
+<p>Fontosabb műveletek:</p>
+
+<ul>
+<li>Tartalom listázása: <code>jar tf foo.jar</code></li>
+<li>Kicsomagolás: <code>jar xf foo.jar</code>  </li>
+<li>Futtatás: <code>java -jar foo.jar</code> </li>
+<li>Új jar létrehozása <code>jar cf mibe.jar miket</code> </li>
+</ul>
+
+<h2>Új jar létrehozása</h2>
+
+<p><strong>Alakja:</strong></p>
+
+<pre><code>jar cf [foo.jar] [miből]
+</code></pre>
+
+<ul>
+<li><code>c</code> : Ez a kapcsoló azt mutatja, hogy szeretnénk létrehozni egy új archívumot.
+Konvenció, hogy jarnak nevezzük ezeket az állományokat, de ez nem kötelező.</li>
+<li><code>f</code> : Ezzel mondjuk meg a programnak, hogy fájlból szeretnénk dolgozni. E
+nélkül az std. inputról várja a bemenetet.</li>
+<li><code>miből</code> : Ezeket a fájlokat csomagoljuk be. Ezek lehetnek egész könyvtárak,
+könyvtárstruktúrák vagy csak 1 darab classfájl.</li>
+</ul>
+
+<p>Miután létrehoztuk az archívumot, még van egy apró dolgunk: módosítanunk kell a
+manifestet (A manifest egy olyan fájl, ami automatikusan generálódik a
+létrehozásnál, de akár le is cserélhető. Az a lényege, hogy metainformációt
+tartalmaz az archívumról, pl. ki, mikor fordította, milyen fordítóval, mi a
+futtatandó osztály, milyen <strong>classpath beállítások</strong> tartoznak hozzá (ha van
+benne ilyen, mást nem is vesz figyelembe), etc.), hogy megmondjuk mely
+osztályból kell indítani a <code>main()</code> függvényt. Erre csak akkor van szükség, ha
+futtathatóvá szeretnénk a tenni a jart. Ezt úgy tehetjük meg, hogy létrehozunk
+egy sima txt fájlt (pl. <code>mainClass.txt</code>), amibe egyetlenegy sort kell begépelni:</p>
+
+<pre><code>Main-Class: MAIN_CLASS_NEVE
+</code></pre>
+
+<p><em>(pl. Hellow.class esetén Hellow)</em></p>
+
+<blockquote>
+  <p><strong>Gotcha</strong> A fájl utolsó sora tartalmazzon egy üres sort, mert
+<em>az utolsó sor nem lesz feldolgozva</em>!</p>
+</blockquote>
+
+<p>Ezután frissíteni kell a manifestet (update):</p>
+
+<pre><code>jar umf mainClass foo.jar
+</code></pre>
+
+<p>Futtatni vagy klikkeléssel, vagy a következő paranccsal lehet:</p>
+
+<pre><code>java -jar foo.jar
+</code></pre>
+
+<h2>Feladat</h2>
+
+<p>Készíts egy futtatható jar fájlt a következő <code>HelloWorld</code> programból! A package
+struktúra megtartására figyelj!</p>
+
+<p>``` java
+package jars;</p>
+
+<p>public class HelloWorldApp {
+    public static void main(String args[]) {
+        System.out.println("Hello World!");
+    }
+}
+```</p>

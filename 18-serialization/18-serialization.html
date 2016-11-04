@@ -1,0 +1,187 @@
+<h1>Szerializáció</h1>
+
+<p>Objektumok "sorosítása", hogy túléljék a JVM-et: elmenthetők, Socketen
+átküldhetők, DB-ben tárolhatók, etc. Az objektum állapotát bájtokba toljuk ki.</p>
+
+<h2>Alapvető működés</h2>
+
+<p>Implementálni kell a <code>java.io.Serializable</code> interfészt (ún. <em>marker interfész</em>).
+Ilyenkor a default szerializáció minden adattagot kiment (amennyiben az ős nem
+szerializálható, akkor abban lennie kell egy nullary konstruktornak, különben
+kézzel az adattagokat neked kell szerializálni; az <code>Object</code> ennek a kritériumnak
+megfelel):</p>
+
+<p>``` java
+package serialization;</p>
+
+<p>import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Date;</p>
+
+<p>public class PersistentDate implements Serializable {
+    private final Date date = new Date();</p>
+
+<pre><code>public Date getDate() {
+    return date;
+}
+
+@Override
+public String toString() {
+    return "" + date;
+}
+
+public static void save() throws IOException {
+    final ObjectOutputStream oos = new ObjectOutputStream(
+        new FileOutputStream("date.dat"));
+    oos.writeObject( new PersistentDate() );
+    oos.flush();
+    oos.close();
+}
+
+public static void load()
+    throws IOException, ClassNotFoundException {
+    final ObjectInputStream ios = new ObjectInputStream(
+        new FileInputStream("date.dat"));
+    final PersistentDate loaded = (PersistentDate) ios.readObject();
+
+    System.out.println(loaded);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Rekurzív adatszerkezeteknél (oda-vissza hivatkozások) ebből gond lehet.</p>
+
+<h2>"Múlandó" adattagok</h2>
+
+<p>A Java Core API-ban a legtöbb osztály szerializálható (így ha adattag, akkor ki
+is tudjuk menteni), azonban nem mind,  például az oprendszer szintű osztályok
+(pl. thread + saját memóriakezelés).</p>
+
+<p>Ha van egy adattagunk, amit nem szeretnénk szerializálni, használhatjuk a
+<code>transient</code> kulcsszót:</p>
+
+<p><code>java
+public class PersistentDate implements Serializable {
+    private final Date date = new Date();
+    private transient Thread updater;
+    ...
+}
+</code></p>
+
+<h2>A default protokoll módosítása</h2>
+
+<p>Írhatunk saját szerializációs módszert is (kézzel írva hatékonyabb - kényelem
+vs. hatékonyság), ehhez a következő két függvényeket lehet "felüldefiniálni":</p>
+
+<p><code>java
+private void writeObject(ObjectOutputStream out)
+    throws IOException;
+private void readObject(ObjectInputStream in)
+    throws IOException, ClassNotFoundException;
+private void readObjectNoData()
+    throws ObjectStreamException;
+</code></p>
+
+<p>Nem biztos, hogy az alapértelmezett viselkedést akarjuk megváltoztatni
+(<code>defaultReadObject()</code>, <code>defaultWriteObject()</code>, ezek használhatók is!),
+de pl. így tranziens attribútumokat is kiírhatunk, vagy eseményeket köthetünk
+a szerializációhoz. Pl. ha a fenti szálat el szeretnénk indítani:</p>
+
+<p>``` java
+private void writeObject(ObjectOutputStream out)
+    throws IOException {
+    out.defaultWriteObject();
+}</p>
+
+<p>private void readObject(ObjectInputStream in)
+    throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    updater.start();
+}
+```</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Amennyiben teljesen mi szeretnénk felügyelni, használjuk a
+<code>Externalizable</code> interfészt, így semmit nem kapunk (ősosztályok szerializációját
+sem!).</p>
+</blockquote>
+
+<h2>Szerializáció letiltása</h2>
+
+<p>Ha egy származtatott osztályban le akarjuk tiltani a sorosíthatóságot, nincs
+jobb módszer, mint kivételt dobni:</p>
+
+<p>``` java
+private void writeObject(ObjectOutputStream out)
+    throws IOException {
+        throw new NotSerializableException("Nem!");
+    }</p>
+
+<p>private void readObject(ObjectInputStream in)
+    throws IOException, ClassNotFoundException {
+    throw new NotSerializableException("Nem!");
+}
+```</p>
+
+<h2>Gotchas</h2>
+
+<ul>
+<li><p>Az <code>ObjectOutputStream</code> cache-el! Amint kapott egy referenciát, azt megjegyzi,
+és a többiről nem is akar tudni:</p>
+
+<p><code>java
+oos.writeObject( obj );
+obj.value = 1; // Hiaba allitjuk at, ha elotte nem 1 volt
+oos.writeObject(obj); // akkor itt az eredeti erteke lesz
+</code></p></li>
+<li><p>Verziókezelés:</p>
+
+<p><code>java
+private static final long serialVersionUID = &lt;ronda_nagy_generalt_szam&gt;L;
+</code></p></li>
+<li><p>Teljesítmény: a default Java szerializációnál vannak hatékonyabb frameworkök!</p></li>
+</ul>
+
+<h2>Feladatok</h2>
+
+<ul>
+<li>Írjatok egy kör osztályt, ami a középpontjának <code>x</code>, <code>y</code> koordinátáit
+tartalmazza, valamint a sugarát! Készítsétek fel az osztályt szerializációra!</li>
+<li><p>A kör legyen képes megmondani a kerületét! A kerületszámolás legyen lusta
+kiértékelésű:</p>
+
+<p>``` java
+private Double c = null;</p>
+
+<p>public double getCircumference() {
+    if (null == c) {
+        c = new Double(...);
+    }</p>
+
+<pre><code>return c.doubleValue();
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A program a szerializáció során kezelje ezt az attribútumot nem perzisztens attribútumnak!</p></li>
+<li><p>Készítsz egy egyszerű programot, amely egy tetszőleges <code>String</code>
+adatszerkezettel rendelkezik (tömb, lista, halmaz, etc.). Oldd meg az osztály
+szerializációját saját implementációval is! Készíts egy minimális benchmarkot
+a 2 implementáció teljesítményéről (a megvalósítás méréséhez használd a
+<code>System.currentTimeMilis()</code> függvényt)</p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p><a href="http://download.oracle.com/javase/6/docs/api/java/io/Serializable.html">http://download.oracle.com/javase/6/docs/api/java/io/Serializable.html</a></p>
+
+<p><a href="http://download.oracle.com/javase/6/docs/api/java/io/Externalizable.html">http://download.oracle.com/javase/6/docs/api/java/io/Externalizable.html</a></p>
+</blockquote>

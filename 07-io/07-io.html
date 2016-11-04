@@ -1,0 +1,727 @@
+<h1>Kivételek</h1>
+
+<p>Eddigi kivételkezelés, amit láthattatok:</p>
+
+<h1>C</h1>
+
+<p>Visszatérési értéken keresztül. Hátránya: könnyen elfelejti az ember lekezelni, nem is gondol rá, mi van, ha függvény visszatérési értékét kell ellenőrizni (<code>null</code> esetleg még játszhat, viszont több problémát felfedezni nehézkes).</p>
+
+<p>Példa:</p>
+
+<pre><code>if (malloc(...)) {
+    if (arraycpy(...)) {
+        // Ha nem sikerult, nem kell, csak itt:
+        if (free(..)) {
+            ...
+        } else {
+            // Free failed...
+        }
+    } else {
+        // Arraycopy failed...
+    }
+} else {
+    // Malloc failed...
+}
+</code></pre>
+
+<p>Összeflyik a hibakezelő és tényleges kód, kusza, nehéz átlátni, lokális változók hatóköre értelmezhetetlen, etc.</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A <code>setjmp()/longjmp()</code> hasznos, de még mindig nehézkes.</p>
+</blockquote>
+
+<h2>C++</h2>
+
+<p>Van <code>try-catch</code> blokk, ilyet elvileg láttatok:</p>
+
+<ul>
+<li>mindent lehet dobálni,</li>
+<li>specifikálni a tényt, hogy egy függvény hibát dob, nem kötelező,</li>
+<li>lekezelni a hibát nem kötelező</li>
+</ul>
+
+<h2>Java</h2>
+
+<p>Van <code>try-catch-finally</code> blokk, kicsit strictebb szabályozás.
+Általános forma:</p>
+
+<p><code>java
+try {
+    ... // Kritikus utasitasok
+} catch (Exception1 e1) {
+    ...
+} catch (Exception2 e2) {
+    ...
+} finally {
+    ...
+}
+</code></p>
+
+<p>Ahol:</p>
+
+<ul>
+<li><code>try</code>: kritikus utasítások egységbe zárása</li>
+<li><code>catch</code>: kivétel-lekezelő ágak, specifikusak</li>
+<li><code>finally</code>: minden esetben lefut (akkor is, ha volt kivétel, akkor is, ha nem). Praktikusan objektumok lezárására kiváló (lehetne...).</li>
+</ul>
+
+<p>A finally opcionális, de elképzelhető csak <code>try-catch</code>, <code>try-finally</code> blokk is:</p>
+
+<p>``` java
+try {
+    ...
+} finally {
+    ...
+}</p>
+
+<p>try {
+    ....
+} catch (Throwable t) {
+    ....
+}
+```</p>
+
+<p>Az első ág, amelybe a kivétel osztályhierarchia szerint beleillik, lekezeli.
+Újradobás lehetséges: <code>throw t;</code>, stb.</p>
+
+<p>A lényeg: a tényleges kódot elválasztani az egyes hibákat kezelő kódtól, a fenti C-s példa pl. valahogy így nézhetne ki Javaban (<em>már ha lennének ilyen utasítások, de ugye nincsenek, ezt mindenki tudja?</em>):</p>
+
+<p><code>java
+try {
+    malloc(...)
+    arraycpy(...)
+    free(...)
+} catch (MallocFailedException e) {
+    ...
+} catch (ArrayCopyFailedException e) {
+    ...
+} catch (FreeFailedException e) {
+    ...
+}
+</code></p>
+
+<p>Mit <strong>nem</strong> csinálunk kivételkezelésekkel?</p>
+
+<p><code>java
+try {
+    malloc(...)
+} catch (MallocFailedException e) {
+    ...
+}
+...
+try {
+    arraycpy(...)
+} catch (ArrayCopyFailedException e) {
+    ...
+}
+...
+try {
+    free(...)
+} catch (FreeFailedException e) {
+    ...
+}
+</code></p>
+
+<p>Ez ugyanolyan átláthatatlan, katyvasz kódhoz vezet, zavaros függőségekkel, mint a fenti C-s példa. Kerülendő!</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> <em>Kivételes esetekben</em> előfordulhat a fenti konstrukció, pl. több kritikus objektumot kell mindenképpen lezárni. Azért figyeljünk oda!</p>
+</blockquote>
+
+<p>Hogyan kezelünk le egy kivételt? <strong>Üres kivétellekezelő blokkot SOHA nem írunk!</strong> Te fogod debuggolni 2 napig a lenyelt hibát, nem én :P Amit minimum érdemes megtenni, az valami ilyesmi:</p>
+
+<p>``` java
+try {
+    ...
+} catch (Exception e) {
+    // Vagy kiirod a stack trace-t (ajanlott megoldas)
+    e.printStackTrace();</p>
+
+<pre><code>// Vagy csak kiirod a hibaüzenetet a standard errorra
+System.err.println(e.getMessage());
+
+// Vagy logolod, ha van loggered
+logger.log(e);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Alapvetően három típusú kivétel:</p>
+
+<ol>
+<li>Felügyelt kivételek: definiálni kell őket a függvényben, és ha definiáltak,
+le is kell őket kezelni (ősosztály: <code>java.lang.Exception</code>}, pl.
+<code>java.lang.ClassNotFoundException</code>, <code>java.io.IOException</code>)</li>
+<li>Nem felügyelt kivételek: nem kötelező sem difiniálni, sem lekezelni őket
+(ősosztály: <code>java.lang.RuntimeException</code>, pl. <code>ArrayIndexOutOfBoundsException</code>,
+<code>NumberFormatException</code>, <code>DivisionByZeroException</code>)</li>
+<li>Léteznek még <code>Error</code>-ok, ezek a <code>Throwable</code> leszármazottai. Kritikus esetben
+fordulnak elő, a legtöbb esetben a lekezelésük is felesleges (pl.
+<code>OutOfMemoryError</code>, <code>StackOverflowError</code>)</li>
+</ol>
+
+<p>A hierarchia tehát valami ilyesmi:</p>
+
+<ul>
+<li>Throwable
+<ul>
+<li>Exception (<em>Felügyelt kivételek</em>)
+<ul>
+<li>IOException</li>
+<li>FileNotFoundException</li>
+<li>...</li>
+<li>RuntimeException (<em>Nem felügyelt kivételek</em>)
+<ul>
+<li>ArrayIndexOutOfBoundsException</li>
+<li>NumberFormatException</li>
+<li>DivisionByZeroException</li>
+<li>IllegalStateException</li>
+<li>IllegalArgumentException</li>
+<li>...</li>
+</ul></li>
+</ul></li>
+<li>Error (<em>Kritikus hibák</em>)
+<ul>
+<li>OutOfMemoryError</li>
+<li>StackOverflowError</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p><img src="https://github.com/rlegendi/ELTE-javagyak/raw/master/07-io/throwable_hierarchy.png" alt="Kivételek Osztályhierarchiája" title="Kivételek Osztályhierarchiája" /></p>
+
+<p>Mindkettő őse a <code>Throwable</code> osztály, ezt kell hát lekezelni, ha mindent
+lehetőségre fel akarunk készülni. <strong>Ökölszabály:</strong> üres kivételkezelő blokkot
+<strong>soha</strong> ne készítsünk! Legegyszerűbb megoldás: <code>e.getMessage()</code> vagy
+<code>e.printStackTrace()</code>. További funkciók az <code>Exception</code> osztály leírásában
+(<code>javadoc</code>). Kivételt dobni a <code>throw</code> utasítással lehet (<em>mindig</em> van
+paramétere!).</p>
+
+<h2>Példa</h2>
+
+<h3>Egyszerű kivételkezelés</h3>
+
+<p><code>java
+public static void main(String[] args) {
+    try {
+        int res = Integer.parseInt(args[0]);
+        // ...
+    } catch (NumberFormatException nfe) {
+        System.err.println("Hibas input: " + args[0]);
+        nfe.printStackTrace();
+    }
+}
+</code></p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Kivételek neve általában <code>e</code>, de igazából ízlés kérdése.</p>
+</blockquote>
+
+<h3>Előfeltétel ellenőrzés</h3>
+
+<p>Lehetőleg minél hamarabb, a függvény elején - ha sérül az előfeltétel, dobj <code>IllegalArgumentException</code> kivételt (nem felügyelt, így deklarálni sem kell).</p>
+
+<p>``` java
+public static int minPlace(final int[] arr) {
+    if ( 0 == arr.length ) {
+        throw new IllegalArgumentException("Empty array.");
+    }</p>
+
+<pre><code>// Search for the index of the minimal element in the array
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Függvénydefiníció</h3>
+
+<p>Ha ki akarod kényszeríteni a kivétel lekezelését, valami beépített (vagy saját, ld. alább a példában) <code>Exception</code> leszármazottat kell használnod.</p>
+
+<p>``` java
+// Egyszerubb forma, ha nem akartok uzeneteket
+//class ZeroParameterException extends Exception {}</p>
+
+<p>class ZeroParameterException extends Exception {
+    public ZeroParameterException() {
+        super();
+    }</p>
+
+<pre><code>public ZeroParameterException(final String msg) {
+    super(msg);
+}
+</code></pre>
+
+<p>}</p>
+
+<p>public class Main { 
+    public static double divide(int a, int b) throws ZeroParameterException {
+        if (0 == b) {
+            throw new ZeroParameterException("b erteke nem lehet 0!");
+        }</p>
+
+<pre><code>    return (double) a / b;
+}
+
+public static void main(String[] args) {
+    try {
+        double res = divide(1, 0);
+    } catch (ZeroParameterException e) {
+        System.err.println(e.getMessage());
+    } catch (Exception e) {
+        System.err.println(e.getMessage());
+    } finally {
+        System.err.println("vege");
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p><a href="http://download.oracle.com/javase/tutorial/essential/exceptions/">http://download.oracle.com/javase/tutorial/essential/exceptions/</a></p>
+
+<p><a href="http://download.oracle.com/javase/6/docs/api/java/lang/package-summary.html">http://download.oracle.com/javase/6/docs/api/java/lang/package-summary.html</a> (<em>A leggyakoribb kivételeket megnézegetni</em>)</p>
+</blockquote>
+
+<p>Saját kivétel is definiálható, csak származtatni kell (pl. a
+<code>java.lang.RuntimeException</code>, <code>java.lang.Exception</code> osztályokból, ezekről
+később).</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi <em>Explanations of Common Java Exceptions</em> egy humoros
+leírása a common Java kivételeknek. Mielőtt komolyan vennétek, hangsúlyozom,
+ez csak poén, de ha már megragad 1-2 Exception neve, akkor már megérte
+átröhögni :-) Thx to Björn Andersson!</p>
+</blockquote>
+
+<h1>Streamek</h1>
+
+<p>Csatornák, absztrakciós szint bemenet-kimenet kezelésére (<code>hiext</code>, <code>lorem</code>).</p>
+
+<blockquote>
+  <p><strong>Részletesen:</strong> <a href="http://download.oracle.com/javase/tutorial/essential/io/">http://download.oracle.com/javase/tutorial/essential/io/</a></p>
+</blockquote>
+
+<h2>Példa</h2>
+
+<p>``` java
+package io;</p>
+
+<p>import java.io.FileWriter;
+import java.io.PrintWriter;</p>
+
+<p>public class WriteSampleFile {
+    public static void main(String[] args) throws Exception {
+        PrintWriter pw = new PrintWriter( new FileWriter("dummy.txt") );
+        pw.println("Dummy data here");
+        pw.close();
+    }
+}
+```</p>
+
+<h2>Csoportosítás</h2>
+
+<p>Szervezés szerint:</p>
+
+<ul>
+<li><code>InputStream</code>, <code>OutputStream</code> (bájtszervezésű)</li>
+<li><code>Reader</code>, <code>Writer</code> (karakterszervezésű)</li>
+</ul>
+
+<p>Ezekből rengeteg változat, pl.</p>
+
+<ul>
+<li><code>StringReader</code>, <code>FileReader</code>, <code>BufferedReader</code>, etc.</li>
+<li><code>FileInputStream</code>, <code>DataInputStream</code>, etc.</li>
+<li><code>FileOutputStream</code>, <code>PrintStream</code>, etc.</li>
+<li><code>FileWriter</code>, <code>PrintWriter</code>, etc.</li>
+</ul>
+
+<p>Pl. <code>FileReader</code>, <code>FileWriter</code>, <code>FileInputStream</code>, <code>FileOutputStream</code></p>
+
+<p>Feladat szerinti csoportosítás:</p>
+
+<ul>
+<li>Adatforrás, adatnyelő (pl. <code>FileInputStream</code>, <code>FileReader</code>)</li>
+<li>Szűrők: meglévő csatornához plusz funkcionalitás (pl. <code>BufferedInputStream</code>).
+Összekapcsolhatók (pl. <code>SequenceInputStream</code>), csatornák hozhatók létre (pl.
+kommunikációs közeg szálaknak, <code>PipedInputStream</code>, stb.)</li>
+</ul>
+
+<h2>Alapvető műveletek</h2>
+
+<ul>
+<li>Megnyitás automatikus, lezárás: <code>close()</code> (ne felejtsd el, mert nem fogsz
+tudni hozzáférni)</li>
+<li><code>flush()</code>: automatikus endline karakterre a szöveges fájlokban.</li>
+<li>Kiírás: <code>write()</code>, <code>print()</code></li>
+<li><p>Olvasás: <code>read()</code>. Ha a csatorna kiürül, akkor az olvasó művelet
+<em>blokkolódik</em>, amíg adatot nem kap:</p>
+
+<p><code>java
+public static void main(String[] args) throws Exception {
+    int i = System.in.read();
+    System.out.println("A kapott karakter: " + i);
+}
+</code></p></li>
+<li><p><em>"Könyvjelző-mechanizmus"</em>, ha támogatott: <code>markSupported()</code>, <code>mark()</code>,
+<code>reset()</code></p></li>
+<li>Padding átugrása: <code>skip()</code></li>
+<li>Csatorna ürességének ellenőrzése: <code>ready()</code></li>
+<li><p>Hány bájtot lehet minimum olvasni? <code>available()</code></p>
+
+<p><code>java
+int meret = new FileInputStream("tmp.txt").available();
+</code></p></li>
+</ul>
+
+<h2>Speciális streamek</h2>
+
+<ul>
+<li>Sorok számolására: <code>LineNumberInputStream#getLineNumber()</code></li>
+<li>Adatok olvasása, visszafűzése a csatornára: <code>PushbackInputStream</code>,
+<code>PushbackReader</code></li>
+<li>Bufferelt csatornák: <code>BufferedReader</code>, <code>BufferedInputStream</code></li>
+<li>Véletlen elérésű fájlok: <code>RandomAccessFile</code> (későbbb kicsit részletesebben is)</li>
+<li>Szövegfeldolgozás: <code>StringTokenizer</code> (van sima <code>StreamTokenizer</code> is)</li>
+<li><p><code>System.in</code>, <code>out</code>, <code>err</code>: <code>InputStream</code> ill. <code>PrintStream</code>-ek. Pl. standard
+input átirányítása:</p>
+
+<p><code>java
+BufferedReader br = new BufferedReader( new InputStreamReader(System.in) );
+</code></p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen:</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/io/package-summary.html">http://download.oracle.com/javase/6/docs/api/java/io/package-summary.html</a></p>
+</blockquote>
+
+<h2>Példák</h2>
+
+<h3>Fájl írása</h3>
+
+<p>``` java
+package files;</p>
+
+<p>import java.io.FileNotFoundException;
+import java.io.PrintWriter;</p>
+
+<p>public class WriteFile {
+    public static void main(String[] args) {
+        PrintWriter pw = null;</p>
+
+<pre><code>    try {
+        pw = new PrintWriter(args[0]);
+
+        pw.println("Line1");
+        pw.println("Line2");
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } finally {
+        if (pw != null) pw.close();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Fájl olvasása</h3>
+
+<p>``` java
+package files;</p>
+
+<p>import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;</p>
+
+<p>public class ReadFile {
+    public static void main(String[] args) {
+        BufferedReader br = null;</p>
+
+<pre><code>    try {
+        br = new BufferedReader(new FileReader(args[0]));
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            System.out.println(line);
+        }
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        if (br != null) {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Sor szavakra bontása</h2>
+
+<p>Megoldás 1:</p>
+
+<p><code>java
+String[] words = line.split(" ");
+</code></p>
+
+<p>Nem jó, mi van, ha a tényleges szöveg előtt-után szóköz van? Így pl. <code>" a b"</code> darabolásából egy három elemű tömböt kapunk, amiben az első elem az üres string: <code>{"", "a", "b"}</code>.</p>
+
+<p><code>java
+String[] words = line.trim().split(" ");
+</code></p>
+
+<p>Nem jó, mert mi van, ha tabulátor karakter?</p>
+
+<p>Megoldás 2: <code>String#split()</code> alatt elérhető <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regexp patternek</a> tanulmányozása után:</p>
+
+<p><code>java
+String[] words = line.trim().split("\\s")
+</code></p>
+
+<p>Nem jó, mert pl. ha két szóköz van egymás mellett, akkor megint üres elemeket kapok két értékes szó közé. Megoldás: default greedy mintaillesztés:</p>
+
+<p><code>java
+String[] words = line.trim().split("\\s+")
+</code></p>
+
+<p>Ez már majdnem mindenre jó lesz :-)</p>
+
+<h2>Egyéb megjegyzések</h2>
+
+<ul>
+<li><p>Oprendszer függő tulajdonságok:</p>
+
+<p>``` java
+// PATH elvalaszto, pl. ":" - Unix, ";" - Windows
+final String PATH<em>SEPARATOR = File.pathSeparator;
+// Ugyanaz, csak karakterkent
+final char PATH</em>CHAR = File.pathSeparatorChar;</p>
+
+<p>// Nev szeparator, pl. "/" - Unix, "\" - Windows
+final String SEPARATOR = File.separator;
+// Ugyanaz, csak karakterkent
+final char SEPARATOR_CHAR = File.separatorChar;</p>
+
+<p>// Sorvege karakter, pl. "\n" - Unix, "\r\n" - Windows
+// Reszletesen lasd FAQ!
+final String EOL = System.getProperty("line.separator");
+```</p></li>
+<li><p><code>FileNotFoundException</code>: Ha nem tudod, hol keresi az IDE, vagy a Java a
+megadott file-t, alkalmazhatod ezt a cselt:</p>
+
+<p><code>java
+File file = new File("test.txt");
+System.out.println( file.getAbsolutePath() );
+</code></p></li>
+</ul>
+
+<h3>Java 7 újdonságai</h3>
+
+<p>A Java 7 tartalmaz egy teljesen újraírt I/O könyvtárat is, amely rendelkezik pl. a következő hasznos függvénnyel is:</p>
+
+<p><code>java
+Path file = Paths.get(filename);
+List&lt;String&gt; lines = Files.readAllLines(file, Charset.defaultCharset());
+</code></p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> Rengeteg hasznos segédfüggvény:</p>
+
+<p>http://docs.oracle.com/javase/7/docs/api/java/nio/file/Files.html</p>
+
+<p>http://docs.oracle.com/javase/tutorial/essential/io/fileio.html</p>
+</blockquote>
+
+<h4>A try-with-resources utasítás</h4>
+
+<p>``` java
+package files;</p>
+
+<p>import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;</p>
+
+<p>public class ReadFileJava7 {
+    public static void main(String[] args) {
+        try (BufferedReader br = new BufferedReader(new FileReader(args[0]))) {
+            String line = null;</p>
+
+<pre><code>        while ((line = br.readLine()) != null) {
+            System.out.println(line);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } 
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p>https://github.com/rlegendi/ELTE-javagyak/blob/master/I-java-1.7/try-with-resources.md</p>
+</blockquote>
+
+<h3>Közvetlen elérésű fájlok</h3>
+
+<p>A <code>java.io.RandomAccessFile</code>, kb. mint egy bájtvektor, olvasható és írható.
+Fájlmutató az aktuális pozícióra, ez lekérdezhető (<code>getFilePointer()</code>),
+állítható (<code>seek(int)</code>). Implementálja mind a <code>DataInput</code>, <code>DataOutput</code>
+interfészeket (mindkettőt egyszerre), a műveleteivel tetszőleges típus írható,
+olvasható (úgy használható, mint a <code>DataInputStream</code>, <code>DataOutputStream</code>:
+<code>write*()</code>, <code>read*()</code> függvények), byte-ok átugorhatók (<code>skip(int)</code>).</p>
+
+<p>Példaalkalmazás:</p>
+
+<p>``` java
+package files;</p>
+
+<p>import java.io.IOException;
+import java.io.RandomAccessFile;</p>
+
+<p>public class RandomFileTest {
+    public static void main(final String[] args)
+        throws IOException {
+            final RandomAccessFile raf =
+            new RandomAccessFile("dummy.dat", "rw");</p>
+
+<pre><code>        raf.writeInt(0xCAFEBABE);
+        raf.seek(16);
+        raf.writeInt(0xDEADBEEF);
+        raf.seek(32);
+        raf.writeInt(0xBADF00D0);
+        raf.seek(48);
+        raf.writeInt(0xDEADC0DE);
+        raf.close();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Megjegyzés:</strong> bájtokat írunk ki, nem elfelejteni! Hexa módban kell megnyitni
+a fájlt, hogy lássuk ténylegesen mi is íródott ki, pl.
+<em>Total Commander + F3 + 3</em>, vagy <em>vi + ":\%!xxd"</em>.</p>
+</blockquote>
+
+<p>Gotchaz:</p>
+
+<ul>
+<li><code>write(int)</code> - hiába van int paramétere, csak byte-ot ír ki, a legalját</li>
+<li><code>seek()</code>, <code>write(...)</code> - nem tolódik tovább a stream, kézzel kell mindent
+odébbmásolni</li>
+<li><code>raf.seek(file.length());</code> - file végére ugrás, ahhoz hozzáfűzés</li>
+<li><code>write()</code> - elfogad <code>byte[]</code> paramétert, de <code>writeBytes()</code> - csak <code>Stringet</code></li>
+<li><code>EOFException</code> - elindexelésnél (<code>IOException</code> leszármazottja)</li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen:</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/io/RandomAccessFile.html">http://download.oracle.com/javase/6/docs/api/java/io/RandomAccessFile.html</a></p>
+</blockquote>
+
+<h2>Feladatok</h2>
+
+<ul>
+<li><p>Készíts egy szűrő programot, amely két parancssori argumentumot kap: egy input
+fájl elérési utat, és egy stringet! A program olvassa be az inputfájlt, és
+írja ki a képernyőre azokat a sorokat, amelyekben a megadott karakterlánc
+előfordul!</p></li>
+<li><p>Készíts egy programot, amely két parancssori argumentumot kap: egy input fájl
+elérési utat, és egy stringet! A program olvassa be az inputfájlt, és számolja
+meg a megadott szó előfordulásainak számát!</p></li>
+<li><p>Készíts egy interaktív programot, amely a felhasználó által megadott sorokat
+(egészen az üres sorig) elmenti egy fájlba. Az output fájl nevét kérje be a
+program indulásnál.</p></li>
+<li><p>Készíts egy programot, amely egy parancssori argumentumként megadott fájlnak
+kiírja az első <code>N</code> sorát (<code>N=5</code> alapértelmezett értékkel rendelkezik, azonban
+opcionális  parancssori argumentummal ezt állítani lehessen).</p></li>
+<li><p>Készíts egy programot, amely egy parancssori argumentumként megadott fájlnak
+kiírja az utolsó <code>N</code> sorát (<code>N=5</code> alapértelmezett értékkel rendelkezik,
+azonban opcionális  parancssori argumentummal ezt állítani lehessen).</p></li>
+<li><p>Készíts egy programot, amely három parancssori argumentumot kap: két input
+fájl és egy output fájl elérési utat. A program fűzze össze az első két fájlt
+egymás után az output fájlba!</p></li>
+<li><p>Adott egy fájl a következő szerkezettel:</p>
+
+<pre><code># Comment sor
+# Ezeket at kell ugrani
+# A file formatuma:
+# &lt;Nev&gt;:&lt;Szuletesi ev&gt;:&lt;honap&gt;:&lt;nap&gt;
+Citad Ella:1984:10:10
+Har Monika:1956:5:6
+Git Aron:1992:11:23
+Tek Elek:2002:6:14
+</code></pre>
+
+<p>A program olvassa be ezeket az adatokat, és tárolja egy megfelelő
+reprezentációban (készíts pl. egy <code>Person</code> osztályt a szükséges adattagokkal).
+A program parancssori argumentumként kapjon egy hónapot, és listázza ki, hogy
+az adott hónapban mely személyeknek van születésnapja. Használjátok a <code>String</code>
+osztály <code>split()</code> metódusát.</p></li>
+<li><p>Készíts egy programot, amely kiírja egy parancssori argumentumként megadott
+fájl páratlan sorait a képernyőre, páros sorait pedig egy <code>"even.txt"</code> fájlba!
+Ezután a <code>"even.txt"</code> tartalmával felülírja az eredeti fájlt.</p></li>
+<li><p>Készítsünk egy egyszerű <em>l33t5p34k</em> (leetspeak) generátort! A program 1
+parancssori argumentumot kapjon: egy input fájl elérési utat. A program
+olvassa be az input fájlt, és minden szón végezze el a következő
+módosításokat, majd írja ki a képernyőre a módosított szöveget:</p>
+
+<ul>
+<li>Ha a szó vége:
+<ul>
+<li><code>"s"</code> helyett <code>"z"</code></li>
+<li><code>"ck"</code> helyett <code>"x"</code></li>
+</ul></li>
+<li><code>"a"</code> helyett <code>"@"</code></li>
+<li><code>"e"</code> helyett <code>"3"</code></li>
+<li><code>"i"</code> helyett `"1"</li>
+<li><code>"o"</code> helyett <code>"0"</code></li>
+<li><code>"u"</code> helyett <code>"v"</code></li>
+<li><code>"f"</code> helyett <code>"ph"</code></li>
+<li><code>"s"</code> helyett <code>"$"</code></li>
+<li><code>"g"</code> helyett `"9"</li>
+<li><code>"y"</code> helyett <code>"j"</code></li>
+<li><code>"t"</code> helyett <code>"+"</code></li>
+<li><code>"!"</code> helyett <code>"1"</code></li>
+<li>Ezen kívül minden 2. karakter esetén a kisbetűből csináljon nagyot, a
+nagybetűből kicsit!</li>
+</ul></li>
+<li><p>Készítsünk egy Sudoku ellenőrző programot! A program inputja egy fájl,
+amelynek soraiban pontosan 81 karakter található, és egy-egy Sudoku
+sorfolytonos ábrázolását jelenti. A program outputja egy fájl legyen, amelyben
+az érvényes kitöltést tartalmazó sorok kerülnek bele!</p>
+
+<p>Példa input fájl sorok:</p>
+
+<pre><code>123456789123456789123456789123456789123456789123456789123456789123456789123456789
+123456789234567891345678912456789123567891234678912345891234567891234567912345678
+</code></pre></li>
+<li><p>Készítsünk egy egyszerű konzolos alkalmazást, amely képes fájlok bináris
+karbantartására! A program első paraméterként kapja meg a szerkesztendő fájl
+nevét. A további paraméterek a következők lehetnek:</p>
+
+<ul>
+<li><code>mb &lt;pozíció&gt; &lt;byte&gt;</code>: az adott pozíción lévő byte érték módosítása</li>
+<li><code>mi &lt;pozíció&gt; &lt;int&gt;</code>: az adott pozíción lévő int érték módosítása</li>
+<li><code>i &lt;pozíció&gt; &lt;szöveg&gt;</code>: a specifikált szöveg beillesztése az adott
+pozícióra. A program illessze be a szöveget, azaz tolja el a bájtokat
+megfelelőképp</li>
+</ul></li>
+</ul>

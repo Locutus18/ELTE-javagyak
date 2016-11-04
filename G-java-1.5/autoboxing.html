@@ -1,0 +1,61 @@
+<h1>Autoboxing</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.5 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Márton Dávidnak! </p>
+
+<p><a href="http://download.oracle.com/javase/1.5.0/docs/guide/language/autoboxing.html">http://download.oracle.com/javase/1.5.0/docs/guide/language/autoboxing.html</a></p>
+</blockquote>
+
+<hr />
+
+<p>Mint azt minden Java programozó tudja, az <code>int</code> (vagy bármely más primitív típus) nem rakható be egy kollekcióba. A kollekciók csak objektumokra mutatató referenciákat tartalmazhatnak, ezért a primitív értékeket be kell "csomagolni" a megfelelő wrapper osztály segítségével (<code>int</code> esetén az <a href="http://download.oracle.com/javase/1.5.0/docs/api/java/lang/Integer.html" title="Integer">Integer</a>-rel). Ha egy objektumot kiveszünk a fenti kollekcióból, a berakott <code>Integert</code> kapjunk vissza. Ha <code>int</code>-re van szükségünk, azt ki kell "bontani" az <code>Integer</code>-ből az <code>intValue</code> metódus segítségével. Ez a csomagolás-kibontás elég zsúfolttá teheti a kódot. Az autoboxing és unboxing lehetőségek arra szolgálnak, hogy automatizálják ezt a folyamatot, levéve ezzel a programozók válláról ennek terhét.</p>
+
+<p>A következő példa az autoboxing és unboxing, valamint a <a href="./generics.html" title="generics">generic</a>-ek és a <a href="./for-each.md" title="for-each">for-each</a> ciklus működését illusztrálja. A tíz soros program létrehozza, és kiírja a parancssori paraméterként kapott szavak alfabetikusan rendezett gyakorisági táblázatát.</p>
+
+<p>``` java
+import java.util.*;</p>
+
+<p>// Prints a frequency table of the words on the command line
+public class Frequency {
+    public static void main(String[] args) {
+        Map<String, Integer> m = new TreeMap<String, Integer>();
+        for (String word : args) {
+            Integer freq = m.get(word);
+            m.put(word, (freq == null ? 1 : freq + 1));         //1 : freq + 1 (zöld)
+        }
+        System.out.println(m);
+    }
+}
+```</p>
+
+<pre><code>    java Frequency if it is to be it is up to me to do the watusi
+    {be=1, do=1, if=1, is=2, it=2, me=1, the=1, to=3, up=1, watusi=1}
+</code></pre>
+
+<p>A program először deklarál egy <code>String</code>-<code>Integer</code> map-et, amely segítségével a parancssorbeli szavakhoz azok előfordulását rendeli. Ez után végigiterál a kapott szavakon, és mindegyikre meggvizsgálja, hogy a mapban van-e már, majd megfelelően módosítja a szóhoz tartozó bejegyzést. A sor amelyik ezt teszi (kiemelve) mind autoboxing-ot mind unboxing-ot tartalmaz. Ahhoz, hogy a szóhoz tartozó új értéket kiszámítsa, először megvizsgálja az aktuális értékét (<code>freq</code>). Ha az null akkor a szó először fordul elő, ezért a mapbe az 1 érték kerül. Egyébként 1-el növeli a korábbi értéket, és ez az érték kerül a mapbe. Ugyanakkor, természetesen, egy <code>int</code>-et nem tudunk berakni a mapbe, ahogy egy <code>Integer</code>-hez sem tudjuk hozzáadni. Valójában, a következő történik: Mielőtt, az 1-et hozzáadhatjuk <code>freq</code>-hoz, az automatikusan "unboxolódik", egy <code>int</code> típusú kifejezést eredményezve. Mivel a feltételes kifejezés mindkét ágán lévő kifejezés <code>int</code> típusú, ezért maga a feltételes kifejezés is <code>int</code> típusú. Ahhoz, hogy ezt az <code>int</code> típusú értéket a map-be rakhassuk, annak automatikusan "boxolódnia" kell <code>Integer</code>-ré.</p>
+
+<p>Ennek a varázslatnak köszönhetően, nagyrészt figyelmen kívül hagyhatóak az <code>int</code> és <code>Integer</code> közti különbségek, némi fenntartással. Egy <code>Integer</code> kifejezés értéke lehet <code>null</code>. Ha a programod <code>null</code> értékű kifejezést próbál "autounboxolni", az <code>NullPointerException</code> kivételt fog eredményezni. Az == operátor referencia szerinti egyenlőséget vizsgál <code>Interger</code> és érték szerinti egyenlőséget vizsgál <code>int</code> kifejezések esetén. Végül, fontos megemlíteni, hogy az autoboxing és unboxing automatikusan történnek ugyan, de igencsak költségesek.</p>
+
+<p>Íme, még egy példa az autoboxing és az unboxing szemléltetésére. Egy statikus gyártó, amely egy <code>int</code> tömböt kap paraméterként, majd visszaad egy <code>Integer</code>-eket tartalmazó listát (<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html" title="List">List</a>) "mögötte" a tömbbel. A következő néhány soros metódus kényelmes, lista-szerű hozzéférést biztosít az <code>int</code> tömbhöz. Minden változtatás a listában megjelenik a tömbben, és fordítva. A sorok, ahol autoboxing vagy unboxing történik ki vannak emelve.</p>
+
+<p><code>java
+// List adapter for primitive int array
+public static List&lt;Integer&gt; asList(final int[] a) {
+    return new AbstractList&lt;Integer&gt;() {
+        public Integer get(int i) { return a[i]; }          //return a[i]; (zöld)
+        // Throws NullPointerException if val == null
+        public Integer set(int i, Integer val) {
+            Integer oldVal = a[i];                  //Integer oldVal = a[i]; (zöld)
+            a[i] = val;                     //a[i] = val; (zöld)
+            return oldVal;
+        }
+        public int size() { return a.length; }
+    };
+}
+</code></p>
+
+<p>A kapott lista teljesítménye igen gyenge, mivel minden egyes <code>get</code> és <code>set</code> híváskor boxol/unboxol. Ez megfelelő alkalmankénti használatra, de könnyelműség lenne teljesítmény szempontból kritikus belső ciklusban használni.</p>
+
+<p>Szóval, mikor is használjuk az autoboxingot és unboxingot? Csakis <em>akkor</em>, ha primitív típus helyett referencia típusra van szükségünk, pl.: ha numerikus értékeket kell egy kollekcióba raknunk. Továbbá nagyon nem tanácsos autoboxingot és unboxingot használni tudományos számítások vagy más erőforrás igényes numerikus számítások esetén. Az <code>Integer</code> <em>nem</em> az <code>int</code> egy alternatívája; az autoboxing és unboxing elmossa ugyan a határvonalat a primitív típusok és a referencia típusok közt, de nem szünteti meg.</p>
+
+<hr />

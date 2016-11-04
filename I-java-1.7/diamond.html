@@ -1,0 +1,72 @@
+<h1>Típuskövetkeztetés generikusok példányosításához</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.7 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Rontó Balázsnak! </p>
+
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/language/type-inference-generic-instance-creation.html">http://docs.oracle.com/javase/7/docs/technotes/guides/language/type-inference-generic-instance-creation.html</a></p>
+</blockquote>
+
+<hr />
+
+<p>A típus argumentumait a generikus osztályra való hivatkozáshoz kicserélhetjük üres paramétertípusra (<code>&lt;&gt;</code>), amíg a fordító következtetni tud a kontextusból. Ezt a zárójelpárt informálisan <em>gyémántnak</em> nevezzük.</p>
+
+<p>Például vegyük a következő változó deklarációt:</p>
+
+<pre><code>Map&lt;String, List&lt;String&gt;&gt; myMap = new HashMap&lt;String, List&lt;String&gt;&gt;();
+</code></pre>
+
+<p>Java SE 7-ben, helyettesíthetjük a paraméterezett konstruktor típust üres paramétertípussal (<code>&lt;&gt;</code>):</p>
+
+<pre><code>Map&lt;String, List&lt;String&gt;&gt; myMap = new HashMap&lt;&gt;();
+</code></pre>
+
+<p>Vegyük észre, hogy ha ki akarjuk használni az automatikus típuskövetkeztetés előnyeit, akkor meg kell adnunk a gyémántot. A következő példában a fordító generál egy ellenőrizetlen konverziós figyelmeztetést, mert a <code>HashMap()</code>  konstruktor a HashMap primitív típusra hivatkozik, nem a <code>Map&lt;String, List&lt;String&gt;&gt;</code> típusra:</p>
+
+<pre><code>Map&lt;String, List&lt;String&gt;&gt; myMap = new HashMap(); // ellenőrizetlen konverziós hiba
+</code></pre>
+
+<p>A Java SE 7 korlátozott típuskövetkeztetést támogat generikus példányosításhoz. Csak akkor használhatunk típuskövetkeztetést, ha a paraméterezett konstruktor típusa egyértelműen kiderül a kontextusból. Például a következő nem fordul le:</p>
+
+<pre><code>List&lt;String&gt; list = new ArrayList&lt;&gt;();
+list.add("A");
+
+  // The following statement should fail since addAll expects
+  // Collection&lt;? extends String&gt;
+
+list.addAll(new ArrayList&lt;&gt;());
+</code></pre>
+
+<p>Ne feledjük, hogy a gyémánt gyakran működik metódus hívásoknál is, ugyanakkor javasolt elsősorban változó deklarációnál használni.</p>
+
+<p>Összehasonlításképpen a következő példa lefordul:</p>
+
+<pre><code>// The following statements compile:
+
+List&lt;? extends String&gt; list2 = new ArrayList&lt;&gt;();
+list.addAll(list2);
+</code></pre>
+
+<h2>Típuskövetkeztetés és generikus konstruktorok generikus és nem generikus osztályoknál</h2>
+
+<p>Vegyük észre, hogy a konstruktorok is lehetnek generikusak (más szóval, deklaráljunk saját formális típusú paramétereket) generikus és nem generikus osztályok esetén is. Nézzük a következő példát:</p>
+
+<pre><code>class MyClass&lt;X&gt; {
+  &lt;T&gt; MyClass(T t) {
+    // ...
+  }
+}
+</code></pre>
+
+<p>Nézzük a <code>MyClass</code> példányosítását, ami a Java SE 7-ben és a korábbi verziókban érvényes.</p>
+
+<pre><code>new MyClass&lt;Integer&gt;("")
+</code></pre>
+
+<p>Ez az állítás létrehoz egy példányt a paraméterezett típusú <code>MyClass&lt;Integer&gt;</code> osztályból. Az állítás kifejezetten meghatározza az <code>Integer</code> típust formális paramétertípusnak, <code>X</code> a generikus <code>Myclass&lt;X&gt;</code> osztálynak. Megjegyzendő, hogy a generikus osztály konstruktora formális paramétert tartalmaz (<code>T</code>). A fordító <code>String</code> típusra következtet a generikus osztály konstruktorából (mert az aktuális paramétere a konstruktornak egy <code>String</code> objektum).</p>
+
+<p>A Java SE 7 előtti kiadású fordítók képesek következtetni a generikus konstruktor aktuális paraméter típusára, hasonlóan a generikus metódusokhoz. Ugyanakkor, a fordító Java SE 7 esetén következtetni tud az <em>aktuális paraméterre a generikus osztály példányosításánál</em>, ha használjuk a gyémántot(<code>&lt;&gt;</code>). Vegyük a következő példát, ami érvényes a Java SE 7 és a későbbi verziókban:</p>
+
+<pre><code>MyClass&lt;Integer&gt; myObject = new MyClass&lt;&gt;("");
+</code></pre>
+
+<p>Ebben a példában a fordító <code>Integer</code> típusra oldja fel a <code>MyClass&lt;X&gt;</code> osztály az <code>X</code> a generikus paraméterét, valamint <code>String</code> típusra oldja fel a konstruktor <code>T</code> formális paraméterét.</p>

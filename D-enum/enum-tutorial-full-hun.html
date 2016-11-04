@@ -1,0 +1,291 @@
+<h1>Enumok</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.5 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Molnár Szilvinek!</p>
+
+<p><a href="http://download.oracle.com/javase/1.5.0/docs/guide/language/enums.html">http://download.oracle.com/javase/1.5.0/docs/guide/language/enums.html</a></p>
+</blockquote>
+
+<p>A régebbi verziókban a felsoroló típusoknak a szabványos reprezentációja az <em>int enum pattern</em>:</p>
+
+<p><code>java
+//int Enum minta - komoly hibákkal küzd!
+public static final int SEASON_WINTER = 0;
+public static final int SEASON_SPRING = 1;
+public static final int SEASON_SUMMER = 2;
+public static final int SEASON_FALL   = 3;
+</code></p>
+
+<p>Ezzel a mintával sok probléma van, mint például:</p>
+
+<ul>
+<li><strong>Nem típusbiztos</strong> - Mivel az évszak csak egy <code>int</code>, ezért bármilyen más <code>int</code> értéket megadhatunk neki, ahol egy évszakra van szükség, vagy összeadhatunk két évszakot (aminek nincs semmi értelme).</li>
+<li><strong>Nincs névtér</strong> - Minden int enum-nak kell adnunk egy string előtagot, (ebben az esetben <code>SEASON_</code>) hogy elkerüljük a többi int enum típussal való ütközést.</li>
+<li><strong>Törékenység</strong> - Mivel az int enum-ok fordítási idejű konstansok, kliensekbe fordulnak le, amik használják őket. Ha egy új konstansot hozunk létre két, már létező konstans közé vagy a sorrend megváltozik, a klienseket újra kell fordítani. Ha ezt nem tesszük meg attól még a program futni fog, viszont a program nem-determinisztikussá válhat.</li>
+<li><strong>A kiírt értékek nem informatívak</strong> -  Mivel csak egészek, ezért ha kiíratunk egyet csak egy számot fogunk látni, ami nem mond semmit a reprezentációjáról, de még a típusát se tudjuk belőle kikövetkeztetni. </li>
+</ul>
+
+<p>Lehetőség van elkerülni ezeket a problémákat a <em>Typesafe Enum</em> minta használatával (ld. <a href="http://java.sun.com/docs/books/effective/"><em>Effective Java</em></a> Item 21), de ennek a mintának is megvannak a saját hibái: eléggé összetett, ezért potenciális hibaforrás lehet, valamint ezeket az enum konstansokat nem lehet használni <code>switch</code> kifejezésben.</p>
+
+<p>Az 5.0-s verzióban a felsoroló típusok nyelvi támogatást kapnak. Legegyszerűbb alakjukban ezek a felsorolás típusok ugyanúgy néznek ki mint a C, C++ vagy C#-ban levő megfelelőjük:</p>
+
+<pre><code>    `enum Season { WINTER, SPRING, SUMMER, FALL }`
+</code></pre>
+
+<p>Ugyanakkor a látszat megtévesztő lehet. A Javaban a felsorolási típusok sokkal kifejezőbbek, mint a többi programozási nyelvben, ahol nem sokkal többek, mint az egyszerű egész értékek. Az új <code>enum</code> deklaráció egy teljesen önálló osztályt (egy <em>felsorolási típust</em>) definiál. Azon kívül, hogy megoldja a fentebb említett összes problémát, lehetővé teszi, hogy tetszőleges metódusokat, adat mezőket adjunk egy felsoroló típusnak, tetszőleges interfészeket implementáljunk, valamint számos más előnnyel is rendelkezik. A felsorolási típusok magas szintű implementációt biztosítanak az összes <code>Object</code> metódusnak. Összehasonlíthatók (<code>Comperable</code>) és szerializálhatók (<code>Serializable</code>). Ezeket úgy tervezték, hogy kiállják a tetszőleges változtatásokat (<em>hibatűrés</em>).</p>
+
+<p>Itt van egy kártya játék osztály példa, felépítve néhány egyszerű felsoroló típussal az elején. A <code>Card</code> osztály megváltoztathatatlan (<em>immutable</em>), és minden <code>Card</code>-nak csak egy példánya jön létre, tehát nincs szükség az <code>equals()</code> vagy a <code>hashCode()</code> függvények túlterhelésére:</p>
+
+<p>``` java
+import java.util.*;</p>
+
+<p>public class Card {
+    public enum Rank { DEUCE, THREE, FOUR, FIVE, SIX,
+        SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE }</p>
+
+<pre><code>public enum Suit { CLUBS, DIAMONDS, HEARTS, SPADES }
+
+private final Rank rank;
+private final Suit suit;
+private Card(Rank rank, Suit suit) {
+    this.rank = rank;
+    this.suit = suit;
+}
+
+public Rank rank() { return rank; }
+public Suit suit() { return suit; }
+public String toString() { return rank + " of " + suit; }
+
+private static final List&lt;Card&gt; protoDeck = new ArrayList&lt;Card&gt;();
+
+// Prototype deck inicializációja
+static {
+    for (Suit suit : Suit.values())
+        for (Rank rank : Rnk.values())
+            protoDeck.add(new Card(rank, suit));
+}
+
+public static ArrayList&lt;Card&gt; newDeck() {
+    return new ArrayList&lt;Card&gt; (protoDeck);   //a protoype deck másolatát adja vissza
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A <code>Card toString()</code> metódusa a <code>Rank</code> és a <code>Suit toString()</code> metódusát használja. Vegyük észre, hogy a <code>Card</code> osztály rövid (kb 25 soros kód). Ha a típusbiztos felsorolók (<code>Rank</code> és <code>Suit</code>) kézzel lettek volna felépítve, akkor jelentősen hosszabbak lenének mint az egész <code>Card</code> osztály.</p>
+
+<p>A <code>Card</code> (privát) konstruktorának két paramétere van, egy <code>Rank</code> és egy <code>Suit</code>. Ha véletlenül felcseréljük a konstruktor paramétereit, a fordító udvariasan szólni fog miatta. Szemben az <code>int</code> enum mintával, amiben a program futási időben dobna hibát.</p>
+
+<p>Továbbá azt is vegyük észre, hogy mindegyik felsoroló típusnak van egy statikus <code>values()</code> metódusa, amely egy olyan tömböt ad vissza, ami tartalmazza az összes felsoroló típus értékét a deklarálásuk sorrendjében. Gyakran használják ezt a metódust kombinálva a <a href="http://download.oracle.com/javase/1.5.0/docs/guide/language/foreach.html">for-each</a> ciklussal, a felsoroló típusok értékeinek bejárására.</p>
+
+<p>A következő példa egy egyszerű program (<code>Deal</code> osztály), ami a <code>Card</code> osztályt használja. Két számot olvas be a konzolból, az első a játékosok számát a második a kártyák számát jelenti játékosonként. Aztán létrehoz egy új kártyapaklit, megkeveri, kiosztja és kiírja a konzolba a kártyákat játékosonként.</p>
+
+<p>``` java
+import java.util.*;</p>
+
+<p>public class Deal {
+    public static void main(String args[]) {
+        int numHands = Integer.parseInt(args[0]);
+        int cardsPerHand = Integer.parseInt(args[1]);
+        List<Card> deck  = Card.newDeck();
+        Collections.shuffle(deck);
+        for (int i=0; i &lt; numHands; i++)
+            System.out.println(deal(deck, cardsPerHand));
+        }</p>
+
+<pre><code>public static ArrayList&lt;Card&gt; deal(List&lt;Card&gt; deck, int n) {
+    int deckSize = deck.size();
+    List&lt;Card&gt; handView = deck.subList(deckSize-n, deckSize);
+    ArrayList&lt;Card&gt; hand = new ArrayList&lt;Card&gt;(handView);
+    handView.clear();
+    return hand;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<pre><code>    $ java Deal 4 5
+    [FOUR of HEARTS, NINE of DIAMONDS, QUEEN of SPADES, ACE of SPADES, NINE of SPADES]
+    [DEUCE of HEARTS, EIGHT of SPADES, JACK of DIAMONDS, TEN of CLUBS, SEVEN of SPADES]
+    [FIVE of HEARTS, FOUR of DIAMONDS, SIX of DIAMONDS, NINE of CLUBS, JACK of CLUBS]
+    [SEVEN of HEARTS, SIX of CLUBS, DEUCE of DIAMONDS, THREE of SPADES, EIGHT of CLUBS]
+</code></pre>
+
+<p>Tegyük fel, hogy vmilyen adatot és viselkedés formát akarunk adni egy felsorolónak. Például nézzük a Naprendszer bolygóit. Minden bolygónak van tömege és sugara, ki lehet számolni a felszíni gravitációt és a bolygón lévő tárgyak a tömegét. Így néz ki:</p>
+
+<p>``` java
+public enum Planet {
+    MERCURY (3.303e+23, 2.4397e6),
+    VENUS   (4.869e+24, 6.0518e6),
+    EARTH   (5.976e+24, 6.37814e6),
+    MARS    (6.421e+23, 3.3972e6),
+    JUPITER (1.9e+27,   7.1492e7),
+    SATURN  (5.688e+26, 6.0268e7),
+    URANUS  (8.686e+25, 2.5559e7),
+    NEPTUNE (1.024e+26, 2.4746e7),
+    PLUTO   (1.27e+22,  1.137e6);</p>
+
+<pre><code>private final double mass;   // in kilograms
+private final double radius; // in meters
+Planet(double mass, double radius) {
+    this.mass = mass;
+    this.radius = radius;
+}
+public double mass()   { return mass; }
+public double radius() { return radius; }
+
+// Universal gravitational constant  (m^3 kg^-1 s^-2)
+public static final double G = 6.67300E-11;
+
+public double surfaceGravity() {
+    return G * mass / (radius * radius);
+}
+public double surfaceWeight(double otherMass) {
+    return otherMass * surfaceGravity();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A <code>Planet</code> enum típus tartalmaz egy konstruktort, és minden enum konstans deklarálva van a paramétereivel, amik át lesznek adva a konstruktornak annak meghívásakor.</p>
+
+<p>Itt van egy hasonló program, ami veszi a súlyunkat a földön (bármilyen mértékegységben) és kiszámolja, majd kiírja a különböző bolygókon mért súlyunkat (ugyanabban a mértékegységben):</p>
+
+<p><code>java
+public static void main(String[] args) {
+    double earthWeight = Double.parseDouble(args[0]);
+    double mass = earthWeight/EARTH.surfaceGravity();
+    for (Planet p : Planet.values())
+        System.out.printf("Your weight on %s is %f%n",
+            p, p.surfaceWeight(mass));
+}
+</code></p>
+
+<pre><code>    $ java Planet 175
+    Your weight on MERCURY is 66.107583
+    Your weight on VENUS is 158.374842
+    Your weight on EARTH is 175.000000
+    Your weight on MARS is 66.279007
+    Your weight on JUPITER is 442.847567
+    Your weight on SATURN is 186.552719
+    Your weight on URANUS is 158.397260
+    Your weight on NEPTUNE is 199.207413
+    Your weight on PLUTO is 11.703031
+</code></pre>
+
+<p>Az elképzelést, hogy viselkedés formát adjunk egy enumnak még tovább fokozhatjuk. A konstans enumoknak néhány metódusához is adhatunk <em>különböző</em> viselkedési formát. Az egyik módja ennek, hogy egy switch ágban végigvizsgáljuk az enum konstansokat. A következő enum példában a konstansok reprezentálják a négy aritmetikai műveletet, és azok <code>eval()</code> metódusa hajtja végre a műveletet:</p>
+
+<p>``` java
+public enum Operation {
+    PLUS, MINUS, TIMES, DIVIDE;</p>
+
+<pre><code>// Ezzel a konstanssal reprezentálva végzi el az aritmetikai műveletet
+double eval(double x, double y){
+    switch(this) {
+        case PLUS:   return x + y;
+        case MINUS:  return x - y;
+        case TIMES:  return x * y;
+        case DIVIDE: return x / y;
+    }
+    throw new AssertionError("Unknown op: " + this);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Ez jól működik, de nem fog lefordulni a <code>throw</code> kulcsszó nélkül, ami nem feltétlen előnyös. Ami még rosszabb, hogy nem felejthetjük el, hogy minden alkalommal mikor egy új konstansot adunk az <code>Operation</code> enumhoz, akkor hozzá kell adnunk egy új esetet a <code>switch</code> blokkhoz. Ha erről megfeledkezünk, akkor az <code>eval()</code> metódus megbukik és végrehajtja a fent említett <code>throw</code> részt.</p>
+
+<p>Van egy másik megoldás, amivel elkerülhetjük ezeket a problémákat. Az enum típusban absztraktnak deklarálhatjuk a metódust és felüldefiniálhatjuk egy konkrét metódussal minden egyes konstansban. Néhány metódust csak úgy ismerünk, mint <em>konstans-specifikus</em> metódus. Itt van az előző példa átalakítva úgy, hogy ezt a technikát használja:</p>
+
+<p>``` java
+public enum Operation {
+    PLUS   { double eval(double x, double y) { return x + y; } },
+    MINUS  { double eval(double x, double y) { return x - y; } },
+    TIMES  { double eval(double x, double y) { return x * y; } },
+    DIVIDE { double eval(double x, double y) { return x / y; } };</p>
+
+<pre><code>// Ezt a konstansot használva végez aritmetikai műveletet
+abstract double eval(double x, double y);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Itt van egy hasonló program ami az <code>Operation</code> osztályt használja. Két műveletet vár a konzolból, végigmegy az összes műveleten és mindegyik műveletet végrehajtja, majd kiíratja a kapott egyenleteket.</p>
+
+<p><code>java
+public static void main(String args[]) {
+    double x = Double.parseDouble(args[0]);
+    double y = Double.parseDouble(args[1]);
+    for (Operation op : Operation.values())
+        System.out.printf("%f %s %f = %f%n", x, op, y, op.eval(x, y));
+}
+</code></p>
+
+<pre><code>    $ java Operation 4 2
+    4.000000 PLUS 2.000000 = 6.000000
+    4.000000 MINUS 2.000000 = 2.000000
+    4.000000 TIMES 2.000000 = 8.000000
+    4.000000 DIVIDE 2.000000 = 2.000000
+</code></pre>
+
+<p>A konstans-specifikus metódusok meglehetősen mesterkéltek, és a legtöbb programozónak soha nem is lesz rá szüksége, de azért jó tudni, hogy ilyen is van.</p>
+
+<p>A felsorolási típusok támogatására két új osztály található a <code>java.util</code> csomagban: az <a href="http://download.oracle.com/javase/1.5.0/docs/api/java/util/EnumSet.html"><code>EnumSet</code></a> és az <a href="http://download.oracle.com/javase/1.5.0/docs/api/java/util/EnumMap.html"><code>EnumMap</code></a> egy speciális <code>Set</code> és <code>Map</code> implementációk. Az <code>EnumSet</code> egy hatékonyabb implementációja a <code>Set</code> interfésznek. Egy enum halmaz összes enum elemének a típusa meg kell, hogy egyezzen. Igazából ez egy bit-vektorként van reprezentálva, tipikusan egy egyszerű <code>long</code>-ként. Az enum halmazok enum típusain végig lehet iterálni egy adott tartományon. Például adott a következő enum deklaráció:</p>
+
+<p><code>java
+enum Day { SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY }
+</code></p>
+
+<p>itt végig lehet iterálni a hétköznapokon. Az <code>EnumSet</code> osztály egy static factory-t generál, ami megkönnyíti  a helyzetet:</p>
+
+<p><code>java
+for (Day d : EnumSet.range(Day.MONDAY, Day.FRIDAY))
+    System.out.println(d);
+</code></p>
+
+<p>Az Enum halmazok a hagyományos bit-flag-ekre is adnak egy gazdag és típusbiztosabb helyettesítést:</p>
+
+<p><code>java
+EnumSet.of(Style.BOLD, Style.ITALIC)
+</code></p>
+
+<p>Hasonlóan, az <code>EnumMap</code> is egy hatékonyabb implementációja a <code>Map</code>-nak, amit enum kulcsokkal tudunk használni. Az <code>EnumMap</code> igazából egy tömbként van implementálva. Az enum map-ek a <code>Map</code> interfésznek egy sokrétű és biztonságos kombinációja, megközelítőleg egy tömb gyorsaságával. Ha egy enumhoz egy értéket akarunk hozzárendelni, akkor mindig az <code>EnumMap</code>-ot kell használnunk és nem egy tömböt.</p>
+
+<p>A fenti <code>Card</code> osztály egy static factory függvényt tartalmaz, ami egy paklival tér vissza, és semmiféleképpen nem fogunk egy önálló kártyát a típusával és színével együtt visszakapni. Már a konstruktor felfedése is tönkretenné a singleton tulajdonságot (egy kártyának csak egy példánya létezhet). Itt van egy static factory példa, amivel meg tudjuk őrizni a singleton tulajdonságot egy beágyazott <code>EnumMap</code>-et használva:</p>
+
+<p>``` java
+private static Map<Suit, Map<Rank, Card>> table =
+    new EnumMap<Suit, Map<Rank, Card>>(Suit.class);
+static {
+    for (Suit suit : Suit.values()) {
+        Map<Rank, Card> suitTable = new EnumMap<Rank, Card>(Rank.class);
+        for (Rank rank : Rank.values())
+            suitTable.put(rank, new Card(rank, suit));
+        table.put(suit, suitTable);
+    }
+}</p>
+
+<p>public static Card valueOf(Rank rank, Suit suit) {
+    return table.get(suit).get(rank);
+}
+```</p>
+
+<p>Az <code>EnumMap</code> (table) mindegyik suit-ot egy <code>EnumMap</code>-hoz társítja és ez az <code>EnumMap</code> meg az összes rank-hoz egy card-ot társít. A <code>valueOf()</code> metódus által végrehajtott keresés valójában két tömb elérésével van megvalósítva, de a kód sokkal tisztább és biztonságosabb. A singleton tulajdonság megőrzése érdekében elkerülhetetlen, hogy a <code>Card</code> osztályban a prototype deck inicializációjánál a konstruktor hívását egy uj static factory hívással helyettesítsük:</p>
+
+<p><code>java
+// Initialize prototype deck
+static {
+    for (Suit suit : Suit.values())
+        for (Rank rank : Rank.values())
+            protoDeck.add(Card.valueOf(rank, suit));
+}
+</code></p>
+
+<p>Szintén elkerülhetetlen az is, hogy a <code>table</code> inicializációja a <code>protoDeck</code> inicializációja elé kerüljön, mivel az utóbbi függ az előbbitől.</p>
+
+<p>Tehát mikor kéne enumokat használnunk? Bármikor amikor egy fix konstans halmazra van szükségünk. Ez magában foglalja a természetes felsorolási típusokat (mint például a bolygók, a hét napjai és egy kártyapakli színei), valamint más halmazokat, amiknek futási időben ismerjük az értékeit, mint például egy menü választéka, kerekítési módszerek, konzol flag-ek stb. <em>Nem</em> feltétlenül szükséges, hogy az enum típusú konstansok halmaza mindig fix maradjon. Az megvalósítást úgy tervezték, hogy a bináris kompatibilitás megmaradjon, mégha a felsorolási típus időben változik is.</p>

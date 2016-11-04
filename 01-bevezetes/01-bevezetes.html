@@ -1,0 +1,709 @@
+<h1>Bevezetés</h1>
+
+<p>A Java nyelvről, általánosan.</p>
+
+<h2>Linkek</h2>
+
+<ul>
+<li>A tárgy honlapja Kozsik Tamás oldalán: <a href="http://aszt.inf.elte.hu/~kto/teaching/java/">http://aszt.inf.elte.hu/~kto/teaching/java/</a></li>
+<li>Oracle Java oldala <a href="http://www.oracle.com/technetwork/java/index.html">http://www.oracle.com/technetwork/java/index.html</a></li>
+<li>Java Development Kit (JDK) fejlesztői környezet (fordító, stb.),</li>
+<li>Java Runtime Environment (JRE) csak futtatói környezet</li>
+<li>Java forráskód egy (jó) része nyílt, a forrás megtalálható a JDK könyvtárában
+(<code>src.zip</code> fájl)</li>
+<li>Elsődleges információforrások:
+<ul>
+<li>Java referencia alapvető fontosságú <a href="http://download.oracle.com/javase/6/docs/api/">http://download.oracle.com/javase/6/docs/api/</a></li>
+<li>Java tutorial <a href="http://download.oracle.com/javase/tutorial/reallybigindex.html">http://download.oracle.com/javase/tutorial/reallybigindex.html</a>
+vagy Java 5.0 Útikalauz programozóknak (Nyékyné)</li>
+<li>Java Language Specification Harmadik kiadás, rendes specifikáció, HTML, PDF
+formátumban. <a href="http://java.sun.com/docs/books/jls/">http://java.sun.com/docs/books/jls/</a></li>
+</ul></li>
+<li>Közösségi oldalak, levlisták, fórumok, stb.
+<ul>
+<li>Java levlista <a href="http://lists.javaforum.hu/mailman/listinfo/javalist">http://lists.javaforum.hu/mailman/listinfo/javalist</a></li>
+<li>Javagrund <a href="http://javagrund.hu/web/java/index">http://javagrund.hu/web/java/index</a> (<em>pillanatnyilag offline, amíg az Oracle-lel nem rendeződnek a dolgok</em>)</li>
+<li>Javaforum <a href="http://www.javaforum.hu/javaforum">http://www.javaforum.hu/javaforum</a></li>
+</ul></li>
+<li>Környezetek ízlés szerint
+<ul>
+<li>Konzol (ld. a megfelelő mellékletet)</li>
+<li>Eclipse <a href="http://www.eclipse.org/downloads/">http://www.eclipse.org/downloads/</a></li>
+<li>NetBeans <a href="http://netbeans.org/downloads/">http://netbeans.org/downloads/</a></li>
+</ul></li>
+</ul>
+
+<h2>Kérdések</h2>
+
+<ol>
+<li>Milyen kommenteket különböztetsz meg?</li>
+<li>Milyen primitív típusok vannak?</li>
+<li>Mi az a wrapper vagy burkoló osztály?</li>
+<li>Mi a különbség az <code>equals()</code> és a <code>==</code> operátor között?</li>
+<li>Mit csinál a <code>continue</code> utasítás?</li>
+<li>Mit jelentenek a suffixek: d, f, l?</li>
+<li>Hasonlítsd össze a float és a double típusokat!</li>
+</ol>
+
+<h2>Hello World</h2>
+
+<p>Hozzatok létre egy <code>HelloWorldApp.java</code> nevű állományt a következő tartalommal:</p>
+
+<p><code>java
+/** <br />
+ * Hello world program. <br />
+ */ <br />
+public class HelloWorldApp { <br />
+    public static void main(String[] args) { <br />
+        System.out.println("Hello World!"); <br />
+    } <br />
+}
+</code></p>
+
+<ul>
+<li><strong>Fontos</strong>, hogy a fájl neve megegyezzen a benne definiált publikus osztály
+nevével (tehát ha <code>XXX.java</code> a fájl neve, akkor benne egy darab publikus
+osztály, <code>public class XXX</code> definícióval, különben beszól a fordító). </li>
+<li>Std. Output <code>System.out.println( ... );</code></li>
+<li>Std. Error <code>System.err.println( ... );</code></li>
+<li>Escape sequences <code>\r</code>, <code>\n</code>, <code>\t</code>, <code>\b</code>, stb.
+Részletesen: <a href="http://download.oracle.com/javase/tutorial/java/data/characters.html">http://download.oracle.com/javase/tutorial/java/data/characters.html</a></li>
+<li>Kilépés <code>System.exit( 0 );</code></li>
+<li>Egyéb függvények a <code>System</code> osztály leírásában: <a href="http://download.oracle.com/javase/6/docs/api/java/lang/System.html">http://download.oracle.com/javase/6/docs/api/java/lang/System.html</a></li>
+<li>Konzol kezelése <code>java.io.Console</code> osztály segítségével: <a href="http://download.oracle.com/javase/6/docs/api/java/io/Console.html">http://download.oracle.com/javase/6/docs/api/java/io/Console.html</a></li>
+</ul>
+
+<h2>Környezet beállítása</h2>
+
+<p>Windows alatt <em>Windows + R</em>, majd <code>cmd.exe</code>:</p>
+
+<pre><code>C:\Users\rlegendi&gt; PATH=%PATH%;C:\Program Files\Java\jdk1.6.0_21\bin  
+C:\Users\rlegendi&gt; echo %PATH%  
+...;C:\Pogram Files\Java\jdk1.6.0_21\bin   
+C:\Users\rlegendi&gt; javac -version    
+javac 1.6.0_21
+</code></pre>
+
+<p>Ha nem akarod minden használat előtt ezt eljátszani, akkor <em>Windows + Break</em>,
+<em>Advanced system settings</em>, <em>Environment variables...</em>, és a <code>PATH</code> végéhez
+hozzáfűzöd a megadott elérési utat.</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Itt az ELTE-n Windows alatt nem valószínű, hogy lesz jogotok a
+globális <code>PATH</code> változó beállítására. Érdemes erre egy egyszerű batch/ps
+scriptet készíteni.
+Linuxon ilyen probléma nincs.</p>
+</blockquote>
+
+<h3>Fordítás</h3>
+
+<pre><code>javac HelloWorldApp.java
+</code></pre>
+
+<p>Használható <code>*.java</code> a default package fordítására.</p>
+
+<h3>Futtatás</h3>
+
+<pre><code>java HelloWorldApp
+</code></pre>
+
+<p>(<code>.class</code> nélkül!)</p>
+
+<h3>Dokumentáció generálás</h3>
+
+<pre><code>javadoc HelloWorldApp.java
+</code></pre>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/tutorial/getStarted/cupojava/win32.html">http://download.oracle.com/javase/tutorial/getStarted/cupojava/win32.html</a>
+Ezen tutorial magyar fordítása megtalálható a feladatgyűjtemény mellékleteként.</p>
+</blockquote>
+
+<h2>Kódolási konvenciók</h2>
+
+<p>``` java
+    package java.blah; // top-level domain, kisbetus karakterek  </p>
+
+<pre><code>/**  
+ * Osztalyleiras..  
+ *  
+ * @version  1.0  
+ * @author   Mr. T  
+ */  
+public class Foo extends Bar {  
+
+    /** classVar1 egysoros comment. */  
+    public int classVar1;  
+
+    /**  
+     * classVar2, aminek meg tobbsoros  
+     * a leirasa.
+     */
+    private static String classVar2;
+
+    /**
+     * Konstruktor komment...
+     */
+    public Foo() {
+        // ...
+    }
+
+    /**
+     * Fuggveny komment...
+     */
+    public void doSomething() {
+        // ...
+    }
+
+    /**
+     * Valami masik fuggveny komment...
+     *
+     * @param someParam valami parameter
+     * @return valami ertek
+     */
+    public int returnSomeValue(Object someParam) {
+        // ...
+    }
+
+   /**
+    * Logikai fuggveny...
+    */
+   public boolean isSomething() {
+      // ...
+   }
+}
+</code></pre>
+
+<p>```</p>
+
+<blockquote>
+  <p><strong>Egyelőre ökölszabály</strong> Osztály név = fájl név, nagybetűvel kezdődik. Csomag
+név = könyvtár név, kisbetűvel kezdődik (később lesz több osztály is egy
+fordítási egységen belül).</p>
+
+<p><strong>Részletesen</strong> <a href="http://www.oracle.com/technetwork/java/codeconv-138413.html">http://www.oracle.com/technetwork/java/codeconv-138413.html</a></p>
+
+<p><strong>Kiegészítés</strong> Ékezetes karaktereket <em>ne</em> használjatok! Főleg azonosítók
+esetében ne! A Java ugyan ezt megengedi (minden UTF-8 karakter használható
+azonosítóban, ugyanakkor a különböző környezetekbe való konvertáláskor
+(latin2 &harr; UTF-8 &harr; Cp1250) összetörnek a karakterek! Az ilyen
+forrásokat fordítani, következésképp értékelni sem tudom.</p>
+</blockquote>
+
+<h2>Típusok</h2>
+
+<p>Primitív típusok:</p>
+
+<ul>
+<li><code>byte</code>, <code>short</code>, <code>int</code>, <code>long</code>, <code>float</code>, <code>double</code>, <code>char</code>, <code>boolean</code></li>
+<li>default értékek (<code>0</code>, <code>false</code>, stb.)</li>
+<li>oktális (<code>int octVal = 01</code>), hexa érték (<code>byte hexVal = 0xff</code>), scientific
+notation (<code>double d = 1.23e4</code>)</li>
+<li>wrapper osztályok (<code>Byte</code>, <code>Short</code>, <code>Integer</code>, ...)</li>
+</ul>
+
+<p>Konverziók:</p>
+
+<ul>
+<li>bővítő automatikus</li>
+<li>szűkítő típuskényszerítéssel (<code>byte b = (byte) 10</code>)</li>
+</ul>
+
+<p>Szövegkonverzió:</p>
+
+<ul>
+<li>Stringgé: <code>String s = "" + 1;</code> (precedenciára figyelni!)</li>
+<li>Stringből: <code>Integer.parseInt("1")</code>, <code>Double.parseDouble("2.0")</code>, ...</li>
+</ul>
+
+<h3>Valós számok</h3>
+
+<p>A gépi számábrázolás rengeteg problémát vet fel, amik még egy tapasztaltabb programozónak is okozhatnak kellemetlen meglepetéseket. Ezt elkerülve igyekszem leírni pár olyan tipikus hibát, amikbe bele lehet esni, és igyekszem rávilágítani, hogy hogyan lehet azokat megoldani (amennyiben egyáltalán van rá lehetőség).</p>
+
+<p><strong>Ez az alfejezet nem csak és kizárólag Java programozóknak szól</strong>: általában a programozási nyelvekben előjövő gyakorlati tanácsokat találhattok összefoglalva.</p>
+
+<p>Aki esetleg mélyebben érdeklődne, a <em>Numerikus Analízis c. tárgy</em> keretein belül részleteiben tárgyaljátok ezt a témakört.</p>
+
+<h4>Approximáció</h4>
+
+<p>A gépeken tárolt valós változók közelítések, approximációk. Alapvetően kétféle megközelítést használnak a programozási nyelvek: <em>fixpontos</em> ill. <em>lebegőpontos</em> ábrázolásmódot. Előbbit úgy képzeljétek el, hogy fix számú biten tárolják az előjelet, egészrészt valamint a törtrészt (ez már maga komoly numerikus hibákkal járhat), utóbbinál pedig a következő formában: <code>(-1)^s * m * 10^k</code>, ahol <code>0 &lt;= |m| &lt;= 10</code> a mantissza, <em>k</em> pedig a karakterisztika (ezt hívják <em>normál alaknak</em>, a bináris reprezentációban tízes alap helyett kettest használnak). Van nyelv, ami az egyiket, van, ami a másikat támogatja, és van, ami mindkettőt (pl. a Pascal, Ada).</p>
+
+<p>A legtöbb programozási nyelv az 1985-ben elfogadott IEE 754 szabvány szerint kezeli a számokat, ezek alól a Java sem kivétel.</p>
+
+<p>Ami a lényeg: ha leírsz egy számot, az <em>közelítés</em>, hiába gondolsz bármi mást. Mutatok egy példát:</p>
+
+<p><code>java
+    // Az eredmenye: 1
+    System.out.println( 0.2 + 0.2 + 0.2 + 0.2 + 0.2 );
+</code></p>
+
+<p>Ez többé-kevésbé egybevág az ember intuitív elvárásával. Ez viszont teljesen véletlen, a csillagok állásának köszönhető: azon múlt, hogy a <code>0.2d</code> egyike azon ritka valós számoknak, amely <em>viszonylag kis numerikus hiba mellett ábrázolható</em>.</p>
+
+<p>Próbáljuk meg például a fenti kódot <code>0.1</code> értékekkel:</p>
+
+<p>``` java
+    // Az eredmenye: 1.0000001
+    System.out.println( 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f + 0.1f );</p>
+
+<pre><code>// Az eredmenye: 0.9999999999999999
+System.out.println( 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d + 0.1d );
+</code></pre>
+
+<p>```</p>
+
+<p>Ezzel sajnos nem tudsz mit csinálni. Sőt, további gondokhoz vezet. Nézzünk erre most néhány példát a következő alfejezetekben!</p>
+
+<h4>Az == operátor</h4>
+
+<p>A fenti pont egy következménye, hogy ha leírunk egy ilyen kifejezést:</p>
+
+<p><code>java
+    // Akkor az bizony hamis lesz:
+    System.out.println( 0.3 == 0.1d + 0.1d + 0.1d );
+</code></p>
+
+<p>Ebbe a csapdába egy kezdő programozó könnyen beleeshet, vegyük például a következő számlálós ciklust:</p>
+
+<p><code>java
+    for (double d=0.0; d != 0.3; d += 0.1) {
+        // Hopp! Vegtelen ciklus!
+    }
+</code></p>
+
+<p>Mit tudunk akkor hát ezekkel kezdeni? Nos, a legegyszerűbb megoldás az, ha a programozó felállít egy <em>önkényes hibahatárt</em>, amin belül egyezőnek vél két valós számot - azaz annak epszilon környezetébe való tartozást vizsgáljuk egyenlőség helyett. Például:</p>
+
+<p>``` java
+    final double DELTA = 1.0E-5; // Hibahatar
+    final double d1 = 0.3;
+    final double d2 = 0.1 + 0.1 + 0.1;</p>
+
+<pre><code>if ( Math.abs( d1 - d2 ) &lt; DELTA ) {
+    System.out.println("d1 == d2");
+}
+</code></pre>
+
+<p>```</p>
+
+<h4>Túl-, és alulcsordulás</h4>
+
+<p>Ilyet már valószínűleg az egyszerű egész típusosztály körében is láttatok: van minden típusnak egy maximális ill. minimális értéke (Java esetén ezt az <code>Integer.MIN_VALUE</code>, <code>Integer.MAX_VALUE</code>, stb. konstansok deklarálják).</p>
+
+<p>A valós számok esetén is előjönnek ezek a problémák, hatványozottan. Tekintsük a következő példát:</p>
+
+<p><code>java
+    final double big = 1.0e307 * 2000 / 2000;
+    System.out.println( big == 1.0e307 ); // Hamis lesz!
+</code></p>
+
+<p>A programkódtól ránézésre intuitív módon az ember igaz értéket várna, azonban hamis lesz! Miért is? Beszorzok egy számot X értékkel, aztán azzal le is osztok, így az eredeti értéket kellene kapnom. Nos, a magyarázat jelen esetben a túlcsordulás: Java szigorú kiértékelési sorrendel rendelkezik (<em>balról jobbra azonos precedenciák esetében</em>). Mikor beszorozzuk a számot, kimegyünk az ábrázolható tartományból, kapunk valami teljesen más értéket (ami jelen esetben ez az <code>Infinity</code>), így azt elosztva X értékkel közel sem az eredeti számot kapjuk vissza. S minderről a programozó semmi visszajelzést nem kap...</p>
+
+<h4>A túl kicsi és túl nagy számok esete</h4>
+
+<p>A lebegőpontos számábrázolásnak van egy speciális problémája. Matematikában megszokhattátok, hogy adott <code>d1</code>, <code>d2</code> számok esetén <code>d1 + d2 &gt; d1</code>. Nos, a lebegőpontos ábrázolás ezt is tönkrevághatja: mi van, ha az egyik szám olyan nagy, hogy a másik szám hozzáadása az ő bináris alakján semmi változtatást nem eredményez?</p>
+
+<p>Például:</p>
+
+<p><code>java
+    System.out.println( 1234.0d + 1.0e-13d == 1234.0d ); // Igaz lesz!
+</code></p>
+
+<h4>WYSINWYG - What You See Is Not What You Get</h4>
+
+<p>Cseles módon, mikor kiírunk a konzolra egy valós számot, az <em>nem a reprezentációban használt közelített érték lesz</em>. Azt már tudjuk, hogy a <code>0.1</code> nincs tökéletesen ábrázolva, ugyanakkoor ha kiírjuk a képernyőre az értékét, a következőt látjuk:</p>
+
+<p><code>java
+    System.out.println( 0.1d ); // Megjeleno ertek: 0.1
+</code></p>
+
+<p>Ajjjaj! Sőt, hogy bonyolítsuk a helyzetet, nézzük csak meg, mi lesz a következő kódrészlet eredménye:</p>
+
+<p><code>java
+    System.out.println(0.1 == 0.099999999999999998); // Hamis
+    System.out.println(0.1 == 0.099999999999999999); // Igaz
+    System.out.println(0.1 == 0.100000000000000001); // Igaz
+</code></p>
+
+<p>Puff neki. Az első furcsaság, hogy kerekít a kód, ez teljesen jó, de <code>...998</code> felett? Nem <code>...995</code> körül kéne? <em>Nem.</em></p>
+
+<p>A másik, hogy a 0.1 ugyanaz, mint 0.099999999999999999? <em>Igen.</em></p>
+
+<p>Mi ennek az oka? Nos, hogy ezt kicsit megvilágítsuk, nézzük meg a közelített értéket egy speciális osztály segítségével:</p>
+
+<p><code>java
+    // A kiirt ertek: 0.1000000000000000055511151231257827021181583404541015625
+    System.out.println( new BigDecimal(0.1) );
+</code></p>
+
+<p>Fura, mi?</p>
+
+<hr />
+
+<p>És akkor még a <em>nullával való osztásról</em>, a <em>végtelenről</em>, illetve a <em>NaN</em> (<em>Not a Number</em>) értékekről még nem is beszéltünk - de ezek már valamivel több ismeretet igénylő anyagok.</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p><a href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html">http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html</a> §3.10.2</p>
+
+<p><a href="http://blogs.sun.com/darcy/resource/Wecpskafpa-ACCU.pdf">http://blogs.sun.com/darcy/resource/Wecpskafpa-ACCU.pdf</a></p>
+
+<p><a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.22.6768">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.22.6768</a></p>
+
+<p><a href="http://firstclassthoughts.co.uk/java/traps/big_decimal_traps.html">http://firstclassthoughts.co.uk/java/traps/big_decimal_traps.html</a></p>
+
+<p><a href="http://firstclassthoughts.co.uk/java/traps/java_double_traps.html">http://firstclassthoughts.co.uk/java/traps/java_double_traps.html</a></p>
+</blockquote>
+
+<h2>Tömbök</h2>
+
+<ul>
+<li>Minden <code>T</code> típushoz van <code>T[]</code>  </li>
+<li>Példakód:</li>
+</ul>
+
+<p>``` java
+    int[] arr1 = new int[5]; <br />
+    int arr2[];  </p>
+
+<pre><code>int arr3[] = { 1, 2, 3, 4, 5 };  
+
+for (int i=0; i&lt;arr3.length; ++i) {  
+    System.out.println(arr3[i]);  
+}
+</code></pre>
+
+<p>```  </p>
+
+<ul>
+<li>Inicializálásnál az 1. dimenzió megadása kötelező (pl.
+<code>int[][] arr = new int[5][];</code> teljesen legális definíció!)</li>
+</ul>
+
+<h2>Operátorok</h2>
+
+<p>Szokásos operátorok (<code>==</code>, <code>!=</code>, <code>&amp;&amp;</code>, <code>||</code>, <code>%</code>, <code>++</code>, <code>--</code> (prefix, postfix), ...), részletes táblázat itt található: <a href="http://download.oracle.com/javase/tutorial/java/nutsandbolts/operators.html">http://download.oracle.com/javase/tutorial/java/nutsandbolts/operators.html</a>.</p>
+
+<p><em>Fontos</em> Az operátorok eredményének típusa <em>mindig</em> a bővebb paraméter típusa
+(<code>double d = 1 / 2;</code> eredménye <code>0.0</code> lesz!), de minimum <code>int</code> (pl. <code>byte b = 1+2</code> nem megy
+explicit típuskényszerítés nélkül, mert itt 3 egy <code>int</code> értékként szerepel)</p>
+
+<ul>
+<li>Prefix és postfix operátorok (<code>++i</code>, <code>i++</code>)</li>
+</ul>
+
+<p><code>java
+    int i = 0;
+    System.out.println(i++); // kiir, megnovel: "0" <br />
+    System.out.println(++i); // megnovel, kiir: "2"
+</code></p>
+
+<pre><code>* Mi az eredménye (v.ö. C++)?
+</code></pre>
+
+<p><code>java
+    int i = 0; <br />
+    System.out.println("" + i++ + ++i); // C++: architektura fuggo
+</code></p>
+
+<pre><code>* Szintén, mi lesz az eredménye?
+</code></pre>
+
+<p><code>java
+    int i=0; <br />
+    i=i++; 
+    i=i++; <br />
+    i=++i; <br />
+    System.out.println(i);
+</code>  </p>
+
+<h3>Objektumok összehasonlítása</h3>
+
+<p>Az <code>equals()</code> metódussal: az <code>==</code> operátor referencia szerinti összehasonlítást
+végez csak, nem tartalom szerintit.</p>
+
+<h3>Stringek összehasonlítása</h3>
+
+<p>Mint az objektumokat, ugyanúgy az <code>equals()</code> függvény segítségével.</p>
+
+<p><code>java
+    boolean b1 = "a" == "a";      // lehet hamis! <br />
+    boolean b2 = "a".equals("a"); // mindig megfeleloen mukodik
+</code></p>
+
+<h3>Összehasonlító operátor feltételekben</h3>
+
+<p>Baloldalra lehetőleg konstanst írjunk. C++ probléma itt nem lehet, mert <code>0</code>,
+<code>!= 0</code> nem szerepelhet elágazás, ciklus terminálási feltételében, kizárólag
+logikai feltétel, de kellemetlen helyzetek így is adódhatnak:</p>
+
+<p>``` java
+    boolean b = false;  </p>
+
+<pre><code>if ( b = true ) {  
+    // ...  
+}
+</code></pre>
+
+<p>```</p>
+
+<p>Igyekezzünk baloldalra konstansokat írni.</p>
+
+<h2>Vezérlési szerkezetek</h2>
+
+<p>A nyitó, záró <code>{</code>, <code>}</code> párok kirakása nem kötelező, ellenben javallott.</p>
+
+<h3>Elágazások</h3>
+
+<p><code>java
+    if ( ... ) { <br />
+        ... <br />
+    } else if (...) { <br />
+        ... <br />
+    } else if ( ... ) { <br />
+        ... <br />
+    } else { <br />
+        ... <br />
+    }
+</code></p>
+
+<h4>Switch</h4>
+
+<p><code>byte</code>, <code>short</code>, <code>char</code>, <code>int</code> típusokra (ill. ezek csomagoló osztályaira:
+<code>Character</code>, <code>Byte</code>, <code>Short</code>, <code>Integer</code>) használható (<code>long</code> típusra <em>nem</em>).</p>
+
+<p><code>java
+    final int month = 8;
+    switch (month) {
+        case 1:  System.out.println("Jan"); break;
+        case 2:  System.out.println("Feb"); break;
+        case 3:  System.out.println("Mar"); break;
+        case 4:
+        case 5:
+        case 6:  System.out.println("Apr, Maj vagy Jun"); break;
+        default: System.out.println("Egyeb honap");break;
+    }
+</code></p>
+
+<h3>Ciklusok</h3>
+
+<p>``` java <br />
+    while ( true ) { <br />
+         ... <br />
+    }  </p>
+
+<pre><code>do {  
+     ...  
+} while ( true );  
+
+for (inicializalas; terminalo feltetel; leptetes) {  
+    ...  
+}  
+
+for ( ; ; ) {    // vegtelen ciklus  
+    ...  
+}  
+
+for (String act : args) {      // tombokre, iteralhato adatszerkezetekre  
+    System.out.println(act);  
+}
+</code></pre>
+
+<p>``` </p>
+
+<h3>Branching kifejezések</h3>
+
+<pre><code>break, continue, return
+</code></pre>
+
+<p><code>goto</code> van, de fenntartott szó, nem működik...</p>
+
+<h2>+/- Feladatok</h2>
+
+<h3>Print the args!</h3>
+
+<p>Írj egy olyan programot, ami kiírja a parancsori argumentumait egymás után.</p>
+
+<p>``` java
+    class F1 {
+        public static void main(String[] args) {
+            if(args.length == 0) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }        </p>
+
+<pre><code>        for(String str : args) {
+            System.out.println(str);
+        }
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Oszto-e vagy!?</h3>
+
+<p>Készíts olyan programot, ami az elso parancsori argumentumként kapott számról eldönti, hogy osztható-e a második parancssori argumentumként kapott számmal.</p>
+
+<p>``` java
+    class F2 {
+        public static void main(String[] args) {
+            if(args.length &lt; 2) {
+                System.out.println("Nincs eleg argumentum");
+                System.exit(0);
+            }</p>
+
+<pre><code>        int arg1 = Integer.parseInt(args[0]);
+        int arg2 = Integer.parseInt(args[1]);
+        System.out.println(arg2 + (arg1 % arg2 == 0 ? "" : " nem" ) +  " osztoja " 
+                                   + arg1 + "-nek!");
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Szumma!</h3>
+
+<p>Írj olyan programot, mely összeadja az összes 3-mal és 5-tel osztható számot 1000-ig.</p>
+
+<h3>Faktoriális</h3>
+
+<p>Írj programot, mely a parancssori argumentumként kapott számnak kiszámolja a faktoriálisát.</p>
+
+<p>``` java
+    class F3 {
+        public static int fakt(int number) {
+            if(number == 0) {
+                return 1;
+            }</p>
+
+<pre><code>        int ret = 1;
+        for(int i=1; i&lt;=number; ++i) {
+            ret *= i;
+        }
+        return ret;
+    }
+
+    public static void main(String[] args) {
+        if(args.length == 0) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }
+
+        int arg = Integer.parseInt(args[0]);
+        System.out.println("A " + arg + " faktorialisa : " + fakt(arg));    
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Prímszám</h3>
+
+<p>Írj olyan programot, mely a parancssori argumentumként kapott számig kiírja az összes prímszámot.</p>
+
+<p>``` java
+    class F4 {</p>
+
+<pre><code>    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("Nincs eleg argumentum");
+            System.exit(0);
+        }
+
+        int arg = Integer.parseInt(args[0]);
+        for (int i = 2; i &lt;= arg; i++) {
+            if(isPrime(i)) {
+                System.out.println(i + " primszam.");
+            }
+        }
+    }
+
+    public static boolean isPrime(int number) {
+
+        for(int i=2; i&lt;number; ++i) {
+            if(number % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<h3>Fizz-Buzz Test</h3>
+
+<p>Írj egy programot, amely kiírja a számokat 1-től 100-ig! Azon számokhoz, amelyek
+hárommal oszthatók, a szám helyett <code>"Fizz"</code>-t írjon ki, és azok helyett, amelyek
+öttel oszthatók, <code>"Buzz"</code>-t. Azon számok helyett, amelyek mind hárommal, mind
+öttel oszthatók, <code>"FizzBuzz"</code>-t írjon ki!</p>
+
+<p><em>Motiváció</em> Coding Horror, <em>Why Can't Programmers... program?</em>
+<a href="http://www.codinghorror.com/blog/2007/02/why-cant-programmers-program.html">http://www.codinghorror.com/blog/2007/02/why-cant-programmers-program.html</a></p>
+
+<p>Példa:</p>
+
+<pre><code>1
+2
+Fizz
+4
+Buzz
+...
+13
+14
+FizzBuzz
+</code></pre>
+
+<h3>Collatz-sorozat</h3>
+
+<p>Írjunk programot, amely előállítja a Collatz-sorozat tagjait az <code>a_0 = N</code>
+kezdőtagból kiindulva (<code>N&lt;100</code> parancssori paraméter, ezt ellenőrizzük is!),
+egészen addig, míg <code>a_n = 1</code>! A sorozat tagjait a következő szabályok alapján
+generáljuk:</p>
+
+<p><img src="images/collatz_equation.png" alt="Collatz-probléma" title="Collatz-probléma" /></p>
+
+<p>Példa:</p>
+
+<pre><code>&gt; java Collatz 3
+3 10 5 16 8 4 2 1
+&gt; java Collatz 5
+5 16 8 4 2 1
+&gt; java Collatz 7
+7 22 11 34 17 52 26 13 40 20 10 5 16 8 4 2 1
+</code></pre>
+
+<p>Részletesen: <a href="http://mathworld.wolfram.com/CollatzProblem.html">http://mathworld.wolfram.com/CollatzProblem.html</a></p>
+
+<h2>Gyakorló feladatok</h2>
+
+<ol>
+<li><p>Készítsünk egy hőmérséklet konvertáló programot! Olvassunk be két szám
+paramétert. Ha az első szám 0, konvertáljuk a második paramétert celsiusról
+fahrenheit fokra az alábbi képlet alapján (egyébként fahrenheitről celsiusra):</p>
+
+<pre><code>C = (F-32) * 5 / 9
+</code></pre></li>
+<li><p>Készítsünk egy minimális konzolos számológépet! Olvassunk be három szám
+paramétert! Ha az első szám:</p>
+
+<ul>
+<li><code>1</code>, akkor adjuk össze</li>
+<li><code>2</code>, akkor vonjuk ki</li>
+<li><code>3</code>, akkor szorozzuk össze</li>
+<li><code>4</code>, akkor osszuk el a másik két paramétert egymással!</li>
+<li>Minden egyéb esetben írjuk ki, hogy <em>nem értelmezett művelet</em>!</li>
+</ul>
+
+<p>A megoldáshoz használjunk <code>switch-case</code> szerkezetet!</p></li>
+<li><p>Készítsünk programot, amely egy beolvasott számra eldönti, hogy az egy
+tökéletes szám-e! <em>Tökéletes számnak</em> nevezzük azokat az egész számokat, amelyek
+megegyeznek osztóik összegével (1-et beleértve, önmagukat kivéve). A négy
+legkisebb ilyen szám 6, 28, 496, és 8128.</p></li>
+<li>Egészítsük ki az előző feladatot úgy, hogy 1-től a paraméterként megadott
+határig minden számot ellenőrizzen le, hogy tökéletes szám-e, valamint adja meg,
+hogy hány ilyen számot talált! Ha nem talált egyetlen számot sem, írja ki, hogy
+<em>"Egyetlen szám sincs a megadott intervallumban."</em>!</li>
+</ol>

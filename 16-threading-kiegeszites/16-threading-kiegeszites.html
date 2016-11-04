@@ -1,0 +1,218 @@
+<h1>Threading - Kiegészítés</h1>
+
+<ul>
+<li><strong>StringBuilder</strong> vs. <strong>StringBuffer</strong> <code>StringBuffer</code> szinkronizált, a
+<code>StringBuilder</code> nem, cserébe hatékonyabb (nincs szinkronizációs költség).</li>
+<li><strong>Szál indítása</strong> Figyeljetek! <strong>Nem</strong> a <code>run()</code>, hanem a <code>start()</code> függvény
+használandó erre. Előbbi hatására ugyanúgy szekvenciális programunk lesz.</li>
+<li><strong>Deprecated függvények a Thread osztályban</strong> Erősen deadlock-prone
+függvények. Pl. egy szál <code>synchronized</code> blokkban van, és suspendelik, akkor
+nem fogja elereszteni az erőforrásokat, így más nem juthat hozzá - így könnyen
+deadlock alakulhat ki. Részletes magyarázat, megoldások, workaroundok itt
+találhatók: <a href="http://download.oracle.com/javase/6/docs/technotes/guides/concurrency/threadPrimitiveDeprecation.html">http://download.oracle.com/javase/6/docs/technotes/guides/concurrency/threadPrimitiveDeprecation.html</a></li>
+<li><code>synchronized(this)</code> <strong>Ez rossz!</strong> <em>Nem a <code>this</code> miatt, hanem mert egy közös használatú változót különböző objektumokkal védesz le!</em>
+A <code>this</code> minden esetben az aktuális példányt jelenti (ami példányonként
+nyilván különbözik), az <code>i</code> változó pedig mindnél ugyanaz.  </li>
+</ul>
+
+<p>``` java
+static int i = 0;</p>
+
+<p>class T extends Thread {
+    public void run() { synchronized(this) { i++; }
+}
+```</p>
+
+<p><strong>Feladat</strong> Adott <code>v_1</code>, <code>v_2</code>, ..., <code>v_n</code> vektorok, amelyen <code>n</code> szál dolgozik.
+A program parancssori argumentumként kap egy <code>e</code> értéket. Keressük meg az első
+olyan <code>j</code> indexet, ahol ez a szám megtalálható, vagyis <code>v_i[j] = e</code>,
+<code>1 &lt;= j &lt;= n</code>. <em>Az egyszerűség kedvéért feltételezzük, hogy minden vektorelem</em>
+<em>egyedi, valamelyik vektorban megtalálható a keresett <code>e</code> érték, és <code>n=2</code>.</em></p>
+
+<p><em>'Nuff said, let's rock!</em></p>
+
+<h2>1. kísérlet</h2>
+
+<p>Indítsunk két szálat. Közös változó a <code>found</code>, lokális változó a <code>v, i</code>.</p>
+
+<p><code>java
+found = false; i = 0;    // A
+while (!found) {         // B
+  found = v.get(i) == e; // C
+  i++;                   // D
+}
+</code></p>
+
+<h3>FAIL</h3>
+
+<p>Tegyük fel, hogy az egyes szál elindult, az <code>i.</code> elem épp <code>e</code>, <code>C</code> végrehajtása
+után kapja meg a vezérlést a második szál. <code>A</code> inicializáló utasításával <code>found</code>
+ismét hamis lesz <strong>végtelen ciklus</strong>.</p>
+
+<h2>2. kísérlet</h2>
+
+<p><em>Ja, akkor nem a szálakban inicializálok.</em> Kerüljük el, hogy minden szál
+külön-külön is inicializálja a közös változót, tegyük meg ezt a szálak indítása
+előtt!</p>
+
+<p>``` java
+found = false // Threadek inditasa elott</p>
+
+<p>i = 0;                   // A
+while (!found) {         // B
+  found = v.get(i) == e; // C
+  i++;                   // D
+}
+```</p>
+
+<h3>FAIL</h3>
+
+<p>Tegyük fel, hogy az egyes szál <code>C</code>-hez ér, végrehajtja, és épp megtalálja az
+adott értéket! Így <code>found</code> értéke igaz lesz. De! Ha közben a másik szál is
+<code>C</code>-nél volt, és ezután hajtódik végre, <code>found</code> értéke ismét hamis lesz, az
+eredmény <strong>végtelen ciklus</strong>.</p>
+
+<h2>3. kísérlet</h2>
+
+<p><em>Ouch, tényleg!</em> Csak akkor adjunk új értéket a <code>found</code> változónak, ha
+megtaláltuk az elemet.</p>
+
+<p><code>java
+i = 0;                      // A
+while (!found) {            // B
+  if (e == v[i]) b = true;  // C
+  i++;                      // D
+}
+</code></p>
+
+<h3>FAIL</h3>
+
+<p>Tegyük fel hogy az első szál az első elemében rögtön fel is fedezi az <code>e</code>
+keresett értéket, és terminál (sérül a feltétlen pártatlan ütemezés elve, a
+szálak nem dolgoznak szinkronban). Ekkor a második szál soha nem terminál, az
+eredmény <strong>végtelen várakozás</strong>.</p>
+
+<h2>4. kísérlet</h2>
+
+<p><em>Jó, akkor ütemezek én!</em> Vezessünk be egy <code>next</code> flaget, amely jelölje, hogy
+melyik szál futhat a <code>while</code> ciklusba való belépés után! A feltételhez kötött
+várakozást <code>await</code> szimbólummal jelölve, az első szál definíciója:</p>
+
+<p><code>java
+i = 0;                            // A
+while (!found) {                  // B
+  await (1 == next) { next = 2; } // C
+  if (e == v[i]) b = true;        // D
+  i++;                            // E
+}
+</code></p>
+
+<p>valamint a második szál definíciója legyen a következő:</p>
+
+<p><code>java
+j = 0;                            // A
+while (!found) {                  // B
+  await (2 == next) { next = 1; } // C
+  if (e == v[j]) b = true;        // D
+  j++;                            // E
+}
+</code></p>
+
+<h3>FAIL</h3>
+
+<p>Tegyük fel, hogy az első szál eljut <code>D</code> végrehajtásáig, majd ezután a második
+szál is eljut ugyaneddig (<code>next</code> értékét <code>2</code>-re állítva). Tegyük fel, hogy a
+második szál következő eleme nem a keresett <code>e</code> elem, így a <code>C</code> ponton tovább
+várakozik. Ha eközben az első szál megtalálja a keresett elemet, és terminál, az
+eredmény <strong>holtpont</strong>.</p>
+
+<h2>5. kísérlet</h2>
+
+<p><em>Ooooh! És ha terminálásnál is jelzek?!</em> A szálak terminálásánál is figyeljünk a
+<code>next</code> változóra! Az első szál kódját módosítsuk a következőképp:</p>
+
+<p><code>java
+i = 0;                            // A
+while (!found) {                  // B
+  await (1 == next) { next = 2; } // C
+  if (e == v[i]) b = true;        // D
+  i++;                            // E
+}
+next = 2;                         // F
+</code></p>
+
+<p>a másodikét pedig az alábbi módon:</p>
+
+<p><code>java
+j = 0;                            // A
+while (!found) {                  // B
+  await (2 == next) { next = 1; } // C
+  if (e == v[j]) b = true;        // D
+  j++;                            // E
+}
+next = 1;                         // F
+</code></p>
+
+<ul>
+<li>Na ez már menni fog.* :-)</li>
+</ul>
+
+<h2>Lásd még</h2>
+
+<p>Peterson-féle algoritmus kölcsönös kizárás megoldására, vektorértékadás atomicitása nélkül.</p>
+
+<h2>Irodalom</h2>
+
+<ol>
+<li>Brian Goetz et al.: Java Concurrency in Practice, Addison-Wesley
+Professional, May 19, 2006.</li>
+<li>Kozma, L. és Varga, L.: A szoftvertechnológia elméleti kérdései, ELTE Eötvös
+Kiadó, első kiadás 2003, második kiadás 2006.</li>
+</ol>
+
+<h2>Kliens-szerver architektúra</h2>
+
+<p>A szerveroldali kód:</p>
+
+<p>``` java
+// Raakaszkodas a portra
+ServerSocket ss = new ServerSocket( port );
+// Fuss, amig...
+while (true) {
+    // Egy bejovo kapcsolat elkapasa
+    Socket newSocket = ss.accept();</p>
+
+<pre><code>// Kapcsolat kezelese
+// ...
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Feladat</h2>
+
+<p>Készítsetek egy többszálú chat szerveralkalmazást, valamint egy klienst hozzá!
+Ha valaki küld egy üzenetet a szervernek, a szerveralkalmazás broadcastolja azt
+mindenki másnak is. A szerver a <code>2442</code> számú porton figyeljen, és ide
+csatlakozzanak a kliensek is!</p>
+
+<p>A szerveralkalmazás minden egyes bejövő kapcsolatot külön szállal kezeljen, a
+váza valahogy így nézzen ki:</p>
+
+<p><code>java
+ServerSocket socket = new ServerSocket(PORT);
+while (true) {
+    new Handler(socket.accept()).start();
+}
+</code></p>
+
+<p>A kliensek is legyenek többszálú alkalmazások: az egyik szál folyamatosan
+figyelje, hogy nem jön-e új üzenet a csatornán, miközben a másik szál írjon a
+csatornára, ha a felhasználó üzenetet írt a konzolra!</p>
+
+<h2>Linkek</h2>
+
+<ul>
+<li><strong>Socket példa</strong> <a href="http://www.oracle.com/technetwork/java/socket-140484.html">http://www.oracle.com/technetwork/java/socket-140484.html</a></li>
+<li><strong>Java Tutorial, All About Socket fejezete</strong> <a href="http://download.oracle.com/javase/tutorial/networking/sockets/index.html">http://download.oracle.com/javase/tutorial/networking/sockets/index.html</a></li>
+</ul>

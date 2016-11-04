@@ -1,0 +1,263 @@
+<h1>Java Server Pages</h1>
+
+<p>Szerveroldali Java (ez az, ahol a Java erõs).</p>
+
+<p>Kis történeti áttekintés:
+* gohper://
+* Statikus HTML
+* Dinamikus HTML, CGI (elkezdtük arra használni, amire nem való)
+* Szerver oldali scriptelés (PHP/MySQL)</p>
+
+<pre><code>```php
+&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;PHP Test&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+ &lt;? echo '&lt;p&gt;Hello World&lt;/p&gt;'; ?&gt; 
+ &lt;/body&gt;
+&lt;/html&gt;
+```
+</code></pre>
+
+<ul>
+<li>Új: mindenhol JS...</li>
+</ul>
+
+<h2>Elõzmény: Szervletek</h2>
+
+<ul>
+<li><a href="http://www.jcp.org/en/jsr/detail?id=315">JSR 315</a> - Servlet 3.0 (aktuális, 2009 óta)</li>
+<li><a href="http://www.jcp.org/en/jsr/detail?id=154">JSR 154</a> - Servlet 2.4/2.5</li>
+<li><a href="http://www.jcp.org/en/jsr/detail?id=53">JSR 53</a> - Servlet 2.3</li>
+</ul>
+
+<p>Java szervlet implementáció --> Mágiák --> Még több mágiák --> Dinamikusan elõállított weboldal</p>
+
+<p>``` java
+package hello;</p>
+
+<p>import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;</p>
+
+<p>public class HelloServlet extends HttpServlet {</p>
+
+<pre><code>@Override
+public void init(ServletConfig config) throws ServletException {
+    super.init(config);
+    getServletContext().log("init()");
+}
+
+@Override
+protected void service(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    getServletContext().log("service()");
+    response.getWriter().write("Hello World!");
+}
+
+@Override
+public void destroy() {
+    getServletContext().log("destroy()");
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<h2>Ugyanez JSP formátumban</h2>
+
+<p>``` jsp
+&lt;%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd"></p>
+
+<p><html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>JSP Page</title>
+    </head>
+    <body>
+        &lt;%
+            getServletContext().log("service()");
+            response.getWriter().write("Hello World!");
+        %>
+    </body>
+</html>
+```</p>
+
+<p>Ebbõl generálódok egy ehhez hasonló szervlet:</p>
+
+<p>``` java
+package org.apache.jsp;</p>
+
+<p>import javax.servlet.<em>;
+import javax.servlet.http.</em>;
+import javax.servlet.jsp.*;</p>
+
+<p>public final class FirstJsp extends org.apache.jasper.runtime.HttpJspBase
+    implements org.apache.jasper.runtime.JspSourceDependent {</p>
+
+<p>private static final JspFactory _jspxFactory = JspFactory.getDefaultFactory();</p>
+
+<p>private static java.util.Vector <em>jspx</em>dependants;</p>
+
+<p>private org.apache.jasper.runtime.ResourceInjector <em>jspx</em>resourceInjector;</p>
+
+<p>public Object getDependants() {
+    return <em>jspx</em>dependants;
+  }</p>
+
+<p>public void _jspService(HttpServletRequest request, HttpServletResponse response)
+        throws java.io.IOException, ServletException {</p>
+
+<pre><code>PageContext pageContext = null;
+HttpSession session = null;
+ServletContext application = null;
+ServletConfig config = null;
+JspWriter out = null;
+Object page = this;
+JspWriter _jspx_out = null;
+PageContext _jspx_page_context = null;
+
+try {
+  response.setContentType("text/html;charset=UTF-8");
+  pageContext = _jspxFactory.getPageContext(this, request, response,
+            null, true, 8192, true);
+  _jspx_page_context = pageContext;
+  application = pageContext.getServletContext();
+  config = pageContext.getServletConfig();
+  session = pageContext.getSession();
+  out = pageContext.getOut();
+  _jspx_out = out;
+  _jspx_resourceInjector = (org.apache.jasper.runtime.ResourceInjector) application.getAttribute("com.sun.appserv.jsp.resource.injector");
+
+  out.write("\n");
+  out.write("\n");
+  out.write("\n");
+  out.write("&lt;!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n");
+  out.write("   \"http://www.w3.org/TR/html4/loose.dtd\"&gt;\n");
+  out.write("\n");
+  out.write("&lt;html&gt;\n");
+  out.write("    &lt;head&gt;\n");
+  out.write("        &lt;meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"&gt;\n");
+  out.write("        &lt;title&gt;JSP Page&lt;/title&gt;\n");
+  out.write("    &lt;/head&gt;\n");
+  out.write("    &lt;body&gt;\n");
+  out.write("        ");
+
+        getServletContext().log("service()");
+        response.getWriter().write("Hello World!");
+
+  out.write("\n");
+  out.write("    &lt;/body&gt;\n");
+  out.write("&lt;/html&gt;\n");
+} catch (Throwable t) {
+  if (!(t instanceof SkipPageException)){
+    out = _jspx_out;
+    if (out != null &amp;&amp; out.getBufferSize() != 0)
+      out.clearBuffer();
+    if (_jspx_page_context != null) _jspx_page_context.handlePageException(t);
+  }
+} finally {
+  _jspxFactory.releasePageContext(_jspx_page_context);
+}
+</code></pre>
+
+<p>}
+}
+```</p>
+
+<h3>Egyéb formátumok</h3>
+
+<ul>
+<li><p>Expression:</p>
+
+<p><code>java
+&lt;%= new java.util.Date() %&gt;
+</code> </p></li>
+<li><p>Scriplet</p>
+
+<p><code>java
+&lt;%
+    out.println(new java.util.Date());
+%&gt;
+</code></p></li>
+<li><p>Deklarációk:</p>
+
+<p><code>java
+&lt;%!
+    final Date creationDate = new Date();
+    public Date getDate() {
+    return creationDate;
+    }
+%&gt;
+</code></p></li>
+<li><p>Import utasítások:</p>
+
+<p><code>java
+&lt;%@ page import="java.util.*" %&gt;
+&lt;html&gt;
+...
+&lt;/html&gt;
+</code></p></li>
+<li><p>Tag-ek:</p>
+
+<p><code>java
+&lt;jsp:include page="header.jsp"/&gt;
+</code></p></li>
+<li><p>HTML és JSP utasítások vegyítése:</p>
+
+<p><code>java
+&lt;%
+    String name = (String)request.getParameter("name");
+    if ( name != null ) {
+%&gt;
+    Hi &lt;%= name %&gt;!
+&lt;%
+    } else {
+%&gt;
+    Hi Anonymous!
+&lt;%
+    }
+%&gt;
+</code></p></li>
+</ul>
+
+<h3>Elérhetõ objektumok</h3>
+
+<ul>
+<li><code>HttpServletResponse response</code>: content type beállítása, <code>Writer</code>, cookie-k beállítása, session, ezen keresztül érhetõ el, etc.</li>
+<li><code>HttpServletRequest request</code>: paraméterek, session, cookie-k lekérdezése</li>
+<li><code>session</code>: Adott munkamenethez állapotok beállítása (pl. username, bejelentkezés ténye, etc. - ami minden lekérdezésnél jó, ha elérjük)</li>
+</ul>
+
+<p>Régen: doGet() / doPost()</p>
+
+<h2>Szerverek?</h2>
+
+<ul>
+<li>Szervlet-konténerek (+JSP/JSTL)</li>
+<li>App. szerver: teljes J2EE stack (szervletek + EJB, JMS, CDI, JTA, etc.)</li>
+</ul>
+
+<p>Tonnányi változat: Tomcat (referencia, játék), Geronimo (Apache), GlassFish (Oracle, open source), JBoss (full EE stack, open source), Jetty (minimál, embedded), WebLogic (a tough guy), ...</p>
+
+<h2>Feladatok</h2>
+
+<ol>
+<li>Keressetek egy weboldalt, ami Java-alapon üzemel!</li>
+<li>Válasszatok egy tetszõleges szerveralkalmazást (pl. Tomcat), töltsétek le, állítsátok be (<code>README</code>!), indítsátok el.</li>
+<li>Írjatok egy egyszerû JSP oldalt, amely </li>
+<li>Térképezzétek fel a példákat, környezetet!</li>
+</ol>
+
+<h2>JSP Feladatok</h2>
+
+<ol>
+<li>Készíts egy egyszerû JSP oldalt, amely egy minimális formon keresztül képes a sessionben idézeteket tárolni. Az oldal mindig írja ki az elején a sessionhöz tartozó azonosítót, azt, hogy újonnan létrehozott-e, a létrehozásának dátumát, elérésének utolsó dátumát, valamnint az eddig tárolt idézetek listáját egy felsorolásban.</li>
+<li>Készíts egy egyszerû JSP oldalt, amely minden információt kiír egy táblázatban a klinesrõl, ezt praktikusan a <code>request</code> objektumon keresztül érheted el. Amit mindenképp írjon ki az alkalmazás: a lekérdezés módját (<code>GET</code>/<code>POST</code>), a lekérdezés URI és URL címét, a context path értékét, a path információt, a kapott <em>query stringet</em>, és az azonosítási módot (<em>auth type</em>).</li>
+</ol>

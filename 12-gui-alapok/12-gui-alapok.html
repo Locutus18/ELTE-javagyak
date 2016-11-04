@@ -1,0 +1,293 @@
+<h1>GUI</h1>
+
+<p><em>Abstract Windowing Toolkit</em> (nehézsúlyú) vagy <em>Swing</em> (pehelysúlyú
+komponensek). Előbbi oprendszer szintű, utóbbi Javaban íródott, független az
+oprendszertől. Egyéb ablakozó keretrendszer is használható (pl. SWT, Qt, etc.).</p>
+
+<p>Használható komponensek (beviteli, vezérlő, megjelenítő komponensek):
+<a href="http://download.oracle.com/javase/tutorial/ui/features/compWin.html">http://download.oracle.com/javase/tutorial/ui/features/compWin.html</a></p>
+
+<p>Ill. <code>C:/Program Files/Java/jdk1.6/demo/jfc</code> alatt <code>SwingSet2</code> és <code>SwingSet3</code>
+példa alkalmazások.</p>
+
+<h2>Példakód</h2>
+
+<p>``` java
+package gui.basics;</p>
+
+<p>import java.awt.*;</p>
+
+<p>public class AWTTest {
+    Frame frame = new Frame("AWTTest");
+    Label label = new Label("Hello AWT!");</p>
+
+<pre><code>public AWTTest() {
+    frame.add(label);
+    frame.setSize(200, 100);
+    frame.setLocation(300, 300);
+    frame.setVisible(true);
+}
+
+public static void main(String[] args) {
+    AWTTest test = new AWTTest();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Életciklus</h2>
+
+<ol>
+<li>Felület felépítése. Egyszerű példa alkalmazás</li>
+</ol>
+
+<p>``` java
+package gui.basics;</p>
+
+<p>import java.awt.*;</p>
+
+<p>public class AWTTest {
+    Frame frame = new Frame("GUI Test");
+    TextField textField = new TextField("10");
+    Button button = new Button("Ok");
+    Label label = new Label("=");</p>
+
+<pre><code>public AWTTest() {
+    frame.setLayout(new FlowLayout());
+
+    frame.add(textField);
+    frame.add(button);
+    frame.add(label);
+
+    frame.setVisible(true);
+    frame.setSize(200, 100);
+    frame.setLocation(300, 300);
+}
+
+public static void main(String[] args) {
+    AWTTest test = new AWTTest();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<ol>
+<li>Használata (eseményfigyelők)</li>
+</ol>
+
+<p>``` java
+button.addActionListener( new ActionListener() {
+    @Override
+    public void actionPerformed(final ActionEvent ae) {
+        try {
+            final int N = Integer.parseInt(textField.getText());
+            int res = 1;
+            for (int i=2; i&lt;=N; ++i) res *= i;
+            label.setText("= " + res);
+        } catch (final NumberFormatException e) {
+            label.setText(e.getMessage());
+        }</p>
+
+<pre><code>}
+</code></pre>
+
+<p>});
+```</p>
+
+<ol>
+<li>Bezárása</li>
+</ol>
+
+<p><code>java
+frame.addWindowListener( new WindowAdapter() {
+    @Override
+    public void windowClosing(WindowEvent e) {
+        System.exit(0);
+    }
+});
+</code></p>
+
+<h2>Adapterek, Listenerek</h2>
+
+<p><code>XXXListener</code> interfész, ha nem kell az összes esemény, használható az
+<code>XXXAdapter</code> absztrakt osztály is (üres implementációkat tartalmaz). Pl.
+<code>WindowListener</code>, <code>WindowAdapter</code>. Hívási lánc alapján.</p>
+
+<p>Fontosabb Listenerek:</p>
+
+<ul>
+<li><code>ActionListener</code>: menü, gombnyomás, <code>Enter</code> egy <code>TextField</code> objektumon</li>
+</ul>
+
+<p><code>java
+public void actionPerformed(ActionEvent e) { ... }
+</code></p>
+
+<ul>
+<li><code>KeyListener</code>: Billentyű leütése</li>
+</ul>
+
+<p><code>java
+public void keyTyped(KeyEvent e)    { ... }
+public void keyPressed(KeyEvent e)  { ... }
+public void keyReleased(KeyEvent e) { ... }
+</code></p>
+
+<ul>
+<li><code>MouseListener</code>: Egérlenyomás (van <code>MouseMotionListener</code>,
+<code>MouseWheelListener</code> is)</li>
+</ul>
+
+<p><code>java
+public void mousePressed(MouseEvent e)  { ... }
+public void mouseReleased(MouseEvent e) { ... }
+public void mouseEntered(MouseEvent e)  { ... }
+public void mouseExited(MouseEvent e)   { ... }
+public void mouseClicked(MouseEvent e)  { ... }
+</code></p>
+
+<ul>
+<li><code>WindowListener</code>: ablak eseményeinek kezelése</li>
+</ul>
+
+<p><code>java
+public void windowActivated(WindowEvent e)   { ... }
+public void windowClosed(WindowEvent e)      { ... }
+public void windowClosing(WindowEvent e)     { ... }
+public void windowDeactivated(WindowEvent e) { ... }
+public void windowDeiconified(WindowEvent e) { ... }
+public void windowIconified(WindowEvent e)   { ... }
+public void windowOpened(WindowEvent e)      { ... }
+</code></p>
+
+<ul>
+<li>Stb., lásd referenciát.</li>
+</ul>
+
+<h2>Elrendezési stratégiák</h2>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/tutorial/uiswing/layout/visual.html">http://download.oracle.com/javase/tutorial/uiswing/layout/visual.html</a></p>
+</blockquote>
+
+<ul>
+<li><code>BorderLayout</code></li>
+<li><code>BoxLayout</code></li>
+<li><code>CardLayout</code></li>
+<li><code>FlowLayout</code></li>
+<li><code>GridBagLayout</code></li>
+<li><code>GridLayout</code></li>
+<li><code>GroupLayout</code>/<code>SpringLayout</code></li>
+</ul>
+
+<h2>Komponensek</h2>
+
+<p>Konténer komponensek (<code>Container</code>), legfelső szinten top-level containerek
+(<code>(J)Applet</code>, <code>(J)Frame</code> vagy <code>(J)Dialog</code>). Minden grafikus osztály közös őse:
+<code>(J)Component</code>. A <code>java.awt.*</code> csomagban.</p>
+
+<ul>
+<li><code>Panel</code> (konténer)</li>
+<li><code>Label</code></li>
+<li><code>Button</code></li>
+<li><code>RadioButton</code></li>
+<li><code>TextArea</code>, <code>TextField</code></li>
+<li>etc.</li>
+</ul>
+
+<h2>Swing</h2>
+
+<p>Az osztályok nevének közös prefixe egy <code>J</code> betű. AWT-s eseménykezelés itt is
+megvan. A <code>javax.swing.*</code> csomagban (<em>Java extended</em>). További előnyök:</p>
+
+<ul>
+<li>Független az oprendszertől</li>
+<li>Szabad forma</li>
+<li>Átlátszó felületek</li>
+<li>Egyszerűen módosítható megjelenés</li>
+</ul>
+
+<h2>Menük</h2>
+
+<p><code>frame.setMenuBar()</code>, <code>MenuBar</code> &rarr; <code>Menu</code>, <code>Menu</code> &rarr; <code>Menu</code> vagy <code>MenuItem</code>. Van szeparátor is.</p>
+
+<p>``` java
+JMenuBar menuBar = new JMenuBar();</p>
+
+<p>JMenu fileMenu = new JMenu("File");
+menuBar.add(fileMenu);</p>
+
+<p>JMenuItem exitMenu = new JMenuItem("Exit");
+fileMenu.add(exitMenu);
+exitMenu.addActionListener( ... )</p>
+
+<p>frame.setJMenuBar(menuBar);
+```</p>
+
+<h2>Üzenetablakok</h2>
+
+<p><code>JOptionPane.showXXXDialog()</code>, pl.:</p>
+
+<p><code>java
+JOptionPane.showMessageDialog(null, // ki az ose, ha van, akkor modalis
+    "alert",                        // uzenet
+    "alert",                        // title
+    JOptionPane.ERROR_MESSAGE       // tipus
+);
+</code></p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/javax/swing/JOptionPane.html">http://download.oracle.com/javase/6/docs/api/javax/swing/JOptionPane.html</a></p>
+</blockquote>
+
+<h2>Scrollozható komponensek</h2>
+
+<p><code>java
+frame.add( new JScrollPane(textArea) );
+</code></p>
+
+<h2>Linkek</h2>
+
+<ul>
+<li><a href="http://community.java.net/javadesktop">http://community.java.net/javadesktop</a></li>
+<li><a href="http://java.sun.com/javase/technologies/desktop/articles.jsp">http://java.sun.com/javase/technologies/desktop/articles.jsp</a></li>
+<li><a href="http://download.oracle.com/javase/tutorial/ui/index.html">http://download.oracle.com/javase/tutorial/ui/index.html</a></li>
+<li><a href="http://download.oracle.com/javase/tutorial/uiswing/index.html">http://download.oracle.com/javase/tutorial/uiswing/index.html</a></li>
+</ul>
+
+<h2>Feladatok</h2>
+
+<h3>Szövegszerkesztő</h3>
+
+<p>Készítsünk egy egyszerű szövegszerkesztő alkalmazást! A programból a menüből 
+lehessen szöveges állományt megnyitni, elmenteni, valamint kilépni.</p>
+
+<p>Ezen kívül az alábbi funkciók közül legalább kettőt valósíts meg!</p>
+
+<ul>
+<li>Használj tooltipeket, amikben HTML formázott szöveg van
+(<code>setToolTipText("&lt;html&gt; ...")</code>)!</li>
+<li>Állíts be az alkalmazásnak egy tetszőleges ikont (<code>setIconImage(...)</code>)!</li>
+<li>Készíts egy <code>Help</code> menüt, amibe teszel egy egyszerű <code>About...</code> menüelemet. Ha
+erre rákattint a felhasználó, írja ki a program verziószámát, valamint a
+készítő nevét (<code>JOptionPane</code>)!</li>
+<li>Állíts be gyorsgombokat és mnemonicokat az egyes menüelemekhez
+(<code>setAccelerator(...)</code>, <code>setMnemonic(...)</code>)!</li>
+<li>Az alkalmazás egy <code>JFileChooser</code> segítségével válassza ki, hogy milyen fájlt
+szeretnél megnyitni!</li>
+<li>Használj egy <code>JTabbedPane</code> panelt, amivel egyszerre több állomány is
+megnyitható!</li>
+</ul>
+
+<h3>Kirakós</h3>
+
+<p>Készítsünk egy egyszerű, 3x3-as kirakós játékot! A fő panel tartalmazzon 9
+nyomógombot, amelyeken <code>1..8</code>-ig számok szerepelnek, a kilencediken pedig egy
+<code>"*"</code> karakter. A számokat kezdetben véletlenszerűen helyezzük el
+(<code>Math.random()</code>, de az is elég, ha van egy beégetett összekevert kombináció).
+Ha egy számot tartalmazó nyomógombra kattintunk, akkor ha az szomszédos a <code>"*"</code>
+karakterrel, cseréljük fel a gombok szövegét! A cél, hogy a számokat
+sorfolytonosan kirakjuk, és a <code>"*"</code> karakter a jobb alsó sarokban legyen. Ha ezt
+sikerült elérnie a felhasználónak, adjunk egy gratuláló üzenetet!</p>

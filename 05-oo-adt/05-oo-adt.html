@@ -1,0 +1,437 @@
+<h1>Absztrakt Adattípus</h1>
+
+<h2>Kérdések</h2>
+
+<ol>
+<li>Milyen abstract típusokat ismersz?</li>
+<li>Mit jelent, hogy egy osztály abstract?</li>
+<li>Hasonlítsd össze az abstract osztály és az interface tulajdonságait?</li>
+<li>Mit tudsz mondani az interface metódusairól?</li>
+<li>Mit tudsz mondani az interface mezőiről?</li>
+<li>Példányosítható-e egy interface?</li>
+<li>Példányosítható-e egy abstract osztály?</li>
+<li>Meghívható-e egy abstract osztály konstruktora?</li>
+<li>Lehet-e egy metódus egyszerre <code>abstract</code> és <code>final</code>?</li>
+<li>Lehet-e egy osztály egyszerre <code>abstract</code> és <code>final</code>?</li>
+</ol>
+
+<p>Absztrakt adattípus = adatabsztrakció, absztrakt adattípus és a rajta
+értelmezett műveletek.</p>
+
+<h1>Emlékeztető: Object Függvények felüldefiniálása</h1>
+
+<p>``` java
+public class Student { // extends Object - ha nincs megadva, implicit ez lesz <br />
+    private String name; <br />
+    private String ETR; <br />
+    private int yearsAtUni;   </p>
+
+<pre><code>// ...   
+
+@Override   
+public int hashCode() {  
+    return name.hashCode() + ETR.hashCode() + yearsAtUni;  
+}  
+
+@Override  
+public boolean equals(final Object obj) {   
+    if (obj instanceof Student) {   
+        final Student other = (Student) obj;   
+
+        // Esetleges null ellenorzeseket tessek elvegezni!    
+        // Itt az attekinthetoseg kedveert ettol eltekintettem.   
+        return ( name.equals( other.name) &amp;&amp;   
+            ETR.equals( other.ETR ) &amp;&amp;   
+            yearsAtUni == other.yearsAtUni );   
+    }     
+
+    return false;    
+}    
+
+@Override    
+public String toString() {    
+    return "Student [name=" + name + "," + "ETR=" + ETR + ", " + "yearsAtUni=" + yearsAtUni + "]";   
+}
+</code></pre>
+
+<p>} <br />
+```</p>
+
+<h2>Absztrakt osztályok</h2>
+
+<p>Ősosztályok "közös nevezőre" hozzák leszármazottaikat: definiálnak egy
+interfészt (külső felületet), vagyis egy adat-, és metóduskészletet, amelyen
+keresztül a leszármazottak egységesen kezelhetők.</p>
+
+<p>Megvalósítás nélküli metódusokat absztrakt osztályok tartalmazhatnak (<code>abstract</code>
+módosítószó az osztályhoz, metódushoz). A fordító nem engedi meg, hogy
+<code>abstract</code> módosítószó szerepeljen <code>private</code>, <code>final</code>, <code>static</code> mellett (ezeket
+nem lehet felüldefiniálni). Absztrakt osztály nem példányosítható.</p>
+
+<p>Absztrakt osztály kiterjesztésekor nem kell minden függvényt implementálni (de
+ekkor a leszármazottnak is absztraktnak kell lennie).</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/tutorial/java/IandI/abstract.html">http://download.oracle.com/javase/tutorial/java/IandI/abstract.html</a></p>
+</blockquote>
+
+<p>Példa:</p>
+
+<p>``` java <br />
+abstract class Sikidom { <br />
+    protected boolean tukorszimmetrikus;     </p>
+
+<pre><code>public Sikidom(boolean tukorszimmetrikus) {   
+    this.tukorszimmetrikus = tukorszimmetrikus;    
+}    
+
+public abstract double kerulet();    
+public abstract double terulet();    
+
+public boolean isTukorszimmetrikus() {   
+    return tukorszimmetrikus;   
+}   
+
+public void kiir() {   
+    System.out.println( "K: " + kerulet() );   
+    System.out.println( "T: " + terulet() );   
+}
+</code></pre>
+
+<p>}   </p>
+
+<p>class Kor extends Sikidom { <br />
+    private static final double PI = 3.1415; <br />
+    private double r = 1.0;   </p>
+
+<pre><code>public Kor() {   
+    super( true );  
+}   
+
+@Override  
+public double kerulet() {  
+    return 2 * r * PI;  
+}  
+
+@Override  
+public double terulet() {  
+    return Math.pow( r, 2 ) * PI;  
+}
+</code></pre>
+
+<p>}  </p>
+
+<p>class Teglalap extends Sikidom { <br />
+    private double a = 1.0, b = 1.0;  </p>
+
+<pre><code>public Teglalap() {  
+    super( true );  
+}  
+
+@Override  
+public double kerulet() {  
+    return 2 * ( a + b );  
+}  
+
+@Override  
+public double terulet() {  
+    return a * b;  
+}
+</code></pre>
+
+<p>} <br />
+```</p>
+
+<p>Használatra példa:</p>
+
+<p>``` java
+public class Main { <br />
+    public static void keruletKiir(Sikidom sikidom) { <br />
+        System.out.println( sikidom.kerulet() ); <br />
+    }   </p>
+
+<pre><code>public static void main(String[] args) {   
+    Sikidom s = new Kor(); // v.o. statikus-dinamikus tipus   
+    keruletKiir( s );   
+}
+</code></pre>
+
+<p>} <br />
+```</p>
+
+<h2>Interfészek</h2>
+
+<p>Új referencia típus, absztrakt függvények és konstansok gyűjteménye
+(gyakorlatilag teljesen absztrakt osztályok, amik kizárólag konstans adattagokat
+tartalmazhatnak).</p>
+
+<p>Absztrakciós szintet vezet be, felületet definiál. Osztály megvalósít egy
+interfészt (<code>implements</code>), ha minden függvényét megvalósítja (<code>abstract</code>)
+osztálynál nem kötelező, ugye).</p>
+
+<p>Eltérés az osztályoktól:</p>
+
+<ul>
+<li>Többszörös öröklődés (névütközésre figyelni, függvényekre fordítási hiba lesz,
+nem C++, konstansok minősített névvel elérhetők). Szépen ezt úgy mondják, hogy
+a specifikáció többszörösen örökölhető, kód csak egyszeresen.</li>
+<li>Nincs közös ős (mint osztályoknál az <code>Object</code>)</li>
+<li>Nem tartalmazhat implementációt (csak absztrakt függvényeket és konstansokat)</li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/tutorial/java/IandI/index.html">http://download.oracle.com/javase/tutorial/java/IandI/index.html</a></p>
+</blockquote>
+
+<h3>Deklaráció</h3>
+
+<p>Mint az osztályoké:</p>
+
+<p>``` java
+interface A {}</p>
+
+<p>public interface B {}
+```</p>
+
+<p>Öröklődési reláció neve itt <em>kiterjesztés</em>, lehet többszörös:</p>
+
+<p><code>java
+interface C extends A, B {}
+</code></p>
+
+<p>Körkörös kiterjesztés fordítási hibát eredményez.</p>
+
+<h3>Tagok</h3>
+
+<p>Mint az osztályoké, de:</p>
+
+<ul>
+<li>minden adattag <code>public</code>, <code>static</code> és <code>final</code> alapból  (ezeket nem kell kiírni
+sem, ugyanakkor az egyértelműség kedvéért ajánlott a feltüntetésük)</li>
+<li>minden függvény <code>public</code> és <code>abstract</code> alapból (ezeket nem kell kiírni sem).
+Más nem lehet.</li>
+</ul>
+
+<p>Előbbiből következik, hogy minden adattagot inicializálni kell (különben
+fordítási hibát kapunk), és ez csak már ismert érték lehet
+(<em>forward referencing</em> tilos):</p>
+
+<p><code>java
+interface I {
+    int A = B; // Hibas definicio!
+    int B = 0;
+}
+</code></p>
+
+<p>Nem szerepelhet <code>this</code>, <code>super</code> sem. Módosítószavak között nem szerepelhet
+<code>synchronized</code>, <code>transient</code>, <code>volatile</code> -  ezek olyan dolgokat kötnek meg,
+amiknek implementációs szinten kell eldőlniük, használatuk ésszerűtlen lenne
+(legalábbis ez a hivatalos álláspont).</p>
+
+<p>Főleg tulajdonságok, viselkedés hozzáadására. Például:</p>
+
+<p>``` java
+interface Beolvashato {
+    public abstract void beolvas();
+}</p>
+
+<p>class Kor implements Beolvashato {
+    ...</p>
+
+<pre><code>public void beolvas() {
+    String sor = Console.readLine("r = ?");
+    r = Integer.parseInt( sor );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Summarium</h2>
+
+<p><em>It boils down to this. *Amit *mindenképp</em> meg kell jegyezni, az a következő:</p>
+
+<ul>
+<li><em>Interfész</em> használatával megoldható a többszörös öröklődés</li>
+<li><em>Absztrakt osztály</em> pedig megvalósítást is tartalmazhat</li>
+</ul>
+
+<h3>Interfész</h3>
+
+<p><code>java
+public interface GroupedInterface
+    extends Interface1, Interface2, Interface3 { ... }
+</code></p>
+
+<p>vagy például:</p>
+
+<p><code>java
+class A extends B implements I1, I2 { ... }
+</code></p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/tutorial/java/IandI/interfaceDef.html">http://download.oracle.com/javase/tutorial/java/IandI/interfaceDef.html</a></p>
+</blockquote>
+
+<h3>Absztrakt osztályra példa</h3>
+
+<p>``` java
+public abstract class Point {
+    private int x = 1, y = 1;</p>
+
+<pre><code>public void move(final int dx, final int dy) {
+    x += dx;
+    y += dy;
+    alert();
+}
+
+protected abstract void alert();
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://java.sun.com/docs/books/jls/second_edition/html/classes.doc.html#34944">http://java.sun.com/docs/books/jls/second_edition/html/classes.doc.html#34944</a></p>
+</blockquote>
+
+<h2>Feladatok</h2>
+
+<p>A feladatok megoldásához használjatok saját osztályokat, objektumokat.
+Használjatok megfelelő módosítószavakat! Az összes osztályt tegyétek legalább
+egy <code>oo.adt</code> csomagba!</p>
+
+<blockquote>
+  <p><strong>+/- Feladat</strong> egy tetszőlegesen választott feladat.</p>
+</blockquote>
+
+<h3>Interfészek</h3>
+
+<ul>
+<li>Készíts egy saját osztályt, amely implementálja a <code>java.lang.CharSequence</code>
+interfészt úgy, hogy a konstruktorában megadott Stringet fordítva tartalmazza!</li>
+<li>Készíts két saját tetszőleges <code>Kirajzolhato</code> és <code>Mozgo</code> interfészt. Adj
+hozzájuk szemléltető implementációkat, amelyek bemutatják az interfészek
+használatát külön-külön és mindkét esetben is!</li>
+</ul>
+
+<h3>Osztályok készítése</h3>
+
+<p>Ügyelj a láthatóságok helyes használatára (<code>private</code>, <code>protected</code> adattagok, és
+ezekhez megfelelő <code>public</code> lekérdező függvények). Az osztályok külön fordítási
+egységekben legyenek! A <code>Main</code> osztály a <code>oo.adt.fx</code> csomagban legyen, az összes
+többi a <code>oo.adt.fx.data</code> csomagban (ahol <code>x</code> a feladat sorszámát jelöli)! A
+megadott példakódokat használjátok, azokat szűkíteni nem, de bővíteni
+megengedett (sőt, ajánlott is). </p>
+
+<h4>Koordináták</h4>
+
+<p>Készítsd el a többdimenziós pontok absztrakt osztályát (<code>APont</code>). Pontokat
+lehessen eltolni, forgatni és tükrözni! Készítsd el ez alapján az ősosztály
+alapján az 1D, 2D, 3D pontok megvalósítását (tartalmazzák a szükséges <code>double</code>
+koordinátákat, valamint az absztrakt függvények implementációit).</p>
+
+<p>Közös adattag legyen az első, <code>x</code> koordináta (ezzel minden származtatott osztály
+rendelkezik). Az eltoláshoz használj változó számú paramétert (<em>vararg</em>), a
+következő minta alapján:</p>
+
+<p><code>java
+public abstract void translate(double... coordinates);
+</code></p>
+
+<p>A forgatást vedd úgy, hogy az origó kürül kell elforgatni a megadott pontot,
+a paraméterként specifikált <em>alpha</em> szöggel (3D pont esetén elég valamelyik
+tengely körül forgatni)!</p>
+
+<p>Készíts egy <code>Kirajzolható</code> interfészt! Ezt az 1D pont implementálja úgy, hogy
+a koordinátáinak megfelelő számú szóköz után rajzoljon egy <code>#</code> karaktert a
+konzolra (negatív esetben az <code>#</code> után rakjon szóközöket).</p>
+
+<p>Készíts egy <code>Frissitheto</code> interfészt! Ez egyetlen metódust írjon elő:</p>
+
+<p><code>java
+public abstract void frissit();
+</code></p>
+
+<p>Ezzel a képernyőről, felhasználói interakció révén lehessen frissíteni az
+adott objektum értékeit! Minden implementáció valósítsa meg ezt az interfészt!</p>
+
+<blockquote>
+  <p><strong>Tipp/Csel</strong> Használhatjátok a későbbiekben leírt mátrix osztályt!</p>
+</blockquote>
+
+<h4>Monoalfabetikus kódolások</h4>
+
+<p>Készítsetek egy kódoló alkalmazást! Hozzátok létre a kódolóalgoritmusok
+absztrakt osztályát (<code>AKodolo</code>), amely a következő definíciókat tartalmazza:</p>
+
+<p><code>java
+public abstract class AKodolo {
+    public abstract String kodol(String eredeti);
+    public abstract String dekodol(String kodolt);
+}
+</code></p>
+
+<p>A különböző megvalósítások a kapott eredeti szöveget kódolják ill. fejtik
+vissza (kódolás előtt alakítsátok nagybetűssé a kapott szöveget).</p>
+
+<p>Készítsetek legalább két különböző kódoló algoritmus implementációt:</p>
+
+<ul>
+<li>Caesar-kódolás: 3 betűvel legyenek eltolva a karakterek (A = D, B = E,
+..., X = A, Y = B, Z = C)</li>
+<li><p>Eltolás: A karakterek megfeleltethetők egymásnak az alábbi
+szabályok szerint:</p>
+
+<pre><code>Eredeti: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Kodolt:  ZEBRASCDFGHIJKLMNOPQTUVWXY
+</code></pre></li>
+</ul>
+
+<blockquote>
+  <p><strong>Tipp/Csel</strong>  Nehogy switch-case szerkezetet használjatok! :-)</p>
+</blockquote>
+
+<h4>Sorozatok</h4>
+
+<p>Készítsd el a sorozatok absztrakt osztályát (<code>ASorozat</code>)! Sorozatoknak
+általánosan lehessen lekérdezni az első <code>n</code> tagját, az <code>n</code> tag
+részletösszegét, valamint hogy monoton növekvő-e, csökkenő-e a sorozat.
+Készítsd el ez alapján az ősosztály alapján a számtani és mértani sorozatok
+megvalósítását (tartalmazzák a specifikus adatokat, mint pl. az első szám, és
+kvóciens vagy differencia).</p>
+
+<p>Készíts egy <code>Util</code> osztályt, amely a következő definíciót tartalmazza:</p>
+
+<p>``` java
+public final class Util {
+    public static ASorozat beolvas() {
+        //...
+    }</p>
+
+<pre><code>private Util() {}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Ez a felhasználótól kérdezze meg, hogy milyen sorozatot szeretne megadni,
+segítsen neki létrehozni egyet, és ezt a létrehozott sorozatot adja is vissza.</p>
+
+<h4>Mátrixok</h4>
+
+<p>Valósítsd meg a mátrixok típusát Javaban! Két konstruktor legyen: az egyik a
+méretet adja meg (négyzetes mátrixot hozzon létre, és minden elem 0 legyen), a
+másik pedig egy <code>double[][]</code> paramétert kapjon! Mátrixokat lehessen összeadni,
+és adott valós számmal beszorozni, valamint lekérdezni, hogy négyzetes-e.</p>
+
+<p>Egészítsd ki az osztálydefinícióót az általános, <code>Object</code> osztályból örökölt
+függvényeket (<code>equals()</code>, <code>hashCode()</code>, <code>toString()</code>).</p>
+
+<p>Egy mátrix típus rendelkezzen a fentieken túl a következő funkciókkal is:</p>
+
+<ul>
+<li>transzponálás</li>
+<li>nyom kiszámítása (átló elemeinek összege, ha négyzetes)</li>
+<li>mátrixok szorzása mátrixokkal (amennyiben lehetséges)</li>
+</ul>

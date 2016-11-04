@@ -1,0 +1,305 @@
+<h1>Networking</h1>
+
+<p>Elméletben <em>OSI</em> modell (<em>"All People Seem To Need Data Processing"</em> vagy
+<em>"Please Do Not Throw Salami Pizza Away"</em>), gyakorlatban TCP/IP:</p>
+
+<ul>
+<li>Alkalmazás (SMTP, Telnet, FTP, etc.),</li>
+<li>Transzport (TCP vagy UDP),</li>
+<li>Hálózati (IPv4, IPv6),</li>
+<li>Adatkapcsolati, Fizikai rétegek (kommunikáció)</li>
+</ul>
+
+<p>Szolgáltatási pont definiálásához három dolog kell:</p>
+
+<ul>
+<li>Internet cím (IPv4 vagy DNS által feloldva)</li>
+<li>Protokoll azonosító (most: TCP v. UDP)</li>
+<li>Port (lehet TCP, UDP is, a címtartományok függetlenek (!), 16 bites egész
+érték 0-65535)</li>
+</ul>
+
+<p>Java esetén a <code>java.net.*</code> csomag használható.</p>
+
+<h2>Összeköttetés-alapú kapcsolat</h2>
+
+<p>Kliens-szerver modell, egy egyszálú szerver általában:</p>
+
+<ul>
+<li>Lefoglal egy TCP portot</li>
+<li>Várakozik egy kliens kapcsolódására</li>
+<li>Ha kliens jelzi a kapcsolódási szándékát, felveszi vele a kapcsolatot, és
+kiszolgálja</li>
+<li>Folytatja a 2. ponttól</li>
+</ul>
+
+<p>Egy kliens működése általában:</p>
+
+<ul>
+<li>Lefoglal egy TCP portot, ezen keresztül kommunikál a szerverrel</li>
+<li>Kapcsolódik a másik végponton a szerverhez, azon a porton, amelyet az
+közzétett</li>
+<li>Lezajlik a kommunikáció</li>
+<li>A kliens bontja a kapcsolatot a szerverrel</li>
+</ul>
+
+<blockquote>
+  <p><strong>Megjegyzések</strong></p>
+
+<ul>
+<li>a kliens lokális portját nem kell ismernünk</li>
+<li>a kapcsolat kiépítése után az full-duplex (kétirányú)</li>
+<li>a szerver szinte mindig többszálú (ld. következő óra!)</li>
+</ul>
+</blockquote>
+
+<h2>Összeköttetés-mentes kapcsolat</h2>
+
+<p><em>User Data Protocol</em> - Majd előadáson ;]</p>
+
+<h2>Címek kezelése</h2>
+
+<p>Hasznunkra válik az <code>InetAddress</code> osztály:</p>
+
+<ul>
+<li><code>getByName(String)</code>: név &rarr; cím</li>
+<li><code>getByAddress(byte[]):</code> IPv4/6 &rarr; cím</li>
+<li><code>getAllByName()</code>: név &rarr; címek (attól függ, hogy van behegesztve a NS)</li>
+<li><code>getLocalHost()</code>: &rarr; saját cím</li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/net/InetAddress.html">http://download.oracle.com/javase/6/docs/api/java/net/InetAddress.html</a></p>
+</blockquote>
+
+<h2>Példa</h2>
+
+<h3>Szerveralkalmazás</h3>
+
+<p>``` java
+package networking;</p>
+
+<p>import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;</p>
+
+<p>public class SimpleServer {
+    public static void main(final String[] args) throws IOException {
+        final int port = Integer.parseInt(args[0]);
+        final ServerSocket server = new ServerSocket(port);</p>
+
+<pre><code>    Socket client = null;
+
+    while (true) {
+        client = server.accept();
+        final BufferedReader br = new BufferedReader(
+            new InputStreamReader(client.getInputStream()));
+        final PrintWriter pw = new PrintWriter(client.getOutputStream());
+
+        final String line = br.readLine();
+        System.out.println("Got message: " + line);
+
+        final String ret = new StringBuilder(line).reverse().toString();
+        System.out.println("Sending reply: " + ret);
+
+        pw.println( ret );
+        pw.flush();
+
+        client.close();
+
+        if (line.equals("exit")) {
+            break;
+        }
+    }
+
+    server.close();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h4>Használat</h4>
+
+<pre><code>$ java networking.SimpleServer 5000
+</code></pre>
+
+<h3>Kliens alkalmazás</h3>
+
+<p>``` java
+package networking;</p>
+
+<p>import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;</p>
+
+<p>public class SimpleClient {
+    public static void main(String[] args)
+    throws UnknownHostException, IOException {
+    String host = args[0];
+    int port = Integer.parseInt(args[1]);
+    String value = args[2];</p>
+
+<pre><code>    Socket socket = new Socket(host, port);
+
+    BufferedReader br = new BufferedReader(
+    new InputStreamReader(socket.getInputStream()));
+PrintWriter pw = new PrintWriter(socket.getOutputStream());
+
+    System.out.println("Message: " + value);
+    pw.println(value);
+    pw.flush();
+
+    System.out.println( "Response:" + br.readLine() );
+    socket.close();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Használat</h3>
+
+<pre><code>$ java networking.SimpleClient localhost 5000 mentegetnem
+$ java networking.SimpleClient localhost 5000 ideseggesedi
+$ java networking.SimpleClient localhost 5000 exit
+</code></pre>
+
+<p>Palindromok, haha <a href="http://hu.wikipedia.org/wiki/Magyar_nyelvű_palindromok_listája">http://hu.wikipedia.org/wiki/Magyar_nyelvű_palindromok_listája</a></p>
+
+<h2>Internet és a WWW-objektumok elérése</h2>
+
+<p>Socketek helyett <code>[Http]URLConnection</code> osztály használatával.</p>
+
+<h2>Hasznos segédeszközök</h2>
+
+<ul>
+<li><code>ping</code>: Elérem-e a hostot?</li>
+<li><code>netstat</code>: Milyen foglalt portok vannak? Kihez kapcsolódnak?</li>
+<li><code>netcat</code>: Port nyitása a szerveren tesztelésre, rendben zajlik-e a kommunikáció?</li>
+<li><code>telnet</code>: Adott portra csatlakozás egy szerverhez, rendben átmennek-e az adatok?</li>
+<li><code>tcpdump</code>: Pontosan milyen adatok mennek át?</li>
+<li><code>ngrep</code>: Teljes hálózati forgalom megfigyelése</li>
+<li>...</li>
+</ul>
+
+<h2>Feladatok</h2>
+
+<h3>Konzolos HTTP kliens</h3>
+
+<p>Készítsünk egy egyszerű alkalmazást, amely egy megadott HTML oldalt megjelenít a
+konzolon. Ennek szabványos kommunikációja így zajlik:</p>
+
+<pre><code>$ telnet index.hu 80
+Trying 217.20.130.97...
+Connected to index.hu.
+Escape character is '^]'.
+GET / HTTP/1.1
+Host: index.hu
+
+$
+</code></pre>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A végén két újsor karakter van!</p>
+
+<p><strong>Tipp</strong>
+Példaként próbáljatok megfigyelni egy teljes kommunikációváltást egy tetszőleges
+weboldallal! Használjátok hozzá tetszőleges segédeszközt (pl. <code>ngrep</code>,
+LiveHTTPHeaders).</p>
+</blockquote>
+
+<h3>Port scanner</h3>
+
+<p>Készítsetek egy minimális port scanner alkalmazást! A programnak egyetlen
+parancssori argumentuma legyen, a tesztelendő host címe. Ezután a program az
+<code>[1..1024]</code> intervallumban (ezek az ún. <em>well known</em> portok) tesztelje végig,
+hogy hol fogad kapcsolatot az adott gép (próbáljon meg egy TCP socket
+kapcsolatot létrehozni). Amennyiben ez sikeres, jelezzük a felhasználónak, majd
+írjuk ki, hogy milyen szolgáltatás fut valószínűleg a gépen. Localhoston
+teszteljétek. A host azonosításához használjátok az <code>InetAddress</code> osztályt!</p>
+
+<p>Egy lista, amely tartalmazza a szolgáltatások neveit: <a href="http://www.iana.org/assignments/port-numbers">http://www.iana.org/assignments/port-numbers</a></p>
+
+<h3>Fájlszerver</h3>
+
+<p>Készítsetek egy minimális fájlszervert!</p>
+
+<ul>
+<li><p>A szerver parancssori argumentumként kapja meg, hogy milyen porton figyeljen,
+továbbá szüksége van egy lokális könyvtár elérési útjára. Ezután várjon kliensek
+kapcsolódási kérelmére.</p></li>
+<li><p>A kliensek a következő műveletek elvégzésére kérhetik a szervert:</p>
+
+<ul>
+<li>A szerver által felügyelt könyvtár tartalmának listázása</li>
+<li>Egy megadott nevű fájl átküldése a felügyelt könyvtárból a kliensnek, amit
+az azonos néven mentsen le a lokális gépre egy <code>downloads</code> mappába.</li>
+</ul></li>
+<li><p>v1.0: egy kliens egy kapcsolattal egy utasításvégrehajtást kezdeményezhet.</p></li>
+<li>v2.0: A kliens addig hajthasson végre utasításokat, amíg a felhasználó
+külön utasításra nem bontja a kapcsolatot.</li>
+</ul>
+
+<h3>Remote shell alkalmazás</h3>
+
+<p>Készítsünk egy szokásos <em>remote shell</em> alkalmazást! Ez egy olyan szerver program,
+amely képes a klienstől kapott utasításokat konzolos utasításokat végrehajtani a
+szerveren, majd annak a teljes eredményét (<em>standard output</em>, <em>standard error</em>
+kimenetét) visszaküldi a szervernek.</p>
+
+<p>Az alkalmazást teszteld a <code>telnet</code> program segítségével!</p>
+
+<h2>Bonyolultabb feladatok</h2>
+
+<h3>Chat alkalmazás</h3>
+
+<p>Készítsünk egy közös chat alkalmazást! Ti írjátok a kliens programot, amely
+csatlakozik a <code>pandora.inf.elte.hu</code> szerver <code>5000</code>-es portjára. A program
+parancssori argumentuma a felhasználó választott nickneve (ez csak alfanumerikus
+karaktereket tartalmazhat).</p>
+
+<ul>
+<li>Indulás után építsen ki egy standard TCP kapcsolatot, majd küldje el a
+szervernek a <code>"NICK nick"</code> üzenetet. </li>
+<li>Ezután a felhasználó megkapja a jelenleg chatelő nickneveket (<code>;</code> karakterrel
+elválasztva, egyetlen sorban).</li>
+<li>Ha új felhasználó lép a chatszobába, minden más felhasználó kap egy
+<code>"JOIN nick"</code> üzenetet.</li>
+<li>Ha valamely felhasználó bontja a kapcsolatot, minden más felhasználó kap egy
+<code>"QUIT nick"</code> üzenetet.</li>
+<li>Ha a szervert valamely okból leállítják, minden felhasználó kap egy
+<code>"DISCONNECT message"</code> üzenetet.</li>
+<li>Ha valaki üzenetet küld, akkor minden más felhasználó kap egy <code>"MSG message"</code>
+üzenetet.</li>
+<li>A szerver minden üzenetre visszajelez: <code>"OK uzenet"</code>, vagy <code>"ERR hibauzenet"</code>
+formában (pl. az adott nicknév ár foglalt, etc.).</li>
+<li>A fenti programhoz készíts egy tetszőleges vezérlő felületet (lehet konzolos,
+lehet grafikus).</li>
+</ul>
+
+<h3>Tetszőleges protokoll megvalósítása</h3>
+
+<p>Válassz ki egy tetszőleges alkalmazási protokollt (HTTP, SMTP, FTP, IRC, stb.).
+Készíts egy minimális kliens alkalmazást hozzá, amely egyszerű funkciók
+ellátására képes. Nézz utána, hogy működik az adott protokoll, majd próbáld meg
+<code>telnet</code> segítségével használni. Ha sikerül, írj a kisebb funkciókra egy
+programot.</p>
+
+<p>Az elkészült protokollt teszteljük le egy tetszőleges kliensalkalmazással (pl. FTP
+esetén WinSCP-vel, stb.).</p>
+
+<blockquote>
+  <p><strong>Tipp</strong></p>
+
+<ul>
+<li><p>Google &rarr; FTP over telnet</p></li>
+<li><p>SSH-val ne próbálkozzatok :-)</p></li>
+</ul>
+</blockquote>

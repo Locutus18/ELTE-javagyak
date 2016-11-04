@@ -1,0 +1,480 @@
+<h1>Objektumorientált alapok</h1>
+
+<h2>Kérdések</h2>
+
+<ol>
+<li>Mit jelent, hogy hatókör?</li>
+<li>Mit jelent, hogy élettartam?</li>
+<li>Mi a motívációja az osztályok bevezetésének?</li>
+<li>Mi az osztály és mi az objektum?</li>
+<li>Mivel hozunk létre objektumot? Beszélj a <code>new</code> operátorról!</li>
+<li>Mit jelent az enkapszuláció?</li>
+<li>Mit jelent az adatelrejtés?</li>
+<li>Mit jelent az egyszeres és a többszörös öröklődés?</li>
+<li>Hol helyezkedik el az Object osztály az öröklődési láncban?</li>
+<li>Mit jelent a felüldefiniálás?</li>
+<li>Hogy lehet megtiltani a függvény felüldefiniálását?</li>
+<li>Hogy lehet megtiltani az osztályból való öröklődést?</li>
+<li>Mit jelent hogy egy mező konstans?</li>
+<li>Hol tudok inicializálni egy konstansot?</li>
+<li>Mire használható az <code>@Override</code> annotáció?</li>
+<li>Mit jelent a <code>static</code>?</li>
+<li>Hol használhatjuk ezt?</li>
+<li>Mi a különbség az osztály- és a példányváltozók, illetve -metódusok között?</li>
+<li>Mit jelent a <code>super</code>?</li>
+<li>Mi az a statikus blokk?</li>
+</ol>
+
+<h2>Hatókör, Élettartam</h2>
+
+<p>Alapvető fogalmak:</p>
+
+<ul>
+<li>Hatókör: Ahol a változó használható</li>
+<li>Élettartam: Ahol a változó még <em>"él"</em></li>
+</ul>
+
+<p>``` java
+class A {
+    static int x = 0;</p>
+
+<pre><code>static void f(int x) {
+    System.out.println( x );   // parameter
+    System.out.println( A.x ); // osztaly valtozo
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Hol deklarálhatok változót?</p>
+
+<h2>Konzol használata</h2>
+
+<p>Tantárgyi ajánlás a <code>java.util.Scanner</code> használata - itt nem, de akit érdekel:
+<a href="http://download.oracle.com/javase/6/docs/api/java/util/Scanner.html">http://download.oracle.com/javase/6/docs/api/java/util/Scanner.html</a>.
+Helyette: <code>java.io.Console#readLine()</code> függvénye és <code>String#split()</code>.</p>
+
+<h2>Osztályok, Objektumok</h2>
+
+<h3>Miért?</h3>
+
+<p>Egységbe zárás, adatelrejtés, absztrakt adattípus = adatabsztrakció, adattípus
+<em>és</em> a rajta értelmezett műveletek.</p>
+
+<h3>Példa</h3>
+
+<p>``` java
+class Koordinata {
+    public int x, y;</p>
+
+<pre><code>public void eltol(int dx, int dy) {
+    x += dx;
+    y += dy;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A tagok elérése:</p>
+
+<p><code>java
+Koordinata k = new Koordinata();
+k.x = 10;
+k.y = 20;
+k.eltol(10, 0);
+</code></p>
+
+<h3>Módosítószavak</h3>
+
+<ul>
+<li><p><code>static</code>: Osztályszintű tag: <em>minden</em> példány rendelkezik vele, és ugyanazt a
+változót, függvényt látják.</p>
+
+<blockquote>
+  <p><strong>Fontos</strong> Statikus környezetből azonban csak statikus változókat,
+függvényeket érhetünk el! <em>Miért?</em> V.ö. eddigi függvénydefiníciókkal!</p>
+</blockquote>
+
+<p>Példa: adott osztály példányainak számolása:</p></li>
+</ul>
+
+<p>``` java
+public class Foo {
+    private static int ctr = 0;
+    private final int idx;
+    ...</p>
+
+<pre><code>public Foo() {
+    ...
+    idx = ctr++;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<ul>
+<li><code>final</code>: <em>Ha változó</em>, akkor az adott referencia nem állítható át (azonban ha
+az egy objektum, tömb, akkor az elemei igen! V.ö. C++ <code>const</code>). <em>Ha függvény</em>,
+akkor nem lehet felüldefiniálni (ld. később!).</li>
+</ul>
+
+<p>``` java
+public class Main {
+    public static final boolean DEBUG = true;</p>
+
+<pre><code>public sum(int[] arr) {
+    if ( DEBUG ) {
+        System.out.println( "Sum params: " + Arrays.toString( arr ) );
+    }
+    ...
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<ul>
+<li>Láthatósági módosítószavak:
+<ul>
+<li><code>public</code> Minden más osztályból elérhető (függvény, adattag, vagy osztály)</li>
+<li><code>protected</code> Adott csomagon belülről, valamint a származtatott osztályokból
+elérhető</li>
+<li><code>private</code> Kizárólag az adott osztályon belülről használható</li>
+<li><em>(default)</em> Ha nem deklarálsz semmit, az az alapértelmezett, ún.
+<em>package-private</em> láthatóság: az adott csomagon belül látszik csak.</li>
+</ul></li>
+</ul>
+
+<h3>Definíció</h3>
+
+<p>Az osztálydefiníció tartalmazhat adattagokat, függvényeket, és egyéb osztályokat.
+Függvénydefiníció tartalmazhat újabb, lokális osztályokat.</p>
+
+<p>Osztályok definiálhatók azonos forrásállományban (de csak egy <code>public</code> lehet),
+másik osztályban (belső osztályok), függvényen belül (lokális osztályok).
+Például:</p>
+
+<p>``` java
+package oo.basics;</p>
+
+<p>class A { ... }</p>
+
+<p>public class B {
+    ...
+    class C { ... }</p>
+
+<pre><code>void f() {
+    class D { ... }
+    ...
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Beágyazott osztályok lehetnek <code>static</code>-ok, ekkor nincs szükség a befoglaló
+osztály egy példányára (így a példányváltozókhoz sem férnek hozzá). Ha egy
+osztály <code>final</code>, nem származtatható belőle újabb osztály.</p>
+
+<p>Mikor melyiket használjuk?</p>
+
+<ul>
+<li>Ha szükség van egy adott osztály tagjainak elérésére, akkor beágyazott
+osztályt</li>
+<li>Ha úgy logikusabb, akkor beágyazott statikus osztály</li>
+<li>Ha más osztályban nincs rá szükség, de közvetlen nem függ össze a
+reprezentációval, akkor a <code>public</code> osztállyal azonos forrásállományba</li>
+<li>Ha általános osztályt készítünk, akkor saját fordítási egységbe</li>
+</ul>
+
+<p>Ha bizonytalan vagy, tégy minden minden osztályt külön fordítási egységbe!</p>
+
+<h2>Származtatás</h2>
+
+<h3>Miért?</h3>
+
+<p>Kódmegosztás, kódkomplexitás csökkentése, karbantarthatóság, modularizáció, ...</p>
+
+<h3>Példa</h3>
+
+<p>``` java
+abstract class Sikidom {
+    public static final double PI = 3.1415;</p>
+
+<pre><code>public abstract double kerulet();
+public abstract double terulet();
+</code></pre>
+
+<p>}</p>
+
+<p>class Kor extends Sikidom {
+    private double r = 1.0;</p>
+
+<pre><code>@Override
+public double kerulet() {
+    return 2 * r * PI;
+}
+
+@Override
+public double terulet() {
+    return Math.pow( r, 2 ) * PI;
+}
+</code></pre>
+
+<p>class Teglalap extends Sikidom {
+    private double a = 1.0, b = 1.0;</p>
+
+<pre><code>@Override
+public double kerulet() {
+    return 2 * ( a + b );
+}
+
+@Override
+public double terulet() {
+    return a * b;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Javaban csak egyszeres öröklődés van, kivéve az interfészek esetében. Általános
+forma:</p>
+
+<p><code>java
+class Foo extends Bar implements Baz1, Baz2, ... {
+    ...
+}
+</code></p>
+
+<h3>Felüldefiniálás, túlterhelés</h3>
+
+<ul>
+<li>Felüldefiniálás Ha a <em>szignatúra</em> megegyezik</li>
+<li>Túlterhelés Minden más esetben</li>
+</ul>
+
+<p>A felüldefiniált függvények elé írjuk oda az <code>@Override</code> annotációt, és segít a
+compilernek kiszűrni az elgépelésből adódó problémákat fordítási időben.  Ha
+hibát ad a fordító, valami nem stimmel (pl. nem egyezik a szignatúra).</p>
+
+<p>Származtatásnál a szűkebb hatókör nem megengedett. Visszatérési értékre nem
+lehet túlterhelni, mert az nem része a szignatúrának. Visszatérési értéket lehet
+specializálni (hasznos pl. a <code>clone()</code> függvénynél - kovariáns kötés).</p>
+
+<p>A kivétel lista nem lényeges ebből a szempontból.</p>
+
+<p>``` java
+abstract class A {
+    public abstract int f(int a, int b);
+    public abstract int g() throws Exception;
+    public abstract A h();
+}</p>
+
+<p>class B extends A {
+    @Override
+    int f(int a, int b) { return 0; }   // Feluldefinialas</p>
+
+<pre><code>void f(int a, int b) {};            // Hibas: visszateresi ertek nem kompatibilis
+int f(int a) { return f(a, 0); }    // Tulterheles (parameterek szama)
+int f(Integer a, Integer b) { ... } // Tulterheles (parameterek tipusa)
+
+@Override
+int g() { return 0; }               // OK: Exception lista nem szamit
+
+@Override
+B h() { return null; };             // OK: Visszateresi ertekre specializal
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>A <code>this</code> pszeudováltozó.</h3>
+
+<h3>Adattagok elérése</h3>
+
+<p>Enkapszuláció elve: minden osztály rejtse el a reprezentációját (hogy könnyen le
+lehessen cserélni), és csak a publikus metódusain (interfészén) keresztül
+lehessen megváltoztatni.</p>
+
+<p>Azaz az adattagok elérése getter és setter függvényeken keresztül történjen:</p>
+
+<p>``` java
+class Koordinata {
+    private int x, y; // private lett, csak belul hasznalhato
+    ...
+    public int getX() {
+        return x;
+    }</p>
+
+<pre><code>public void setX(int x) {
+    this.x = x;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Konstruktorok</h3>
+
+<p>Objektum létrehozásáért felelnek, <em>"speciális függvények"</em>. Általános forma:</p>
+
+<pre><code>&lt;módosítószó&gt; &lt;Osztály neve&gt;( &lt;paraméter lista&gt; ) {
+  &lt;inicializációs utasítások&gt;
+}
+</code></pre>
+
+<p>Például:</p>
+
+<p>``` java
+class Koordinata {
+    private int x, y;</p>
+
+<pre><code>public Koordinata(int x, int y) {
+    this.x = x;
+    this.y = y;
+}
+...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Ha származtatás is játszik a történetben, az kicsit bonyolultabbá teheti.
+Konstruktorban a szülőre a <code>super()</code>, az aktuális példány valamely
+konstruktorára <code>this()</code> hívással hivatkozhatunk. Ha ezeknek a paramétere egy
+függvény visszatérési értéke lehet, az csak statikus függvény lehet.</p>
+
+<p>Példa:</p>
+
+<p>``` java
+class A {
+    protected int size;</p>
+
+<pre><code>public A(int size) {
+    this.size = size;
+}
+...
+</code></pre>
+
+<p>}</p>
+
+<p>class B extends A {
+    public B()         { this(0); }     // B(int) hivasa
+    public B(int size) { super(size); } // A(int) hivasa
+    ...
+}
+```</p>
+
+<h3>Létrehozás, életciklus</h3>
+
+<p>Objektum létrehozása a <code>new</code> operátorral történik:</p>
+
+<p><code>java
+A a = new A(5); // Konstruktorhívás
+</code></p>
+
+<p>Felszabadítással nem kell foglalkozni, azt megoldja a Garbage Collector
+(<code>finalize</code>). Memória: dinamikus/statikus/stack (utóbbihoz nem fértek hozzá),
+automatikusan felügyelt (<em>eden</em>, stb.), <code>System.gc()</code>, <code>finalize()</code>. Az aktuális
+értékek lekérdezhetők a <code>Runtime</code> osztály metódusaival.</p>
+
+<p>Statikus/dinamikus típus: statikus, amivel definiálva lett, dinamikus, amilyen
+referenciára éppen mutat.</p>
+
+<p><code>java
+A a = new B(5);
+</code></p>
+
+<p>A fenti példában az <code>a</code> változó statikus típusa <code>A</code>, dinamikus típusa <code>B</code>
+(megengedett, altípusos polimorfizmus, ld. Liskov-féle szubsztitúciós elv). A
+dinamikus típus leellenőrizhető az <code>instanceof</code> operátorral:</p>
+
+<p><code>java
+if (a instanceof B) { ... }
+else if (a instanceof C) { ... }
+</code></p>
+
+<h3>Object</h3>
+
+<p>Minden típus az <code>Object</code> leszármazottja, ha nincs közvetlen őse. Javaban nincs
+többszörös öröklődés (kivéve interfészeknél). Fontosabb függvények:</p>
+
+<ul>
+<li><code>equals(Object)</code> Azonosság vizsgálat, contract szerint reflexív, tranzitív,
+szimmetrikus reláció, valamint konzisztens, és <code>x.equals(null)</code> értéke mindig
+hamis legyen.</li>
+<li><p><code>hashCode()</code> Hasheléshez (pl. egyes halmaz implementációk, vagy a <code>Hashtable</code>
+esetén). Contract szerint:</p>
+
+<ul>
+<li>Ugyanarra az objektumra hívva konzisztens értéket ad (ha az objektum nem
+változik, ugyanazt az értéket adja).</li>
+<li>Ha két objektum az <code>equals()</code> szerint megegyezik, a <code>hashCode()</code> is
+egyezzen meg.</li>
+<li>Két különböző objektumra <em>nem kell</em> különböző értéket adni
+(ld. <em>hash collision</em>).</li>
+</ul>
+
+<p><p>Példa:</p></li>
+</ul>
+``` java
+class Sample {
+    private int i = 0;
+    private String str = "str";
+    private boolean b = false;</p>
+
+<pre><code>@Override
+public int hashCode() {
+    return (i * 31 + str.hashCode() );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<ul>
+<li><code>toString()</code> Az objektum szöveges reprezentációját adja vissza (Stringként).</li>
+<li>Egyéb függvények: <code>clone()</code>, <code>finalize()</code>, <code>notify()</code>, <code>wait()</code>, <code>getClass()</code></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletek</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/lang/Object.html">http://download.oracle.com/javase/6/docs/api/java/lang/Object.html</a></p>
+</blockquote>
+
+<h2>Feladatok</h2>
+
+<p>A feladatok megoldásához használjatok saját osztályokat, objektumokat.
+Használjatok megfelelő módosítószavakat! Az összes osztályt tegyétek legalább
+az <code>oo.basics</code> csomagba!</p>
+
+<p><strong>+/- Feladat:</strong> egy tetszőlegesen választott feladat.</p>
+
+<h3>Objektumok használata</h3>
+
+<ul>
+<li>Készíts egy interaktív programot, amely a felhasználó által megadott
+szövegeket fordítva kiírja a képernyőre. A megoldáshoz használj
+<code>StringBuilder</code> osztályt, a felhasználói interakcióhoz pedig a
+<code>java.io.Console</code> osztályt! A program addig kérjen újabb és újabb stringeket a
+felhasználótól, amíg üres stringet nem kap az inputról!</li>
+<li>Készítsetek egy könyvtár listázó alkalmazást! Ez parancssori paraméterként egy
+teljes elérési utat várjon, és hozzon létre egy <code>java.io.File</code> objektumot
+(<code>File dir = new File(args[0]);</code>)! Ezután listázzátok ki a könyvtárban
+található összes, <code>".java"</code>-ra végződő fájlt (<code>String#endsWith()</code>,
+<code>File#listFiles()</code>)!</li>
+<li>Készíts egy interaktív programot, amely a felhasználó által megadott
+&alpha; értékre visszaadja annak szinusz, koszinusz és tangens értékeit! A
+megvalósításhoz használd a <code>Math</code> osztály statikus függvényeit, a felhasználói
+interakcióhoz pedig a <code>java.io.Console</code> osztályt! A program addig kérjen újabb
+és újabb &alpha; értékeket a felhasználótól, amíg <code>"END"</code> értéket nem kap az
+inputról!</li>
+<li>Készíts egy interaktív konzolos kockadobó alkalmazást! A program kérdezze meg,
+hogy hány 6 oldalú kockával dobjon, majd írja az eredményt a képernyőre! A
+megoldáshoz használd a <code>java.util.Random</code> osztályt, a felhasználói
+interakcióhoz pedig a <code>java.io.Console</code> osztályt! A program addig kérjen újabb
+és újabb értékeket a felhasználótól, amíg üres stringet nem kap az inputról!</li>
+</ul>

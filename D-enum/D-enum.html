@@ -1,0 +1,118 @@
+<h1>Enumok</h1>
+
+<p>Motiváció az <em>"enum pattern"</em> kiváltása:</p>
+
+<p><code>java
+public static final int OS_WINDOWS = 0;
+public static final int OS_LINUX   = 1;
+public static final int OS_BSD     = 2;
+public static final int OS_VMS     = 3;
+</code></p>
+
+<p>Problémák:</p>
+
+<ul>
+<li><strong>Típusbiztonság hiánya</strong> Ez csak egy sima int, így mindenhol, ahol ilyen
+típusra számítunk, egy egyszerű intet is írhatunk véletlenül</li>
+<li><strong>Névtér hiánya</strong> Csak a prefix-szel kerülhetjük el a névütközéseket</li>
+<li><strong>Törékenység</strong> Új konstans beszúrása problémás, azonos értékek (copy-paste)</li>
+<li><strong>Érthetőség</strong> Kiírásnál csak az értékeket látjuk, nem túl informatívak
+(milyen típus, mit reprezentál)</li>
+</ul>
+
+<p>Java 5.0 óta, egyszerű definíció:</p>
+
+<p>``` java
+// public, protected, private, static lehet csak
+public static enum Os { Windows, Linux, BSD, VMS };</p>
+
+<p>public static void main(final String[] args) {
+    System.out.println("Elements:");
+    for (final Os act : Os.values()) {
+        System.out.println(act.ordinal() + " ->" + act.name());
+    }</p>
+
+<pre><code>// String -&gt; Os
+final Os os = Os.valueOf(System.console().readLine());
+
+switch (os) {
+case Windows:
+    System.out.println("Windows");
+    break;
+
+case Linux:
+case BSD:
+    System.out.println("Unix");
+    break;
+
+default:
+    System.out.println("Other");
+    break;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Csel</strong> Javaban viselkedés, adattag adható az enumokhoz. Pl.:</p>
+</blockquote>
+
+<p>``` java
+public enum Guitar {
+    Electronic(6),
+    Acoustic(5),
+    Bass(4); // elem definiciok vege</p>
+
+<pre><code>// Tulajdonsag leirasa (adattagok, fuggvenyek)
+
+private final int strings;
+
+private Guitar(final int strings) {
+    this.strings = strings;
+}
+
+public int getNumberOfStrings() {
+    return strings;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>További okosság: <em>constant-specific</em> függvények:</p>
+
+<p>``` java
+public enum Operation {
+    PLUS   { double eval(double x, double y) { return x + y; } },
+    MINUS  { double eval(double x, double y) { return x - y; } },
+    TIMES  { double eval(double x, double y) { return x * y; } },
+    DIVIDE { double eval(double x, double y) { return x / y; } };</p>
+
+<pre><code>abstract double eval(double x, double y);
+</code></pre>
+
+<p>}
+```</p>
+
+<p><em>Igen</em> ritkán van rá szükség, de akkor hasznos, hogy van. További okosságok:
+<code>*java.util.EnumSet</code>, <code>java.util.EnumMap</code>.</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p><a href="http://java.sun.com/docs/books/tutorial/java/javaOO/enum.html">http://java.sun.com/docs/books/tutorial/java/javaOO/enum.html</a></p>
+
+<p><a href="enum-tutorial-full-hun.md">Magyar fordítása mellékelve Molnár Szilvinek köszönhetően elérhető</a></p>
+</blockquote>
+
+<h2>Feladat</h2>
+
+<p>Készítsünk egy minimális BKV nyilvántartó programot! Az egyes járművekhez (Busz,
+HEV, Troli, Metro, Villamos) tároljuk el a különböző járatszámokat egy <code>String</code>
+tömbben, valamint egy logikai változóban tároljuk le, hogy az adott járművek
+Budapest közigazgatási határán kívülre is közlekednek-e (egyedül a HEV-ek
+ilyenek). Parancssori argumentumként kapunk egy járatszámot, majd írjuk ki, hogy
+a megadott jármű közlekedik-e Budapesten kívül!</p>
+
+<p>Valósítsuk meg a feladatot enumokkal!</p>

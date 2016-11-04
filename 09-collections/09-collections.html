@@ -1,0 +1,406 @@
+<h1>Gyűjtemény keretrendszer</h1>
+
+<h2>Generic - Bevezetés</h2>
+
+<p><strong>Egyelőre csak a collectionökhöz, bevezető jelleggel.</strong> Típussal
+paraméterezhetőség. Type erasure: csak fordítási időben ismert a
+típusinformáció, utána automatikusan törli a fordító, bájtkódból nem szerezhető
+vissza - nem C++ template-ek, nem generálódik fordítási időben új típus, nincs
+template metaprogramozás.</p>
+
+<p>Nem kötelező velük foglalkozni (<code>@SupressWarnings({"rawtypes", "unchecked")}</code>),
+de rendkívül hasznosak, fordítási időben tudunk potenciális hibalehetőségeket
+kiszúrni - persze ez is a programozón múlik. Kényelmes, típusbiztos. Aki meg
+heterogén adatszerkezeteket használ, megérdemli.</p>
+
+<p>Collectionöknél aktívan használjuk őket:</p>
+
+<p><code>java
+Vector&lt;String&gt; s = new Vector&lt;String&gt;();
+</code></p>
+
+<p>Az előnyük:</p>
+
+<p>``` java
+// Pre-1.5 era:
+Vector v = new Vector();</p>
+
+<p>v.add( new Integer(1) );
+v.add( new Integer(2) );</p>
+
+<p>for (int i=0, n=v.size(); i<n; ++i) {
+    Integer act = (Integer) v.get(i);
+    System.out.println(act);
+}</p>
+
+<p>// Uj:
+Vector<Integer> v = new Vector<Integer>();
+v.add(1);
+v.add(2);</p>
+
+<p>for (int i=0, n=v.size(); i<n; ++i) {
+    Integer act = v.get(i);
+    System.out.println(act);
+}
+```</p>
+
+<h2>Autoboxing-unboxing</h2>
+
+<p>Csak objektum referenciákat tárolhatnak, ezért <em>primitív típusok helyett</em> ún.
+csomagoló (<em>wrapper</em>) osztályokat (<code>Integer</code>, <code>Character</code>, <code>Double</code>, etc.) kell
+használnunk - azonban ezek ilyen esetekben automatikusan konvertálódnak (ld.
+fenti példa). <strong>Amire figyelni kell:</strong> teljesítmény, <code>==</code> operátor, <code>null</code>
+unboxing <code>NullPointerException</code>-nel jár.</p>
+
+<p>Példa:</p>
+
+<p>``` java
+v.add(1);
+// Implicit a kovetkezot jelenti:
+v.add( new Integer(1) );</p>
+
+<p>v.add(1);
+boolean eq = v.get(0) == v.get(1); // LEHET hamis! (*)</p>
+
+<p>v.add(null);
+for (int act : v) { ... } // RECCS!
+```</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A <code>(*)</code>-gal jelölt rész speciel pont mindig igaz lesz, de ez
+<strong>mágia műve</strong>: a -127-126 intervallumon lévő számok wrapper objektumait
+cache-eli a virtuális gép (az Oracle JVM legalábbis), azok mindig ugyanazok
+a példányok lesznek. Így itt tapasztalható probléma nem lép fel, de általában
+ezzel gond lehet.</p>
+</blockquote>
+
+<h2>Gyűjtemény keretrendszer</h2>
+
+<p>Collections Framework, <code>java.util.*</code> csomag, objektumok memóriában tárolására,
+lekérdezése, manipulálása (v.ö. C++ STL). Általános célú adatszerkezetek:</p>
+
+<ul>
+<li>Collection
+<ul>
+<li>List</li>
+<li>Deque</li>
+<li>Set
+<ul>
+<li>SortedSet</li>
+</ul></li>
+<li>Map
+<ul>
+<li>SortedMap</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>Nem megvalósított művelet <code>UnsupportedOperationException</code> kivételt dob (például ha egy
+<em>unmodifiable</em> adatszerkezetre hívod meg az <code>add()</code> vagy <code>put()</code> függvényeket). Copy
+konstruktorok vannak (egyik a másikra konvertálható). Műveletek 3 csoportja:</p>
+
+<ol>
+<li>Alapvető műveletek: <code>size()</code>, <code>isEmpty()</code>, <code>contains()</code>, <code>add()</code>, <code>remove()</code></li>
+<li>Elemek együttes kezelése: <code>addAll()</code>, <code>containsAll()</code>, <code>removeAll()</code>,
+<code>clear()</code>, <code>retainAll()</code></li>
+<li><p>Tömbbé konvertálás - gány:</p>
+
+<p>``` java
+A[] arr = (A[]) list.toArray(new A[list.size()]);</p>
+
+<p>// Kicsit egyszerubb, bar kevesbe hatekony, biztonsagos:
+A[] arr = (A[]) list.toArray();
+```</p></li>
+</ol>
+
+<p>Iterátorokkal rendelkeznek, használhatók for-each-ben. Példa:</p>
+
+<p>``` java
+package collections;</p>
+
+<p>import java.util.Vector;</p>
+
+<p>public class VectorTest {
+    public static void main(String[] args) {
+        Vector<Double> vector = new Vector<Double>();</p>
+
+<pre><code>    for (int i=0; i&lt;5; ++i) {
+        vector.add( Math.random() );
+    }
+
+    for (double act : vector) {
+        System.out.println(act);
+    }
+
+    // Ellenorzeskeppen kiirhatjuk a teljes vektort az alabbi modon is: 
+    System.out.println(vector);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Halmaz</h3>
+
+<p>Duplikált elemeket nem tartalmazhat, kell hozzá az objektumon az <code>equals()</code> és
+<code>hashCode()</code> (hashelő implementációk, nem számít a sorrend, 2 halmaz egyenlő, ha
+ugyanazokat az elemeket tartalmazzák). <code>HashSet</code>, <code>TreeSet</code>: előbbi hatékonyabb,
+utóbbi rendezett.</p>
+
+<h4>Feladat</h4>
+
+<p>Készíts egy programot, amely megszámolja a parancssori argumentumként megadott
+fájl szavaira, hogy azokban hány különböző betű van (kis-, és nagybetűk között
+ne tegyünk különbséget, és az egyéb karakterekkel ne foglalkozzunk)! A
+megvalósításhoz használj halmazt (<code>Set&lt;Character&gt;</code>, <code>String#toCharArray()</code>)!
+Példa output:</p>
+
+<pre><code>$ cat input.txt
+Ia! Shub-Niggurath! The Black Goat of the Woods with a Thousand Young!
+$ java collections.CharCounter input.txt
+Ia! -&gt; 2
+Shub-Niggurath! -&gt; 11
+The -&gt; 3
+Black -&gt; 5
+Goat -&gt; 4
+of -&gt; 2
+the -&gt; 3
+Woods -&gt; 4
+with -&gt; 4
+a -&gt; 1
+Thousand -&gt; 8
+Young! -&gt; 5
+</code></pre>
+
+<h3>Lista</h3>
+
+<p>Elemek pozíció szerinti elérése, iteráció, részlista kezelés. A <code>remove()</code> az
+elem első előfordulását távolítja el, az <code>add()</code>, <code>addAll()</code> a lista végéhez fűz
+hozzá. Két lista egyenlő, ha ugyanazokat az elemeket tartalmazzák, ugyanabban a
+sorrendben. A lista iterátora a <code>ListIterator</code>, 2 irányban is bejárható:
+<code>hasNext()</code>, <code>next()</code>, ill. <code>hasPrevious()</code>, <code>previous()</code>. Részlista: balról
+zárt, jobbról nyílt intervallumot kell megadni. Két alapvető implementáció:
+<code>ArrayList</code>, <code>LinkedList</code>, előbbi a pozicionáló műveleteknek kedvez, utóbbi
+akkor, ha a lista elejére kell sokat beszúrni, és iteráció közben törölni
+(általában az <code>ArrayList</code> használata a célravezetőbb).</p>
+
+<h4>Feladat</h4>
+
+<p>Készíts egy programot, amely a parancssori argumentumként megadott fájl szavait
+lexikografikusan rendezi, az eredményt kiírja a képernyőre, és el is menti egy
+(szintén parancssori argumentumként megadott) fájlba! A feldolgozás előtt minden
+nem alfanumerikus karaktert távolíts el a szavakból. A megvalósításhoz használ
+egy tetszőleges lista adatszerkezetet (<code>ArrayList</code>, <code>LinkedList</code>, <code>Stack</code>,
+<code>Vector</code>), valamint a <code>java.util.Collections#sort()</code> függvényt! Példa output:</p>
+
+<pre><code>$ cat input.txt
+Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn
+$ java collections.StringSorter input.txt output.txt
+[Cthulhu, Phnglui, Rlyeh, fhtagn, mglwnafh, wgahnagl]
+$ cat output.txt
+Cthulhu
+Phnglui
+Rlyeh
+fhtagn
+mglwnafh
+wgahnagl
+</code></pre>
+
+<h3>Leképezés</h3>
+
+<p>Kulcs-érték párokhoz: <code>HashMap</code>, <code>Hashtable</code> (minimális különbség: utóbbi
+szinkronizált, megengedi a <code>null</code> értékeket is). Minden kulcshoz egy érték
+tartozhat. Nem iterálható, azonban lekérdezhető a <code>keySet()</code>, <code>entrySet()</code>, ami
+már igen.</p>
+
+<h4>Feladat</h4>
+
+<p>Készíts egy programot, amely megszámolja egy fájlból az egyes szavak
+előfordulásainak számát! A program a fájl elérési útját argumentumként kapja. A
+megvalósításhoz használj egy <code>String</code> &rarr; <code>Integer</code> leképezést
+(<code>HashMap&lt;String, Integer&gt;</code>)! Példa output:</p>
+
+<pre><code>$ cat input.txt
+Ia! Ia! Cthulhu fhtagn!
+$ java collections.WordCounter input.txt
+{Ia!=2, Cthulhu=1, fhtagn!=1}
+</code></pre>
+
+<p>Megoldási javaslat: minden szó esetén ellenőrizd le, hogy szerepel-e már az
+adatszerkezetben. Ha nem, rakd bele 1-es értékkel; ha igen, vedd ki az előző
+értékkel, és eggyel nagyobb értékkel tedd vissza!</p>
+
+<h3>Rendezés</h3>
+
+<p>Beépített típusoknak értelemszerű a relációja - felhasználói típusokat a
+programozó dönti el. <code>Comparable</code> interfész <code>compareTo()</code> metódusa, melynek
+eredménye <code>int</code> típusú:</p>
+
+<ul>
+<li>0, ha a két objektum egyenlő</li>
+<li>&lt; 0, ha az adott objektum kisebb a paraméternél</li>
+<li>> 0, ha fordítva</li>
+</ul>
+
+<p>Implementáció:</p>
+
+<p><code>java
+class Foo implements Comparable&lt;Foo&gt; {
+    ...
+    public int compareTo(final Foo foo) {
+        return ...;
+    }
+}
+</code></p>
+
+<p>Ha ennek használatára nincs lehetőség, marad egy saját <code>Comparator</code> készítése
+(pl. egyazon objektumot több szempont szerint kell rendezni).</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Vegyük észre, hogy a visszatérési érték számként definiálása
+sokszor hasznos lehet. Ha például két felhasználó születési éve alapján
+szeretnénk egy rendezést definiálni, egyszerűen vonjuk ki a két számot
+egymásból (azonosság esetén az eredmény 0, negatív, ha a paraméter értéke
+nagyobb, és negatív fordított esetben)!</p>
+</blockquote>
+
+<h4>Feladat</h4>
+
+<p>Készítsetek egy <code>Date</code> osztályt, amely tartalmazza az év, hónap, nap adatokat
+(mind számok). Implementáljátok vele a <code>Comparable&lt;Date&gt;</code> interfészt, és ennek
+megfelelően valósítsátok meg a <code>compareTo()</code> függvényt! Hozzatok létre kódból 3
+objektumot, és tároljátok el ezeket egy tetszőleges lista adatszerkezetben.
+Ezt aztán rendezzétek le kronológiai sorrend szerint a <code>Collections#sort()</code>
+függvénnyel, és írjátok ki az eredményt!</p>
+
+<h3>Bejárás</h3>
+
+<p>Saját típus is <em>"iterálhatóvá"</em> tehető a megfelelő interfész megvalósításával:</p>
+
+<p>``` java
+public class Necronomicon implements Iterable<Account> { 
+    public static final String author = "Abdul 'Mad Arab' Alhazred";</p>
+
+<pre><code>private List&lt;Account&gt; accountsOfTheOldOnes;
+
+public Iterator&lt;Account&gt; iterator() {        
+    Iterator&lt;Account&gt; itr = accountsOfTheOldOnes.iterator();
+    return itr;
+}
+...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Bejárás:</p>
+
+<p>``` java <br />
+Necronomicon necronomicon = Necronomicon.getInstance();</p>
+
+<p>Iterator<Account> itr = necronomicon.iterator();
+while (itr.hasNext()) { <br />
+    Account account = itr.next();
+    account.summonOldOne();
+}
+```</p>
+
+<p>vagy:</p>
+
+<p><code>java
+for (Iterator&lt;Account&gt; itr = necronomicon.iterator(); it.hasNext(); ) {
+    account.decreaseReaderSanity();
+}
+</code></p>
+
+<p>vagy Java 1.5 óta:</p>
+
+<p><code>java
+for (Account account : necronomicon) {
+    account.suppressAndBurnReader();
+}
+</code></p>
+
+<h3>Kényelmi lehetőségek</h3>
+
+<ol>
+<li><code>java.util.Arrays#asList()</code>: tömbből listát csinál</li>
+<li><code>java.util.Collections</code>
+<ul>
+<li><code>nCopies(int n, Object o)</code>: két paraméter, amely <code>n</code>-szer tartalmazza
+<code>o</code>-t</li>
+<li>Egyelemű, üres, módosíthatatlan, szinkronizált listák</li>
+<li>Algoritmusok:
+<ul>
+<li>Rendezés, összefésüléses módszerrel (<code>n log(n)</code>, rendezett listát már
+nem rendez, szemben a quick sorttal): <code>sort()</code></li>
+<li>Összekeveerés: <code>shuffle()</code></li>
+<li>Megfordítás, feltöltés, másolás: <code>reverse()</code>, <code>fill()</code>, <code>copy()</code></li>
+<li>Bináris keresés: a keresett elem első talált indexét adja vissza, vagy
+      <code>(-i-1)</code>-et ad vissza, ahol <code>i</code> az első olyan elem indexe, amely nagyobb
+      a keresett elemnél.</li>
+<li>Minimum, maximum elem: <code>min()</code>, <code>max()</code></li>
+</ul></li>
+</ul></li>
+</ol>
+
+<h4>Megjegyzések:</h4>
+
+<ul>
+<li><code>capacity()</code> != <code>size()</code></li>
+<li>Az interfész műveleteken kívül rengeteg egyéb hasznos funkcionalitás, érdemes
+a javadocot olvasgatni</li>
+<li>Saját implementációk: hajrá! A Collections Framework absztrakt osztályokat
+biztosít (<code>AbstractList</code>, <code>AbstractSet</code>, etc.), lehet származtatni.</li>
+<li>További adatszerkezetek: <code>Dequeue</code>, <code>Stack</code>, <code>BitSet</code>, <code>Vector</code>, etc.</li>
+<li><p>Felhasználás: paraméterként, változódeklarációként célszerű minél általánosabb
+interfészt megadni (a collections framework előnye a rugalmassága):</p>
+
+<p><code>java
+Vector&lt;Integer&gt; v1 = new Vector&lt;Integer&gt;();  // vektorkent kezeles
+List&lt;Integer&gt;   v2 = new Vector&lt;Integer&gt;();  // listakent kezeles
+</code></p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen:</strong></p>
+
+<p><a href="http://download.oracle.com/javase/tutorial/collections/index.html">http://download.oracle.com/javase/tutorial/collections/index.html</a></p>
+
+<p><a href="http://download.oracle.com/javase/6/docs/api/java/util/package-summary.html">http://download.oracle.com/javase/6/docs/api/java/util/package-summary.html</a></p>
+
+<p>Microbenchmark az adatszerkezetekről: <a href="http://www.ibm.com/developerworks/java/library/j-benchmark2/index.html">http://www.ibm.com/developerworks/java/library/j-benchmark2/index.html</a></p>
+</blockquote>
+
+<h4>Feladat</h4>
+
+<p>Készítsünk egy sorozat rendező alkalmazást! A program inputja a következő
+formátumú fájl legyen:</p>
+
+<pre><code># evad : epizod : cim
+12:7:Super Fun Time
+12:4:Canada on Strike
+8:13:Cartman's Incredible Gift
+10:8:Make Love, Not Warcraft
+</code></pre>
+
+<p>A <code>#</code> karakterrel kezdődő sorokat hagyjuk figyelmen kívül (használjuk a vizsgálat
+előtt a <code>String#trim()</code>)! Készítsünk egy <code>Sitcom</code> osztályt a megfelelő
+adattagokkal (<code>season</code>, <code>episode</code>, <code>title</code>), és implementáljuk vele a
+<code>Comparable&lt;Sitcom&gt;</code> interfészt! A <code>compareTo()</code> működjön úgy, hogy elsődleges
+szempont szerint az évad, azon belül pedig az epizódszám alapján rendezzen! Az
+adatokat tároljuk egy <code>Vector&lt;Sitcom&gt;</code> adatszerkezetben. A saját osztály helyes
+működéséhez implementáljuk az <code>equals()</code>, <code>toString()</code>, <code>hashCode()</code>
+függvényeket is!</p>
+
+<p>A program beolvasás után rendezze a használt vektort, és biztosítson egy
+interaktív konzolos felületet a felhasználónak, amely a következő
+funkcionalitásokkal rendelkezzen:</p>
+
+<ul>
+<li>Új epizód felvétele</li>
+<li>Epizódlista mentése (kilépés után ezt töltse be)</li>
+<li>Adott epizód adatainak módosítása</li>
+<li>Epizódok listázása a képernyőre</li>
+<li>Kilépés</li>
+</ul>

@@ -1,0 +1,682 @@
+<h1>Generic</h1>
+
+<p>Egyszerűbb példák (<code>java.util</code>csomagból):</p>
+
+<p>``` java
+public interface List<E> {
+    void add(E x);
+    Iterator<E> iterator();
+}</p>
+
+<p>public interface Iterator<E> {
+    E next();
+    boolean hasNext();
+}
+```</p>
+
+<p><code>E</code> - formális típusparaméter, amely aktuális értéket a kiértékelésnél vesz fel
+(pl. <code>Integer</code>, etc.).</p>
+
+<h2>Altípusosság</h2>
+
+<p>Nem konvertálhatók, ennek oka:</p>
+
+<p>``` java
+List<String> l1 = new ArrayList<String>();
+List<Object> l2 = l1; // error</p>
+
+<p>// Mert akkor lehetne ilyet csinalni:
+l2.add(new Object());
+l1.get(0); // reccs, Object -> String castolas
+```</p>
+
+<p>Magyarul ha <code>S &lt;= T =x=&gt; G&lt;S&gt; &lt;= G&lt;T&gt;</code> - ez pedig ellent mond az ember
+megérzésének. Castolni lehet (warning), <code>instanceof</code> tilos (fordítási hiba)!</p>
+
+<h2>Wildcardok</h2>
+
+<p>Probléma: általános megoldást szeretnénk, amely minden collectiont elfogad,
+függetlenül az azokban tárolt elemektől (pl. ki szeretnénk őket írni), vagy nem
+tudjuk azok konkrét típusát (pl. legacy code). <code>Collection&lt;Object&gt;</code> <em>nem</em> őse
+(ld. előző bekezdés). Ha nem használunk genericeket, megoldható, viszont
+warningot generál:</p>
+
+<p><code>java
+void print(Collection c) {
+    for (Object o : c) System.out.println(o);
+}
+</code></p>
+
+<p>Első próba: használjunk Objectet:</p>
+
+<p><code>java
+void print(Collection&lt;Object&gt; c) {
+    for (Object o : c) System.out.println(o);
+}
+</code></p>
+
+<p>Fordul? Fordul! Működik? Néha... <strong>Fail!</strong> A gond az, hogy mivel <code>Collection&lt;X&gt;</code>
+nem leszármazottja a <code>Collection&lt;Object&gt;</code> típusnak, kizárólag <code>Collection&lt;Object&gt;</code>
+paraméterrel hívható meg. Nem túl hasznos...</p>
+
+<p>A megoldás a wildcard használata: <code>Collection&lt;?&gt;</code> minden kollekcióra ráillik.
+Ilyenkor <code>Objectként</code> hivatkozhatunk az elemekre:</p>
+
+<p><code>java
+void print(Collection&lt; ? &gt; c) {
+    for (Object o : c) System.out.println(o);
+}
+</code></p>
+
+<p>Vigyázat! A <code>? != Object</code>! Csak egy ismeretlen típust jelent. Így a következő
+kódrészlet is fordítási hibához vezet:</p>
+
+<p><code>java
+List&lt; ? &gt; c = ...;
+l.add(new Object()); // forditasi hiba
+</code></p>
+
+<p>Nem tudjuk, hogy mi van benne, lekérdezni viszont lehet (mert tudjuk, hogy
+minden objektum az <code>Object</code> leszármazottja). Ha lehetne belepakolni, az 
+veszélyeztetné a program típusbiztonságát. Az egyetlen kivétel ezalól a
+<code>null</code> érték (ez mindennek értékül adható).</p>
+
+<h2>Bounded wildcard</h2>
+
+<p>Amikor tudjuk, hogy adott helyen csak adott osztály leszármazottai
+szerepelhetnek, első (rossz) megközelítés:</p>
+
+<p><code>java
+abstract class Super {}
+class Sub1 extends Super {}
+class Sub2 extends Super {}
+...
+void func(List&lt;Super&gt; l) {...} // Rossz!
+</code></p>
+
+<p>Probléma: <code>func()</code> csak <code>List&lt;Super&gt;</code> paraméterrel hívható meg, <code>List&lt;Sub1&gt;</code>,
+<code>List&lt;Sub2&gt;</code> nem lehet paramétere (nem altípus). Megoldás: <em>bounded wildcard</em>:</p>
+
+<p><code>java
+void func(List&lt; ? extends Super&gt; l) {...}
+</code></p>
+
+<p>Belepakolni ugyanúgy nem tudunk, mint a <code>?</code> esetén, azaz erre fordítási hibát
+kapunk:</p>
+
+<p><code>java
+void func(List&lt; ? extends Super&gt; l) {
+    l.add(new Sub1()); // reccs
+}
+</code></p>
+
+<p>Felfelé is megköthető a wildcard a <code>&lt;? super T&gt;</code> jelöléssel.</p>
+
+<h2>Generikus osztályok, függvények</h2>
+
+<p>Osztálydefinícióban bevezethető típusparaméter az osztályhoz, ez minden
+membernél használható. Példa:</p>
+
+<p>``` java
+package generics;</p>
+
+<p>public class Pair<T, S> {
+    private final T first;
+    private final S second;</p>
+
+<pre><code>public Pair(final T first, final S second) {
+    super();
+    this.first = first;
+    this.second = second;
+}
+
+public T getFirst() {
+    return first;
+}
+public S getSecond() {
+    return second;
+}
+
+// Esetleges null ellenorzeseket tessek elvegezni!
+// Itt az attekinthetoseg kedveert ettol eltekintettem.
+@Override
+public boolean equals(final Object obj) {
+    if (obj instanceof Pair) {
+        Pair&lt;?, ?&gt; pair = (Pair&lt;?, ?&gt;) obj;
+        return first.equals( pair.first ) &amp;&amp; second.equals( pair.second );
+    }
+
+    return false;
+}
+
+// Esetleges null ellenorzeseket tessek elvegezni!
+// Itt az attekinthetoseg kedveert ettol eltekintettem.
+@Override
+public int hashCode() {
+    return first.hashCode() + second.hashCode();
+}
+
+@Override
+public String toString() {
+    return "(" + first + ", " + second + ")";
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Generikus függvények esetén szintén a definícióban használható. Példa:</p>
+
+<p>``` java
+package generics;</p>
+
+<p>public class ArrayUtils {
+    public static final <T, S extends T> boolean isIn(final T[] arr, final S element) {
+        for (final T t : arr) {
+            if (t.equals(element)) return true;
+        }</p>
+
+<pre><code>    return false;
+}
+
+public static void main(final String[] args) {
+    final String[] sarr = {"a", "b", "c"};
+    System.out.println( isIn(sarr, "c") );
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Részletesen:</strong> <a href="http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf">http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf</a></p>
+</blockquote>
+
+<h2>Bemelegítő feladat</h2>
+
+<p>Valósítsuk meg a generikus Stack adatszerkezetet.
+Rendelkezzen két konstruktorral. Egy paraméterek nélküli és egy <code>int</code> típusú paramétert váróval.
+Abban az esetben, ha a paraméteres konstruktort hívjuk meg, figyeljünk arra, hogy a paraméterben megadott értéknél több elem nem kerülhet a verembe.
+Üres konstruktorhívás esetén végtelen (memória nagyságtól függően) mennyiségű adatot tudunk eltárolni.
+A stack adatszerkezet az alábbi öt művelettel rendelkezik.</p>
+
+<ul>
+<li><code>push(T)</code>: <code>void</code>  :: berak egy elemet a verembe</li>
+<li><code>pop()</code>: <code>T</code>  :: kivesz egy elemet a veremből</li>
+<li><code>top()</code>: <code>T</code>  :: visszatér a verem tetején lévő elemmel.</li>
+<li><code>size()</code>: <code>int</code>  :: visszatér a veremben lévő elemek számával</li>
+<li><code>isEmpty()</code>: <code>boolean</code>  :: üres verem esetén igaz (true), más esetben hamis (false) a visszatérési értéke</li>
+</ul>
+
+<p>Dobjunk <code>FullStackException</code> kivételt, ha tele verem esetén meghívásra kerül a push művelet.
+Dobjunk <code>EmptyStackException</code> kivételt, ha üres veremre hívjuk meg a top és pop műveleteket.</p>
+
+<p><em>Egy megoldás:</em></p>
+
+<p>``` java
+package stackdemo;</p>
+
+<p>import stackdemo.util.Stack;
+import stackdemo.util.FullStackException;
+import stackdemo.util.EmptyStackException;</p>
+
+<p>public class StackDemo {</p>
+
+<pre><code>public static void main(String[] args) throws EmptyStackException {
+    Stack&lt;Integer&gt; sInt = new Stack&lt;Integer&gt;();
+    Stack&lt;Character&gt; sChar = new Stack&lt;Character&gt;(5);
+
+    try {
+        for (int i = 0; i &lt; 10; ++i) {
+            // Berakjuk az elemekt: 0..9
+            sInt.push(i);
+        }
+    } catch (FullStackException ex) {
+        ex.printStackTrace();
+    }
+    System.out.println(sInt.top());  // 9
+    for (int i = 0; i &lt; 5; ++i) {
+        System.out.println(sInt.pop()); //9..5
+    }
+    System.out.println(sInt.top());  // 4
+    System.out.println(sInt.size());  // 5
+    System.out.println(sInt.isEmpty());  // false
+    for (int i = 0; i &lt; 5; ++i) {
+        System.out.println(sInt.pop()); //4..0
+    }
+    System.out.println(sInt.isEmpty());  // true
+
+    try {
+        for (int i = 0; i &lt; 6; ++i) {
+            sChar.push(Character.forDigit(i, 10));
+        }
+    } catch (FullStackException ex) {
+        ex.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package stackdemo.util;</p>
+
+<p>/*
+ * Valósítsuk meg a generikus Stack adatszerkezetet.
+ * Rendelkezzen két konstruktorral. Egy paraméterek nélküli és egy int paramétert váróval.
+ * Abban az esetben, ha a paraméteres konstruktort hívjuk meg, figyeljünk arra, hogy a paraméterben megadott értéknél több elem nem kerülhet a verembe.
+ * Üres konstruktorhívás esetén végtelen (memória nagyságtól függően) mennyiségű adatot tudunk eltárolni.
+ * A stack adatszerkezet az alábbi öt művelettel rendelkezik.
+ *  * push(T): void  :: berak egy elemet a verembe
+ *  * pop(): T  :: kivesz egy elemet a veremből
+ *  * top(): T  :: visszatér a verem tetején lévő elemmel.
+ *  * size(): int  :: visszatér a veremben lévő elemek számával
+ *  * isEmpty(): boolean  :: üres verem esetén igaz (true), más esetben hamis (false) a visszatérési értéke
+ * Dobjunk FullStackException kivételt, ha tele verem esetén meghívásra kerül a push művelet.
+ * Dobjunk EmptyStackException kivételt, ha üres veremre hívjuk meg a top és pop műveleteket.
+ * */</p>
+
+<p>import java.util.List;
+import java.util.LinkedList;</p>
+
+<p>public class Stack<T> {
+    private List<T> stack = new LinkedList<T>();
+    private int maxSize = -1;   // -1 a kezdeti érték. Ha nem kerül átállításra a konstruktorban, akkor sem lesz gond maxSize == size() esetén.</p>
+
+<pre><code>public Stack() {
+}
+
+public Stack(int size) {
+    this.maxSize = size;
+}
+
+public void push(T e) throws FullStackException {
+    // Azért állítottuk a maxSize kezdeti értékét -1-re, hogy a push akkor is működjön, ha paraméter nélküli konstruktort hívtunk példányosításnál.
+    if(this.maxSize == this.size()) {
+        throw new FullStackException();
+    }
+    this.stack.add(e);
+}
+
+public T pop() throws EmptyStackException {
+    if(this.stack.size() == 0) {
+        throw new EmptyStackException();
+    }
+    T e = this.stack.get(this.stack.size() - 1);
+    //this.stack.remove(this.stack.size() - 1);
+    this.stack.remove(e);
+    return e;
+}
+
+public T top() {
+    return this.stack.get(this.stack.size() - 1);
+}
+
+public int size() {
+    return this.stack.size();
+}
+
+public boolean isEmpty() {
+    return this.stack.isEmpty();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package stackdemo.util;</p>
+
+<p>public class EmptyStackException extends Exception{
+    public EmptyStackException() {
+    }</p>
+
+<pre><code>public EmptyStackException(String msg) {
+    super(msg);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package stackdemo.util;</p>
+
+<p>public class FullStackException extends Exception {
+    public FullStackException() {
+    }</p>
+
+<pre><code>public FullStackException(String msg) {
+    super(msg);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Írjunk raktárnyilvántartó programot.
+Olvassuk be az adatokat egy fájlból, melyenk felépítése a következő:
+típus : id : nev : ... egyéb adatok
+ruha:id:nev:meret:ár
+etel:id:nev:lejarat:ár
+butor:id:nev:fő részére:ár</p>
+
+<p>Írjunk egy raktár (Raktar) osztályt, mely tartalmazza az összes fáljban lévő terméket.
+Gyűjtsd külön a különböző típusú termékeket, ehhez használj Map<String, List<T>> adatszerkezetet.</p>
+
+<p>A Raktár osztály a következő függvényeket tartalmazza: </p>
+
+<pre><code>* add(T):void
+* remove(T):void Kitörli az első objectet, ami megegyezik T-vel
+* removeAll(T): void Kitörli az összes elemet.
+* removeAll(String key):void
+* size(): int
+* size(String key):int
+* get(int id): T
+* getAll(String key): List&lt;T&gt;
+</code></pre>
+
+<p>Inputtext:
+ruha:111:pulover:S:12
+etel:112:konzerv:2025:25
+butor:113:kerti pad:6:250
+etel:114:szilva:2012:25
+etel:115:szilva:2012:25
+butor:116:sofa:2:25
+ruha:117:pulover:M:25
+etel:118:szilva:2012:25
+etel:119:szilva:2012:25
+etel:120:szilva:2012:25
+etel:121:szilva:2012:25
+etel:122:szilva:2012:25</p>
+
+<p>``` java
+package szallitmanydemo;</p>
+
+<p>import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import szallitmanydemo.entities.Etel;
+import szallitmanydemo.entities.Ruha;
+import szallitmanydemo.entities.Termek;
+import szallitmanydemo.util.Raktar;</p>
+
+<p>public class SzallitmanyDemo {</p>
+
+<pre><code>private final static String RUHA = "ruha";
+private final static String ETEL = "etel";
+private final static String BUTOR = "butor";
+
+public static void main(String[] args) {
+    Raktar&lt;Termek&gt; raktar = readFromFile(args[0]);   
+    System.out.println(raktar.get(115));
+    System.out.println(raktar.size());
+    System.out.println(raktar.size(ETEL));
+    System.out.println(raktar.remove(raktar.get(115)));
+    raktar.removeAll(raktar.get(114));
+    for(Termek t : raktar.getAll(ETEL)) {
+        System.out.println(t);
+    }
+}
+
+public static Raktar&lt;Termek&gt; readFromFile(String fileName) {
+    Raktar&lt;Termek&gt; retRaktar = new Raktar&lt;Termek&gt;();
+    Scanner sc = null;
+    try {
+        sc = new Scanner(new File(fileName));
+        while(sc.hasNextLine()) {
+            String[] datas = sc.nextLine().split(":");
+            if(RUHA.equals(datas[0].trim())) {
+                retRaktar.add(new Ruha(
+                                Integer.parseInt(datas[1].trim()),
+                                datas[0].trim(),
+                                datas[2].trim(),
+                                Integer.parseInt(datas[4].trim()),
+                                datas[3].trim()));
+            } else if(ETEL.equals(datas[0].trim())) {
+                retRaktar.add(new Etel(
+                                Integer.parseInt(datas[1].trim()),
+                                datas[0].trim(),
+                                datas[2].trim(),
+                                Integer.parseInt(datas[3].trim()),
+                                Integer.parseInt(datas[4].trim())));
+            } else if(BUTOR.equals(datas[0].trim())) {
+                retRaktar.add(new Etel(
+                                Integer.parseInt(datas[1].trim()),
+                                datas[0].trim(),
+                                datas[2].trim(),
+                                Integer.parseInt(datas[3].trim()),
+                                Integer.parseInt(datas[4].trim())));
+            }
+        }
+    } catch(FileNotFoundException ex) {
+        ex.printStackTrace();
+    } finally {
+        if( sc != null) {
+            sc.close();
+        }
+    }        
+    return retRaktar;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>``` java
+package szallitmanydemo.util;</p>
+
+<p>import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;</p>
+
+<p>import szallitmanydemo.entities.Termek;</p>
+
+<p>public class Raktar<T extends Termek> {
+    private Map<String, List<T>> raktar = new LinkedHashMap<String, List<T>>();</p>
+
+<pre><code>public void add(T e) {   
+    if(this.raktar.containsKey(e.getTipus())) {
+        List&lt;T&gt; l = this.raktar.get(e.getTipus());
+        l.add(e);
+    } else {
+        List&lt;T&gt; l = new LinkedList&lt;T&gt;();
+        l.add(e);
+        this.raktar.put(e.getTipus(), l);
+    }
+}
+
+public boolean remove(T e) {
+    List&lt;T&gt; list = this.raktar.get(e.getTipus());
+    return list.remove(e);
+}
+
+public void removeAll(T e) {
+    List&lt;T&gt; list = this.raktar.get(e.getTipus());
+    for(int i=list.size()-1; i&gt;=0; --i) {
+        T t = list.get(i);
+        if(e.getNev().equals(t.getNev())) {
+            list.remove(t);
+        }
+    }
+}
+
+public void removeAll(String key) {
+    this.raktar.remove(key);
+}
+
+public int size() {
+    int count = 0;
+    for(String s : this.raktar.keySet()) {
+        count += this.raktar.get(s).size();
+    }
+    return count;
+}
+public int size(String key) {
+    return this.raktar.get(key).size();
+}
+
+public T get(int id) {
+    for(String key : this.raktar.keySet()) {
+        for(T t : this.raktar.get(key)) {
+            if(t.getId() == id) {
+                return t;
+            }
+        }
+    }
+    return null;
+}
+
+public List&lt;T&gt; getAll(String key) {
+    List&lt;T&gt; retList = this.raktar.get(key);
+    return retList;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>``` java
+package szallitmanydemo.entities;</p>
+
+<p>public class Termek {
+    private final int id;
+    private final String tipus;
+    private final String nev;
+    private final int ar;
+    public Termek(final int id, final String tipus, final String nev, final int ar) {
+        this.id = id;
+        this.tipus = tipus;
+        this.nev = nev;
+        this.ar = ar;
+    }</p>
+
+<pre><code>public int getId() {
+    return this.id;
+}
+public String getTipus() {
+    return this.tipus;
+}
+public String getNev() {
+    return this.nev;
+}
+public int getAr() {
+    return this.ar;
+}
+
+public String toString() {
+    return this.id + ":" + this.nev;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package szallitmanydemo.entities;</p>
+
+<p>public class Ruha extends Termek {
+    private final String meret;
+    public Ruha(final int id, final String tipus, final String nev, final int ar, final String meret) {
+        super(id, tipus, nev, ar);
+        this.meret = meret;
+    }</p>
+
+<pre><code>public String getMeret() {
+    return this.meret;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package szallitmanydemo.entities;</p>
+
+<p>public class Etel extends Termek {
+    private final int lejarat;
+    public Etel(final int id, final String tipus, final String nev, final int ar, final int lejarat) {
+        super(id, tipus, nev, ar);
+        this.lejarat = lejarat;
+    }</p>
+
+<pre><code>public int getLejarat() {
+    return this.lejarat;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>``` java
+package szallitmanydemo.entities;</p>
+
+<p>public class Butor extends Termek {
+    private final int foReszere;
+    public Butor(final int id, final String tipus, final String nev, final int ar, final int foReszere) {
+        super(id, tipus, nev, ar);
+        this.foReszere = foReszere;
+    }</p>
+
+<pre><code>public int getFoReszere() {
+    return this.foReszere;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>További feladatok</h2>
+
+<p>A megoldáshoz készített osztályokat tegyétek a <code>javagyak.generics</code> csomagba,
+valamint a teszteléshez használt osztályokat (amik a <code>main()</code> definícióit is
+tartalmazzák) a <code>javagyak.test</code> csomagba!</p>
+
+<h3>Triple</h3>
+
+<p>Készíts el egy generikus <code>Triple</code> osztályt, amely 3 (nem feltétlen) különböző
+típuból alkotott rendezett hármas! Valósítsd meg vele a szokásos műveleteket
+(<code>equals()</code>, <code>toString()</code>, <code>hashCode()</code>)!</p>
+
+<h3>Reverse</h3>
+
+<p>Készíts egy generikus <code>reverse()</code> függvényt, amely egy tetszőleges lista
+adatszerkezetet képes visszafelé kiírni a képernyőre!</p>
+
+<h3>Fill</h3>
+
+<p>Készíts egy generikus <code>fill()</code> függvényt, amely a paraméterként kapott,
+tetszőleges lista minden elemét lecseréli a megadott elemre.</p>
+
+<h3>addAll()</h3>
+
+<p>Készíts egy generikus <code>addAll()</code> függvényt, amely egy tetszőleges lista
+adatszerkezetbe beleteszi a második paraméterként megadott lista összes elemét!</p>
+
+<h3>MiniMax</h3>
+
+<p>Készíts egy olyan generikus <code>min()</code> és <code>max()</code> függvényt, amely egy tetszőleges
+kollekcióban megkeresi és visszaadja a minimális és maximális elemet! (Cseles!
+Kell a <code>Comparable</code> interfész is ugye...).</p>
+
+<h3>Tömbös (*)</h3>
+
+<p>Készíts két generikus függvényt: az egyik segítsen tömböt kollekcióvá
+konvertálni, a másik pedig kollekcióból tömböt.</p>
+
+<h3>Stack (*)</h3>
+
+<p>Készíts egy saját, generikus <code>Stack</code> implementációt! Az implementáció
+illeszkedjen a Java gyűjtemény keretrendszerébe! Ennek módját tetszőlegesen
+megválaszthatod, a reprezentációt is, de a <code>Collection&lt;E&gt;</code> mindenképp legyen őse!</p>
+
+<h3>Generikus bináris keresőfa (*)</h3>
+
+<p>Készítsünk egy egyszerű, általános bináris keresőfa implementációt! A fához
+lehessen elemet hozzáadni (<code>add()</code>), kiírni, valamint a minimum, maximum elemet
+megkeresni (<code>min()</code>, <code>max()</code>). A típusparaméterének összehasonlíthatónak kell
+lennie (<code>&lt;T extends Comparable&lt;T&gt;&gt;</code>).</p>

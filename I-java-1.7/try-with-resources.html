@@ -1,0 +1,123 @@
+<h1>A try-with-resources állítás</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.7 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Zöld Gábornak! </p>
+
+<p><a href="http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html</a></p>
+</blockquote>
+
+<hr />
+
+<p>A <code>try-with-resources</code> állítás egy vagy több forrást deklarál. A forrás egy objektum, amit be kell zárni, miután a program befejezte vele a munkát. A <code>try-with-resources</code> állítás biztosítja, hogy minden forrás be legyen zárva az állítás végén. Bármely objektum, ami implementálja a <code>java.lang.AutoCloseable</code> interfészt, ami már implementál minden <code>java.io.Closeable</code> interfészt használó objektumot, lehet forrásként használni.</p>
+
+<p>A következő példa egy fájl első sorát olvassa be. Egy <code>BufferedReader</code> példányt használ az adatbeolvasáshoz a fájlból. A <code>BufferedReader</code> egy forrás, amit be kell zárni, miután a programnak nincs rá szüksége:</p>
+
+<p><code>java
+static String readFirstLineFromFile(String path) throws IOException {
+    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        return br.readLine();
+    }
+}
+</code></p>
+
+<p>Ebben a példában a forrás, ami egy <code>try-with-resources</code> példában van deklarálva, egy <code>BufferedReader</code>. A deklarációs állítás zárójelben jelenik meg, közvetlenül a <code>try</code> kulcsszó után. A <code>BufferedReader</code> osztály, a Java SE 7-ben és az újabb verziókban, implementálja a <code>java.lang.AutoCloseable</code> interfészt. Mivel a <code>BufferedReader</code> egy <code>try-with-resources</code> állításban van deklarálva, be fog zárulni, függetlenül attól, hogy a <code>try</code> állítás normál módon vagy hirtelen ér véget (Annak eredményeként, hogy a <code>BufferedReader</code>.readLine metódus dob egy IOException kivételt).</p>
+
+<p>A Java SE 7 előtti verziókban, használhatsz egy finally blokkot, hogy biztosítsd a forrás bezárását, függetlenül attól, hogy a <code>try</code> állítás normál módon vagy hirtelen ér véget. A következő példa egy finally blokkot használ a <code>try-with-resources</code> állítás helyett:</p>
+
+<p><code>java
+static String readFirstLineFromFileWithFinallyBlock(String path) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    try {
+        return br.readLine();
+    } finally {
+        if (br != null) br.close();
+    }
+}
+</code></p>
+
+<p>Ezzel szemben ha ebben a példában a readLine és a close metódus is kivételt dob, akkor a readFirstLineFromFileWithFinallyBlock metódus azt a kivételt fogja dobni, amit a finally blokk dobott; elfojtva ezzel a <code>try</code> blokk által dobott kivételt. Ugyanakkor a readFirstLineFromFile példában ha kivételt dob a <code>try</code> blokk és a <code>try-with-resources</code> állítás is, akkor a <code>readFirstLineFromFile()</code> metódus a <code>try</code> blokk kivételét fogja dobni; ekkor a <code>try-with-resources</code> blokk kivétele lesz elfojtva. A Java SE 7-ben és az újabb verziókban ki lehet nyerni az elfojtott kivételt is, lásd az Elfojtott Kivételek bekezdést több információért.</p>
+
+<p>Egy vagy több forrást is deklarálhatsz egy <code>try-with-resources</code> állításban. A következő példa kinyeri a fájlok nevét egy csomagolt <code>zipFileName</code> zip fájlból, és készít egy szöveges fájlt, ami ezek neveit tartalmazza:</p>
+
+<p>``` java
+public static void writeToFileZipFileContents(String zipFileName, String outputFileName)
+        throws java.io.IOException {</p>
+
+<pre><code>java.nio.charset.Charset charset = java.nio.charset.Charset.forName("US-ASCII");
+java.nio.file.Path outputFilePath = java.nio.file.Paths.get(outputFileName);
+
+// Open zip file and create output file with try-with-resources statement
+
+try (
+    java.util.zip.ZipFile zf = new java.util.zip.ZipFile(zipFileName);
+    java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(outputFilePath, charset)
+) {
+
+    // Enumerate each entry
+
+    for (java.util.Enumeration entries = zf.entries(); entries.hasMoreElements();) {
+
+        // Get the entry name and write it to the output file
+
+        String newLine = System.getProperty("line.separator");
+        String zipEntryName = ((java.util.zip.ZipEntry)entries.nextElement()).getName() + newLine;
+        writer.write(zipEntryName, 0, zipEntryName.length());
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Ebben a példában a <code>try-with-resources</code> két deklarációt tartalmaz, amiket egy pontosvessző választ el: egy <code>ZipFile</code> és egy <code>BufferedWriter</code> példányt. Amikor a közvetlenül utána következő kódblokk befejeződik, akár normál módon, akár kivétellel, a <code>BufferedWriter</code> és a <code>ZipFile</code> <code>close()</code> metódusai automatiksan meghívódnak, ebben a sorrendben. Vegyük figyelembe, hogy a források <code>close()</code> metódusai a készítésük fordított sorrendjében lesznek meghívva.</p>
+
+<p>A következő példa egy <code>try-with-resources</code> állítást használ, hogy automatikusan bezárja a <code>java.sql.Statement</code> objektumot:</p>
+
+<p>``` java
+public static void viewTable(Connection con) throws SQLException {</p>
+
+<pre><code>String query = "select COF_NAME, SUP_ID, PRICE, SALES, TOTAL from COFFEES";
+
+try (Statement stmt = con.createStatement()) {
+
+    ResultSet rs = stmt.executeQuery(query);
+
+    while (rs.next()) {
+        String coffeeName = rs.getString("COF_NAME");
+        int supplierID = rs.getInt("SUP_ID");
+        float price = rs.getFloat("PRICE");
+        int sales = rs.getInt("SALES");
+        int total = rs.getInt("TOTAL");
+        System.out.println(coffeeName + ", " + supplierID + ", " + price +
+                ", " + sales + ", " + total);
+    }
+
+} catch (SQLException e) {
+    JDBCTutorialUtilities.printSQLException(e);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Ebben a példában a <code>java.sql.Statement</code> része a JDBC 4.1 és az újabb API könyvtáraknak.</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A <code>try-with-resources</code> állításnak lehet catch és finally blokkja, mint bármely általános <code>try</code> állításnak. Egy <code>try-with-resources</code> állításban, bármely catch vagy finally blokk a források bezárása után fut le.</p>
+</blockquote>
+
+<h2>Elfojtott Kivételek</h2>
+
+<p>Lehetséges kivételt dobni egy <code>try-with-resources</code> kijelentéssel összekapcsolt kódrészletből is. A fenti <code>writeToFileZipFileContents()</code> példában lehet kivételt dobni a <code>try</code> blokkból, és legfeljebb két kivételt dobhat a <code>try-with-resources</code> állítás, amikor megpróbálja bezárni a <code>ZipFile</code> és <code>BufferedWriter</code> objektumokat. Ha a <code>try</code> blokk dob egy kivételt, és egy vagy több kivételt dob a <code>try-with-resources</code> állítás is, akkor a kivételek, amiket a <code>try-with-resources</code> állítás dobott, el lesznek fojtva, és a blokk által dobott kivétel a <code>writeToFileZipFileContents()</code> metódus kivétele lesz. Az elfojtott kivételeket a <code>Throwable.getSuppressed()</code> metódus hívásával nyerhető vissza a <code>try</code> blokk által dobott kivételből.</p>
+
+<h2>Osztályok, melyek implementálják az AutoCloseable vagy Closeable interfészt</h2>
+
+<p>Az <code>AutoCloseable</code> és <code>Closeable</code> interfészek specifikációjában olvasható, mely konkrét osztályok valósítják meg őket. A <code>Closeable</code> interfész kiterjeszti az <code>AutoCloseable</code> interfészt. A <code>Closeable</code> interfész <code>close()</code> metódusa <code>IOException</code> típusú kivételeket dob, míg az <code>AutoCloseable</code> interfész <code>Exception</code> típusú kivételeket. Következésképp az <code>AutoCloseable</code> interfész alosztályai felüldefiniálhatják a <code>close()</code> metódus ezen viselkedését, hogy más típusú kivételeket dobjanak, mint az <code>IOException</code>, vagy akár egyáltalán ne dobjanak kivételt.</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<p><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/AutoCloseable.html">http://docs.oracle.com/javase/7/docs/api/java/lang/AutoCloseable.html</a></p>
+
+<p><a href="http://docs.oracle.com/javase/7/docs/api/java/io/Closeable.html">http://docs.oracle.com/javase/7/docs/api/java/io/Closeable.html</a></p>
+</blockquote>

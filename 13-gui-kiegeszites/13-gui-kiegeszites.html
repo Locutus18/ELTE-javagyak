@@ -1,0 +1,238 @@
+<h1>GUI Kiegészítés</h1>
+
+<h2>Listenerek egyéb megvalósításai</h2>
+
+<p>Saját listener megvalósítása:</p>
+
+<p>``` java
+public class GUI1 {
+    private final JButton ok = new JButton("Ok");</p>
+
+<pre><code>private class OkButtonActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        System.out.println("Ok pressed");
+    }
+}
+
+public GUI1() {
+    OkButtonActionListener listener = new OkButtonActionListener();
+    ok.addActionListener(listener);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>vagy maga az osztály implementálja az interfészt, mindenre rá lehet aggatni,
+majd <code>setActionCommand()</code> ill. <code>getActionCommand()</code> függvény használható a
+megkülönböztetésre:</p>
+
+<p>``` java
+public class GUI2 implements ActionListener {
+    private final JButton ok = new JButton("Ok");
+    private final JButton cancel = new JButton("Ok");</p>
+
+<pre><code>private final String OK_COMMAND     = "ok";
+private final String CANCEL_COMMAND = "cancel";
+
+public GUI2() {
+    ok.addActionListener(this);
+    ok.setActionCommand(OK_COMMAND);
+
+    cancel.addActionListener(this);
+    cancel.setActionCommand(CANCEL_COMMAND);
+}
+
+public void actionPerformed(ActionEvent e) {
+    if (OK_COMMAND.equals(e.getActionCommand())) {
+        System.out.println("Ok pressed");
+    } else if (CANCEL_COMMAND.equals(e.getActionCommand())) {
+        System.out.println("Cancel pressed");
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Komplexebb grafikus felület</h2>
+
+<p>Containerekkel (<code>Panel</code>, <code>JPanel</code>).</p>
+
+<p>TODO: kép</p>
+
+<h2>JOptionPane</h2>
+
+<p>Ha <code>super != null</code>, akkor modális, pl.:</p>
+
+<p><code>java
+JFrame frame = ...;
+...
+JOptionPane.showMessageDialog( frame, "Modalis uzenet");
+</code></p>
+
+<h2>MVC</h2>
+
+<p>Model-View-Controller. Egyes GUI komponensek nem direkt módon tárolják az
+adatokat (többféle reprezentáció), ilyenkor modelleket kell használni (pl.
+<code>JProgressBar</code>, <code>JNumberSpinner</code>, <code>JTable</code>, stb.). Példa:</p>
+
+<p><code>java
+int val = progressBar.getModel().getValue();
+progressBar.getModel().setValue(++val);
+</code></p>
+
+<h2>BorderLayout</h2>
+
+<p>Használatra példa:</p>
+
+<p>``` java
+JPanle panel = new JPanel( new BorderLayou() );</p>
+
+<p>panel.add( new JLabel("North"),  BorderLayout.NORTH  );
+panel.add( new JLabel("South"),  BorderLayout.SOUTH  );
+panel.add( new JLabel("East"),   BorderLayout.EAST   );
+panel.add( new JLabel("West"),   BorderLayout.WEST   );
+panel.add( new JLabel("Center"), BorderLayout.CENTER );
+```</p>
+
+<h2>CardLayout</h2>
+
+<p>Példa:</p>
+
+<p>``` java
+final static String APANEL = "Panel 1";
+final static String BPANEL = "Panel 2";</p>
+
+<p>JPanel card1 = new JPanel();
+JPanel card2 = new JPanel();</p>
+
+<p>CardLayoult layout = new new CardLayout();
+cards = new JPanel( layout );
+cards.add(card1, APANEL);
+cards.add(card2, BPANEL);</p>
+
+<p>layout.show(cards, APANEL );
+layout.show(cards, BPANEL );</p>
+
+<p>layout.first(cards);
+layout.last(cards);
+```</p>
+
+<h2>JRadioButton</h2>
+
+<p><code>ButtonGroup</code> használata kell, ha szeretnénk, hogy egyszerre csak választható ki közülük:</p>
+
+<p>``` java
+JRadioButton button1 = new JRadioButton("A");
+JRadioButton button2 = new JRadioButton("B");</p>
+
+<p>ButtonGroup group = new ButtonGroup();
+group.add( button1 );
+group.add( button2 );
+```</p>
+
+<h2>JFileChooser</h2>
+
+<p>Használatnál figyeljünk a visszatérési értékre!</p>
+
+<p><code>java
+final JFileChooser fc = new JFileChooser();
+...
+int ret = fc.showOpenDialog( frame );
+if ( JFileChooser.APPROVE_OPTION == ret ) {
+    ...
+}
+</code></p>
+
+<h2>Feladatok</h2>
+
+<h3>Hex editor</h3>
+
+<p>Készíts egy egyszerű hexadecimális szövegszerkesztőt! Egy sorban 16 karakter
+legyen, amely az egyes bájtok értékeit reprezentálják. A program kínáljon
+lehetőséget <code>byte</code>, <code>int</code> módosításra, adott pozíción, megadott értékkel. A 
+szövegmezőn keresztüli szerkesztés legyen letiltva (<code>setEnabled(false)</code>). Ha
+megnyomják a modify gombot, akkor az adott értéket írjuk ki a file-ba
+(<code>RandomAccessFile</code> segítségével) a megadott pozícióra, és frissítsük a
+szövegmező tartalmát!</p>
+
+<p><img src="https://github.com/rlegendi/ELTE-javagyak/raw/master/13-gui-kiegeszites/hex_editor.png" alt="Hex editor" title="Hex editor" /></p>
+
+<p><strong>Képernyőterv</strong> - Hex editor</p>
+
+<h3>Kvíz alkalmazás</h3>
+
+<p>Készítsünk egy egyszerű kvíz-alkalmazást, amely az alábbi típusú kérdéseket
+tartalmazhatja:</p>
+
+<ul>
+<li><p>Eldöntendő kérdés, pl.:</p>
+
+<pre><code>Hány fia volt Ádámnak a Biblia szerint?
+( ) 2
+( ) 3
+(*) 33
+</code></pre></li>
+<li><p>Kiválasztós, pl.:</p>
+
+<pre><code>Mely országok határosak Magyarországgal?
+[x] Szerbia
+[x] Szlovénia
+[ ] Japán
+</code></pre></li>
+</ul>
+
+<p>Minden kérdésben 3-3 lehetőség van. Ezeket fájlból olvassuk, inicializálás
+során. A formátuma a következő:</p>
+
+<pre><code>    C:Hany versszakbol all a himnusz?:4:6:8:false:false:true
+    S:Mely szamok primek?:1:2:7:false:true:true
+    ...
+</code></pre>
+
+<p>Az inputban <code>:</code> karakterrel elválasztva 8 mező található, ezek jelentések a
+következő:</p>
+
+<ul>
+<li>Az első karakter megmondja, hogy milyen típusú kérdés adatait tartalmazza az
+adott sor. <code>C</code> = eldöntendő, <code>S</code> = kiválasztós kérdés</li>
+<li>A kérdés szövege</li>
+<li>A lehetséges 3 válasz</li>
+<li>A válaszok helyessége</li>
+</ul>
+
+<p>A játék képernyőterve az alábbi ábrán található.</p>
+
+<p><img src="https://github.com/rlegendi/ELTE-javagyak/raw/master/13-gui-kiegeszites/quiz.png" alt="Kvíz alkalmazás" title="Kvíz alkalmazás" /></p>
+
+<p><strong>Képernyőterv</strong> - Kvíz alkalmazás</p>
+
+<p>A program a következő funkciókat biztosítsa:</p>
+
+<ul>
+<li>Egyszerre 5 kérdést adjon</li>
+<li>Lehessen menüből kilépni, valamint új játékot kezdeni (ezekre kérjen
+megerősítést a program!)</li>
+<li>A program jelezze a teszt kitöltöttségét egy <code>JProgressBar</code> segítségével</li>
+<li>Pontozás: minden jól megválaszolt eldöntendő kérdés 10 pont. Minden eltalált
+kiválasztós kérdés 5 pont.</li>
+<li>A játék végén írjon ki egy gratuláló üzenetet, amely tartalmazza, hány pontot
+ért el a felhasználó</li>
+</ul>
+
+<blockquote>
+  <p><strong>Példakérdések</strong> <a href="http://people.inf.elte.hu/legendi/java/res/questions.txt">http://people.inf.elte.hu/legendi/java/res/questions.txt</a></p>
+</blockquote>
+
+<h4>További lehetőségek</h4>
+
+<ul>
+<li>Játékot lehessen elmenteni, betölteni! (memento)</li>
+<li>Egyszer lehessen segítséget kérni egy <code>'?'</code> gombbal! Ha használtuk, tiltsuk le
+a gombot.</li>
+<li>A végén meg lehessen nézni az eredményeket. Itt színes labelekkel jelezzük,
+hogy sikerült az adott kérdést teljesíteni (zöld - OK, piros - Fail,
+sárga - skip).</li>
+</ul>

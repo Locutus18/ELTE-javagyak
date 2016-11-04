@@ -1,0 +1,77 @@
+<h1>A For-Each ciklus</h1>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Az alábbi fejezetet a Java 1.5 egy bevezetőjének (kissé átdolgozott) magyar fordítását tartalmazza. A fordítást köszönjük Márton Dávidnak! </p>
+
+<p><a href="http://download.oracle.com/javase/1.5.0/docs/guide/language/foreach.html">http://download.oracle.com/javase/1.5.0/docs/guide/language/foreach.html</a></p>
+</blockquote>
+
+<hr />
+
+<p>Végigiterálni egy kollekción csúnyább mint lennie kéne. Lássuk a következő metódust, ami timer taskok egy kollekcióján halad végig és zárja be őket:</p>
+
+<p><code>java
+void cancelAll(Collection&lt;TimerTask&gt; c) {
+    for (Iterator&lt;TimerTask&gt; i = c.iterator(); i.hasNext(); )   //Iterator&lt;TimerTask&gt; i = c.iterator(); i.hasNext(); (piros)
+        i.next().cancel();                  //i.next() (piros)
+}
+</code></p>
+
+<p>Az iterátor használata eléggé megbonyolítja a cikust, illetve, minden egyes előforulása újabb lehetőség egy elgépelésre. A for-each konstrukció leegyszerűsíti ezt a kuszaságot és csökkenti a hibalehetőségek számát. Íme, az előző példa a for-each-el:</p>
+
+<p><code>java
+void cancelAll(Collection&lt;TimerTask&gt; c) {
+    for (TimerTask t : c)           //TimerTask t : c (zöld)
+        t.cancel();
+}
+</code></p>
+
+<p>A : a tartalmazást fejezi ki, azaz a fenti ciklust "minden egyes t <code>TimerTask</code>-ra c-ben"-nek olvassuk. Mint azt látható a for-each konstrukció nagyon jól kombinálható a <a href="./generics.html" title="Generics">generic</a>-ekkel. Típusbiztonságot nyújt, ugyanakkor jól olvasható. Mivel nem szükséges deklarálni az iterátort, nincs szükség annak generic deklarációjára sem. (A fordító ezt persze megteszi a hátad mögött, de neked nem kell foglalkoznod vele)</p>
+
+<p>Íme, egy gyakori hiba, amit sokan elkövetnek, amikor egymásba ágyazott ciklusokkal szeretnének végigiterálni két kollekción:</p>
+
+<p>``` java
+List suits = ...;
+List ranks = ...;
+List sortedDeck = new ArrayList();</p>
+
+<p>// BROKEN - throws NoSuchElementException!          // // BROKEN - throws NoSuchElementException! (piros)
+for (Iterator i = suits.iterator(); i.hasNext(); )
+    for (Iterator j = ranks.iterator(); j.hasNext(); )
+        sortedDeck.add(new Card(i.next(), j.next()));
+```</p>
+
+<p>Hol a hiba? Nem csüggedj ha nem találod! Sok profi programozó is beleszalad ebbe a hibába néha. A gond az, hogy a <code>next</code> metódus túl sokszor hívódik meg a "külső" kollekcióra (<code>suits</code>). Mind a belső, mind a külső kollekcióra meghívódik a belső ciklusban, ami nem jó. Ez kijavítható egy a külső ciklusba felvett változó segítségével.</p>
+
+<p><code>java
+// Fixed, though a bit ugly
+for (Iterator i = suits.iterator(); i.hasNext(); ) {
+    Suit suit = (Suit) i.next();            //Suit suit = (Suit) i.next(); (zöld)
+    for (Iterator j = ranks.iterator(); j.hasNext(); )
+        sortedDeck.add(new Card(suit, j.next()));
+}
+</code></p>
+
+<p>Na és mi köze mindennek a for-each-hez? Azt mintha egymásba ágyazott ciklusokra találták volna ki! Láss csodát:</p>
+
+<p><code>java
+for (Suit suit : suits)
+    for (Rank rank : ranks)
+        sortedDeck.add(new Card(suit, rank));
+</code></p>
+
+<p>A for-each ciklus hasonlóan kényelmesen használható tömbök esetén, mivel az iterátoroknál jobban elrejti az indexváltozót. A következő metódus egy <code>int</code> tömb elemeinek az összegével tér vissza:</p>
+
+<p><code>java
+// a elemeinek osszegevel ter vissza
+int sum(int[] a) {              //int[] a (zöld)
+    int result = 0;
+    for (int i : a)             //int i : a (zöld)
+        result += i;
+    return result;
+}
+</code></p>
+
+<p>Szóval, mikor használj for-each ciklust? Amikor csak lehet. Nagyon megszépíti a kódod, de sajnos nem használható mindenhol. Vegyük például az <a href="./expurgate.html" title="Expurgate">expurgate</a> metódust. A programnak hozzá kell férnie az itárátorhoz, hogy törölni tudja az aktuális elemet. A for-each ciklus elrejti az iterátort, ezért nem tudod meghívni a <code>remove</code>-ot. Emiatt, a for-each nem használható szűrésre (filtering), valamint olyan ciklusokban, ahol elemek berakására van szükség egy listába, vagy tömbbe. Végül, nem használható olyan ciklusok kiváltására, ahol párhuzamosan kell több kollekción iterálni. Ezekkel a hiányosságokkal a fejlesztők tisztában voltak és tudatosan döntöttek egy világos, egyszerű konstrukció mellett, amely az esetek nagy részében használható.</p>
+
+<hr />

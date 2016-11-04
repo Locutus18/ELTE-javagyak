@@ -1,0 +1,191 @@
+<h1>OO gyakorló feladatok</h1>
+
+<h2>ZH gyakorló feladatok</h2>
+
+<p>A feladatok a ZH-ra való felkészülést segítik, ennek okán kicsit bonyolultabbak
+az eddigieknél. <strong>+/- szempontjából</strong> szorgalmi feladatnak tekinthetők, nem
+kötelező őket megcsinálni, ugyanakkor <code>++</code> jár valamelyikük elkészítéséért.</p>
+
+<p>Törekedj a gyakorlatokon vett objektumorientált technikák használatára! Készíts
+saját típusokat! Rendezd őket egy logikus csomagstruktúrába! Használj absztrakt
+osztályokat, és ahol lehetséges, és indokoltnak érzed, interfészeket!
+Absztraháld a közös részeket! Használj megfelelő láthatósági módosítókat!</p>
+
+<p>További szempontok, amiket vegyetek figyelembe az implementáció során:</p>
+
+<ul>
+<li>Figyelj a megfelelő inputkezelésekre! Lekezeletlen kivételt ne dobjon a
+program (pl. <code>NumberFormatException</code>)! Az bemeneti értékek ellenőrzését minden
+esetben végezd el (pl. számnak ne fogadj el karakterláncot!)</li>
+<li>Definiáld felül az <code>Object</code> osztályból származó tanult függvényeket
+(<code>equals()</code>, <code>hashCode()</code>, <code>toString()</code>)</li>
+<li>Használd a kiírásokhoz a saját <code>toString()</code> implementációdat!</li>
+</ul>
+
+<p>A feladatok nem nehézségi sorrendben követik egymást!</p>
+
+<h3>Tőzsde</h3>
+
+<p>Készíts egy tőzsde nyilvántartó programot! A program kezeljen mind vételi, mind
+eladási ajánlatokat. A keretrendszer rendelkezzen egy interaktív konzolos
+menüvel, ami legalább a következő funkcionalitásokkal rendelkezzék:</p>
+
+<pre><code>[1] Uj eladasi ajanlat felvetele
+[2] Uj veteli ajanlat felvetele
+[3] Jelenleg aktiv ajanlatok listazasa
+[4] Letrejott tranzakciok listazasa
+[5] Tozsde zarolasa
+--------------------------------------
+Valasztas:
+</code></pre>
+
+<p>A megvalósítandó funkciók a következők:</p>
+
+<ul>
+<li>Új eladási ajánlat felvételekor meg kell adni az eladandó nevét, az arany
+mennyiségét és a preferált eladási árat. Maximum 5 aktív eladási ajánlat lehet
+egyszerre, ha újat szeretnénk felvenni, adjunk hibaüzenetet. Ezután le kell
+futtatni a párosító algoritmust. Két eladási ajánlat akkor egyezik meg, ha az
+eladó neve ugyanaz. Egy eladó csak egyetlen ajánlatot tehet fel egyszerre.</li>
+<li>Új vételi ajánlat felvételekor meg kell adni a vásárló nevét, a vásárolni
+kívánt arany mennyiségét. Maximum 5 aktív vételi ajánlat lehet egyszerre, ha
+újat szeretnénk felvenni, adjunk hibaüzenetet. Ezután le kell futtatni a
+párosító algoritmust. Két vételi ajánlat akkor egyezik meg, ha a vevő neve
+ugyanaz. Egy vevő csak egyetlen ajánlatot tehet fel egyszerre.</li>
+<li>A jelenleg aktív ajánlatok listázásánál írjuk ki mind a jelenleg aktív
+eladási, mind a vételi ajánlatokat!</li>
+<li>Az utolsó 5 létrejött tranzakciót tartsuk nyilván! Ehhez tároljuk el a vevő és
+az eladó nevét, az eladott arany mennyiségét, az árat, és a tranzakció dátumát
+(ehhez használd a <code>java.util.Date</code> osztály egy példányát!)</li>
+<li>Zárolás esetén, a helyes jelszó megadása után (ez legyen egyelőre beégetve a
+kódba) egyetlen tranzakció sem vehető fel. Ilyenkor minden új ajánlat
+felvételekor adjunk hibaüzenetet! A jelszó beolvasásához használd a <code>Console</code>
+osztály <code>readPassword()</code> metódusát!</li>
+</ul>
+
+<p>A párosító algoritmus az ajánlatok beérkezésének sorrendjében működik. Ha egy
+ajánlat mennyisége nullára csökken, eltávolítjuk. Ha két ajánlat párosítása
+során az egyik ajánlat nem teljes mennyiséggel kerül felhasználásra, akkor az
+ajánlatból megmaradt mennyiség alapján ún. maradékajánlattal kell helyettesíteni
+az eredeti ajánlatot (azaz a részteljesítés megengedett).</p>
+
+<h3>Moziműsorok</h3>
+
+<p>Készíts egy programot, amely moziműsorokat képes nyilvántartani! Minden
+kihirdetett előadásról a következő információkat tároljuk:</p>
+
+<ul>
+<li>a film azonosítóját</li>
+<li>a film forgalmazójának azonosítóját</li>
+<li>a vetítés időpontját</li>
+</ul>
+
+<p>Ezen felül készítsünk reprezentációs osztályokat a filmeknek és a
+forgalmazóknak! Filmek esetén tároljuk azok:</p>
+
+<ul>
+<li>azonosítóját (egyedi, tetszőleges típus)</li>
+<li>a címét</li>
+<li>a rendezőjének nevét</li>
+<li>az egységes jegyárat</li>
+<li>a kiadás évét</li>
+</ul>
+
+<p>Készíts külön osztályokat a 2D és 3D filmeknek! A jegyárat a következő képlet
+alapján számold ki <code>1500 / ( 2010 - ev )</code> 2D filmek esetében; 3D filmeknél ez az
+összeg ennek kétszerese.</p>
+
+<p>Kiadó esetén tároljuk azok:</p>
+
+<ul>
+<li>azonosítóját (egyedi, tetszőleges típus)</li>
+<li>nevét</li>
+<li>az alapításuk évét</li>
+</ul>
+
+<p>A program hozzon létre és tároljon 5 különböző kiadót és filmet! Két azonos
+kiadó, film nem lehet a rendszerben (ezek azonosságát az egyedi azonosítókon
+keresztül vizsgáld!). Az új előadások hirdetésénél figyelj arra, hogy azonos
+időpontra ne lehessen meghirdetni egy előadást. A program nyújtson lehetőséget a
+filmek, kiadók közti keresésre az azonosító alapján!</p>
+
+<p>Ha a programot <code>-html</code> kapcsolóval indítják, akkor a standard outputra írjon ki
+egy minimális HTML forrásfájlt, amely az előadásokat egy táblázatban tartalmazza.</p>
+
+<h3>KKK szimuláció</h3>
+
+<p>Készíts egy egyszerű kaland-játék-kockázat szimulációt!</p>
+
+<p>A program hozzon létre 5 különböző karakterkombinációt. Egy karakter a következő
+tulajdonságokkal rendelkezik, amelyek értékei 1-12 között lehetnek, és ezek
+között szétosztható 25 pont tetszőlegesen: fizikum, asztrál, mentál. A karakter
+egy származtatott értékkel is rendelkezik, az életerővel, ami a <code>fizikuma + 1</code>
+értékkel egyezik meg alapból. A karakternek még egy fontos tulajdonsága van, a
+sebzés, amely mindegyiknél 2.</p>
+
+<p>A létrehozott karakterek különböző szörnyekkel hadakoznak (amelyek ugyanezekkel
+a tulajdonságokkal rendelkeznek, bestiárium a feladat végén), a következő
+szabályok szerint:</p>
+
+<ul>
+<li>Akinek nagyobb az asztrálja, az kezdi a kört</li>
+<li>Dobunk <code>2k6</code>-tal (2 db 6 oldalú kockával), és hozzáadjuk a fizikumhoz. Ha ez
+nagyobb vagy egyenlő, mint a másik fél védőértéke (fizikumának és mentáljának
+összege), akkor életerejéből le kell vonni a sebzés mértékét.</li>
+</ul>
+
+<p>Ha a támadódobás értéke 12, akkor dupla sebzés történik. Minden sebzés
+automatikusan csökkenti az asztrál értéket is eggyel.</p>
+
+<ul>
+<li>Ugyanezt megismételjük a másik féllel.</li>
+<li>A kör végén mindenki levon egyet a mentál értékéből.</li>
+</ul>
+
+<p>Ha a csata során bármely fél asztrálja 5-tel kisebb, mint az ellenfélé, akkor az
+elmenekül a csatából. A harc addig folytatódik, amíg valakinek az életerő pontja
+nullára csökken, ekkor az illető meghal. Ha a mentálérték csökken nullára, akkor
+az azt jelenti, hogy az illető nem tud megfelelően koncentrálni a csatára, így
+minden sebzéséből levonódik egy.</p>
+
+<p>A harc végén az értékek visszaállnak a maximumra.</p>
+
+<p>A szimuláció során készíts statisztikát a megnyert, elvesztett csaták arányából,
+hogy mely karakterkombinációk bizonyultak a legsikeresebbeknek!</p>
+
+<h4>Bestiárium</h4>
+
+<ul>
+<li>Farkas, tulajdonságok:
+<ul>
+<li>Fizikum: 6</li>
+<li>Asztrál: 9</li>
+<li>Mentál: 8</li>
+<li>Életerő: 9</li>
+<li>Sebzés: 1</li>
+</ul></li>
+<li>Csontváz, tulajdonságok:
+<ul>
+<li>Fizikum: 6</li>
+<li>Asztrál: 3</li>
+<li>Mentál: 3</li>
+<li>Életerő: 10</li>
+<li>Sebzés: 2</li>
+</ul></li>
+<li>Orgyilkos, tulajdonságok:
+<ul>
+<li>Fizikum: 7</li>
+<li>Asztrál: 8</li>
+<li>Mentál: 6</li>
+<li>Életerő: 7</li>
+<li>Sebzés: 2</li>
+</ul></li>
+<li>Láncfűrészes goblin, tulajdonságok:
+<ul>
+<li>Fizikum: 5</li>
+<li>Asztrál: 6</li>
+<li>Mentál: 5</li>
+<li>Életerő: 7</li>
+<li>Sebzés: 3</li>
+</ul></li>
+</ul>

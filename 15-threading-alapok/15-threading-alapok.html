@@ -1,0 +1,648 @@
+<h1>Threading</h1>
+
+<p>Mottó: <em>"Concurrency is hard and boring. Unfortunately, my favoured technique of ignoring it and hoping it will go away doesn't look like it's going to bear fruit."</em></p>
+
+<p>Párhuzamosság: több részfeladat egyidejűleg történő végrehajtása.</p>
+
+<p>Miért?</p>
+
+<ul>
+<li>A feladat logikai szerkezete indokolja (egyszerűen így egyszerű megközelíteni a problémát, pl. termelő-fogyasztó rendszerek, grafikus alkalmazásban progress bar, stb.)</li>
+<li>A program több, fizikailag is független eszközön fut (weboldal kiszolgálása az egyiken, adott szolgáltatás egy másikon, <em>load balancing</em>, stb.)</li>
+<li>Hatékonyság (v.ö. Amdahl's law <http://en.wikipedia.org/wiki/Amdahl's_law>, ezt meg keményen be lehet nézni)</li>
+</ul>
+
+<p>Elég régóta foglalkoztatja az embereket. <em>Látszat párhuzamosságról</em> is hallani
+még (oprendszerek, multitasking: egyszerre egy folyamatot hajt végre, mert csak
+egy processzor van a gépben, de adott időtartam alatt akár többet is, így lehet
+pl. Mariozni a Winamp mellett, és egyáltalán bármilyen programot futtatni az
+operációs rendszeren kívül), de a <em>valódi párhuzamosság</em> is már mindennapos
+(pl. többmagos, többprocesszoros gépekben).</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A folyamatok konkrét leképezése egy vagy több processzorra
+megvalósítási kérdés :-)</p>
+</blockquote>
+
+<h2>Mítoszok és tévhitek</h2>
+
+<p><strong>Common hülyeségek:</strong></p>
+
+<ul>
+<li>Ha párhuzamos, akkor gyorsabb. <strong>FAIL</strong></li>
+<li>A program szerkezetén nem kell változtatni, ha párhuzamosítani akarunk. <strong>FAIL</strong> (<em>még akkor sem igaz, ha az adott API/Framework ezt állítja!</em>)</li>
+<li>Egyszerűbb megírni simán, aztán párhuzamosítani, két hét alatt meglesz. <strong>FAIL</strong></li>
+<li>Nem kell foglalkozni a párhuzamos kérdésekkel, úgysem jön elő. <strong>FAIL</strong></li>
+<li>Ha rosszul tervezem, írom meg, sebaj, majd kidebuggolom a hibát. <strong>FAIL</strong></li>
+</ul>
+
+<p><strong>A véres valóság:</strong></p>
+
+<ul>
+<li>A párhuzamos programozás <strong>bonyolult</strong></li>
+<li>A párhuzamosságnak <strong>ára van</strong> (<em>skálázható megoldások kellenek és mérések</em>)</li>
+<li>A <strong>hibák felfedése irgalmatlanul nehéz</strong> (nemdeterminisztikusság, <em>kozmikus sugárzással, napkitörésekkel magyarázni könnyű</em>)</li>
+<li>Tisztességes megoldáshoz alapvető <strong>struktúrális módosításra</strong> van szükség (pl. más <em>design patternek</em>)</li>
+</ul>
+
+<h2>Párhuzamosság szintjei</h2>
+
+<ul>
+<li>Utasítások - multicore rendszerek</li>
+<li>Taskok - párhuzamos alprogramok</li>
+<li>Folyamatok (<em>processes</em>) - külön memóriaterülettel, pl. párhuzamosan futó alkalmazások</li>
+<li><strong>Szálak (threads)</strong> - közös memóriaszegmenssel is rendelkezhetnek, azonos folyamaton belül futnak</li>
+</ul>
+
+<p>Viselkedésük alapján lehetnek:</p>
+
+<ul>
+<li>Függetlenek</li>
+<li>Versengők</li>
+<li>Együttműködők</li>
+</ul>
+
+<h2>Alapproblémák</h2>
+
+<ul>
+<li><strong>Kommunikáció</strong> kommunikációs közeg: socket, signal handler, fájl, osztott
+memória, etc.</li>
+<li><strong>Szinkronizáció</strong> folyamatok összehangolása, szinkron - aszinkron</li>
+</ul>
+
+<h3>Megoldások</h3>
+
+<ul>
+<li>Kölcsönös kizárás és szinkronizáció
+<ul>
+<li>"Tevékeny várakozás" (<em>busy waiting</em>), szemafor, monitor, feltételes kritikus szakasz, ...</li>
+</ul></li>
+<li>Összehangolásoknál egyedi problémák léphetnek fel (holtpont, kiéheztetés, livelock)</li>
+</ul>
+
+<h2>Alapdefiníciók</h2>
+
+<ul>
+<li><strong>Szinkronizáció</strong> Olyan folyamat, amellyel meghatározható a folyamatokban
+szereplő utasítások relatív sorrendje</li>
+<li><strong>Kölcsönös kizárás</strong> osztott változók biztonságos használatához</li>
+<li><strong>Kritikus szakasz</strong> program azon része, ahol egy időben csak egyetlen
+folyamat tartózkodhat</li>
+<li><strong>Atomi művelet</strong> bármilyen közbeeső állapota nem látható a többi folyamat
+számára</li>
+</ul>
+
+<h3>Példa probléma</h3>
+
+<p>Tekintsük az alábbi kódrészletet:</p>
+
+<pre><code>public class FlawedIdIncrementer {
+    private int id = 0;
+    public int getId() {
+        return id++;
+    }
+}
+</code></pre>
+
+<p>Egyszerű, mi? Na nem :-)</p>
+
+<p><strong>A fordítóprogram, JIT, valamint a Java memóriamodell által oszthatatlan (atomi)
+műveletnek tekintett utasítások alapján <em>12 870</em> különböző végrehajtási módja
+lehet a fenti pár sornak!</strong></p>
+
+<p>Amennyiben <code>long</code> típust használunk, az eset még borzasztóbb, <em>2 704 156</em> különböző
+eset lehetséges, mert mind a kiolvasás, mind a tárolás 2-2 utasítás, mert a JVM a
+<code>long</code> típust két virtuális regiszteren tárolja (hiába használsz 64 bites virtuális
+gépet).</p>
+
+<p>Természetesen ezeknek az útvonalaknak egy nagy része helyes eredményt ad - a gond
+csak az, hogy <em>egy része nem</em>.</p>
+
+<p>Általában <code>N</code> utasítás és <code>T</code> szál esetén a végrehajtási utak száma megadható a
+következő képlettel:</p>
+
+<pre><code>(N * T)! / N!^T
+</code></pre>
+
+<p>A fenti kódblokk esetén <code>N = 8</code> bájtkód utasítás keletkezik.</p>
+
+<h2>Szálak létrehozása</h2>
+
+<p>Két lehetőség:</p>
+
+<ol>
+<li><p><code>Thread</code> osztályból származtatva: a <code>run()</code> metódust kell felüldefiniálni,
+majd a <code>start()</code> segítségével indítható az új szál. Megjegyzés: <code>start()</code>
+függvényt <strong>nem bántod</strong>, csak ha hívod a <code>super.start()</code> függvényt is!</p>
+
+<p>Példa:</p>
+
+<p>``` java
+package threading;</p>
+
+<p>class TestThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println("TestThread");
+    }
+}</p>
+
+<p>public class Create1 {
+    public static void main(String[] args) {
+        TestThread test = new TestThread();
+        test.start();
+    }
+}
+```</p>
+
+<p>Névtelen osztállyal ugyanez:</p>
+
+<p><code>java
+new Thread() {
+    @Override
+    public void run() {
+        System.out.println("TestThread");
+    }
+}.start();
+</code></p></li>
+<li><p><code>Runnable</code> interfész implementálása: ha a származtatás nem lehetséges (pl. a
+fő osztály egy <code>JFrame</code>, <code>Applet</code>, stb.). Egyetlen függvényt ír elő: <code>run()</code>,
+melyet meg kell valósítani. Indítani úgy lehet, ha egy <code>Thread</code> objektumnak
+megadod paraméterként, és arra meghívjuk a <code>start()</code> eljárást:</p>
+
+<p>``` java
+package threading;</p>
+
+<p>class TestRunnable implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("TestRunnable");
+    }
+}</p>
+
+<p>public class Create2 {
+    public static void main(String[] args) {
+        Thread thread = new Thread( new TestRunnable() );
+        thread.start();
+    }
+}
+```</p>
+
+<p>Ugyanez névtelen osztállyal:</p>
+
+<p><code>java
+new Thread( new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("TestRunnable");
+    }
+}).start();
+</code></p></li>
+</ol>
+
+<h2>Szálak függvényei</h2>
+
+<ul>
+<li><code>start()</code>: indítás</li>
+<li><code>stop()</code>: megállítás (<em>deprecated</em>). Megjegyzés: utána érdemes a <code>Thread</code>
+referenciát <code>null</code> értékre állítani.</li>
+<li><code>suspend()</code>, <code>resume()</code>: felfüggesztés, majd újraindítás (<em>deprecated</em>)</li>
+<li><code>join()</code>: másik szál befejezésének megvárása</li>
+<li><code>sleep( &lt;milis&gt; )</code>: adott időnyi várakozás</li>
+<li><code>yield()</code>: well, ehh...</li>
+<li><code>getName()</code>: konstruktorban beállítható név lekérdezése (később már nem
+változtatható)</li>
+<li><code>getThreadGroup()</code>: konstruktorban beállítható csoport (később már nem
+változtatható). Egyszerre egyhez tartozhat, hierarchiába szervezhető (egy
+csoport más csoportokat is tartalmazhat).</li>
+<li><code>setDaemon()</code>: daemon szál készítése (akkor terminál, ha minden más, nem
+daemon szál is már terminált).</li>
+<li><code>setPriority( &lt;prior&gt; )</code>: prior lehet 1-10, fontosságot jelöl. OS függő, hogy
+pontosan milyen hatása van. Időosztásos (<em>time slicing</em>) rendszereken nincs
+gond vele, egyébként egy "önző" szál teljesen befoglalhatja a CPU-t.</li>
+</ul>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://download.oracle.com/javase/6/docs/api/java/lang/Thread.html">http://download.oracle.com/javase/6/docs/api/java/lang/Thread.html</a></p>
+
+<p><strong>Megjegyzés</strong> Sok deprecated függvény, mert könnyen deadlockhoz vezethetnek
+ (pl. erőforrás lefoglalásának megszüntetése). Mindig van kerülőút, pl. szál
+ leállítására:</p>
+
+<p>``` java
+private volatile isRunning = true;</p>
+
+<p>public void stopRunning() {
+  isRunning = false;
+}</p>
+
+<p>@Override
+public void run() {
+  while ( isRunning ) { ... }
+}
+```</p>
+</blockquote>
+
+<h2>Felmerülő problémák</h2>
+
+<ul>
+<li>Azon túl, hogy <strong>megbízhatóság</strong>...</li>
+<li><strong>Holtpont</strong> kölcsönösen egymásra várakoznak a folyamatok, és egyik sem tud
+tovább haladni</li>
+<li><strong>Kiéheztetés</strong> több folyamat azonos erőforrást használ, és valamelyik ritkán
+fér csak hozzá</li>
+<li><strong>Versenyhelyzetek</strong> amikor egy számítás helyessége függ a végrehajtó
+folyamatok sorrendjétől (pl. <em>check-then-act</em> blokkok)</li>
+<li><strong>Nemdeterminisztikus végrehajtás</strong> kétszer ugyanazt a viselkedést produkálni
+lehetetlen, debuggolás esélytelen</li>
+</ul>
+
+<p>A szinkronizációt ezen problémák elkerülésével kell megoldani.</p>
+
+<h2>Kölcsönös kizárás</h2>
+
+<p>Javaban ún. <em>szinkronizációs burok</em> van, amelyet tetszőleges objektumra
+(<code>resource</code>) alkalmazhatunk:</p>
+
+<p><code>java
+synchronized ( resource ) {
+    ...
+}
+</code></p>
+
+<p>Ez garantálja, hogy az azonos lockhoz tartozó blokkokban egyszerre egy szál
+lehet csak (gond - kódblokkot védünk, nem erőforrást). A <code>synchronized</code>
+használható példány-, és osztályfüggvény  módosítószavaként, ekkor a jelentése:</p>
+
+<p>``` java
+public synchronized void f() {
+    ...
+}</p>
+
+<p>// Ekvivalens:
+public void f() {
+    synchronized ( this )  {
+        ...
+    }
+}
+```</p>
+
+<p>Illetve osztályfüggvények esetén:</p>
+
+<p>``` java
+class MyClass {
+    public static synchronized void s() {
+        ....
+    }</p>
+
+<pre><code>// Ekvivalens:
+public static void s() {
+    synchronized ( MyClass.class ) {
+    ...
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> ha csak egy szál változtathat egy változót, a többi csak
+olvassa, akkor jöhet jól a <code>volatile</code> kulcsszó, amely garantálja, hogy a
+szálak nem cache-elik az adott változó értékét, mindig a frissítik (ld. a
+<code>stop()</code> kiváltására írt példát feljebb!).</p>
+
+<p><strong>Megjegyzés</strong> Immutable osztályokhoz nem kell szinkronizálni!</p>
+</blockquote>
+
+<h2>Szinkronizáció üzenetekkel</h2>
+
+<p>Feltételes beváráshoz: <code>Object</code> osztályban definiált <code>wait()</code>, <code>notify()</code> és
+<code>notifyAll()</code> függvények. A <code>wait()</code> hívásának hatására a szál elengedi a lockot
+és blokkolódik, amíg egy másik szál nem jelzi számára, hogy az adott feltétel
+teljesül (<code>notify()</code>).</p>
+
+<p>Használatához <em>mindig</em> egy monitor szükséges, különben futásidejű hibát kapunk!</p>
+
+<p>``` java
+synchronized (monitor) {
+    monitor.wait();
+}</p>
+
+<p>synchronized (monitor) {
+    monitor.notify();
+}
+```</p>
+
+<h2>Deadlockra példa</h2>
+
+<p>``` java
+package threading;</p>
+
+<p>public class Deadlock {
+    public static void main(String[] args) {
+        final Object res1 = new Object();
+        final Object res2 = new Object();</p>
+
+<pre><code>    new Thread() {
+        @Override
+        public void run() {
+            synchronized (res1) {
+                System.out.println("1 - Got res1");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                synchronized (res2) {
+                    System.out.println("1 - Got res2");
+                }
+            }
+        }
+    }.start();
+
+    new Thread() {
+        @Override
+        public void run() {
+            synchronized (res2) {
+                System.out.println("2 - Got res2");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                synchronized (res1) {
+                    System.out.println("2 - Got res1");
+                }
+            }
+        }
+    }.start();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Szálak állapotai</h2>
+
+<p>Lásd az alábbi ábrát.</p>
+
+<p><img src="https://github.com/rlegendi/ELTE-javagyak/raw/master/15-threading-alapok/threads.png" alt="Szálak állapotai" title="Szállak állapotai" /></p>
+
+<p><strong>Ábra</strong> - Szálak állapotai</p>
+
+<h2>Kollekciók</h2>
+
+<p>Szinkronizált vs. nem szinkronizált adatszerkezetek (pl. <code>Vector</code> vs.
+<code>ArrayList</code>). Az iterátorok ún. <em>fail-fast</em> iterátorok: ha bejárás közben
+módosítják az adatszerkezetet, reccsen egy
+<code>java.util.ConcurrentModificationException</code> kivétellel:</p>
+
+<p>``` java
+package threading;</p>
+
+<p>import java.util.ArrayList;</p>
+
+<p>public class FailFast {
+    public static void main(final String[] args)
+        throws InterruptedException {
+        final ArrayList<String> list = new ArrayList<String>();
+        for (int i=0; i&lt;100; ++i) list.add("" + i);</p>
+
+<pre><code>    final Thread reader = new Thread() {
+        @Override
+        public void run() {
+            try {
+                for (final String act : list) {
+                    System.out.println(act);
+                    Thread.sleep(100);
+                }
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    reader.start();
+    Thread.sleep(500);
+
+    list.remove(50);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Szinkronizált adatszerkezetek készítése wrapperekkel, példa listára, másra
+analóg módon:</p>
+
+<p><code>java
+final List&lt;T&gt; list = Collections.synchronizedList(new ArrayList&lt;T&gt;(...));
+</code></p>
+
+<h2>Java Concurrency - Java 1.6</h2>
+
+<p>A <code>java.util.concurrent.*</code>, <code>java.util.concurrent.atomic.*</code>,
+<code>java.util.concurrent.lock.*</code> csomagok változatos, hatékony eszközöket nyújtanak:</p>
+
+<ul>
+<li><code>Barrier</code>, <code>Semaphor</code>, <code>FutureTask</code>, ...</li>
+<li>Adatszerkezetek: <code>ConcurrentHashMap</code>, <code>BlockingQueue</code>, ...</li>
+<li>Lockok, pl. <code>ReentrantLock</code>, ...</li>
+<li>Atomi változók: <code>AtomicLong</code>, <code>AtomicReference</code>, ...</li>
+</ul>
+
+<h2>Megjegyzés</h2>
+
+<p>A párhuzamosság egyik dimenzióját néztük csak most meg (eseményvezérelt típus),
+számos más megközelítés létezik (adatvezérlésű modellek, pl. GPGPU-k, igényvezérelt
+megközelítések). A profik sem tudnak tisztességes párhuzamos programot írni, még
+keresik a módját.</p>
+
+<h2>Olvasnivaló</h2>
+
+<p>Párhuzamossággal kapcsolatban:</p>
+
+<ol>
+<li>Nyékyné Gaizler Judit (szerk.) et al.: Programozási nyelvek, Budapest, Kiskapu, ISBN: 9639301469, 2003.
+<em>Párhuzamos nyelvi elemek c. fejezet, áttekintés.</em></li>
+<li>Brian Goetz et al.: Java Concurrency in Practice, Addison-Wesley Professional, ISBN-10: 0321349601, ISBN-13: 978-0321349606, May 19, 2006.
+<em>Java-specifikus alapmű.</em></li>
+<li>Kozma László, Varga László: A szoftvertechnológia elméleti kérdései, Budapest, ELTE Eötvös Kiadó Kft., ISBN: 963 463 648 9, 2007.
+<em>ELTE-specifikus formális keret :-)</em></li>
+</ol>
+
+<h2>Feladatok</h2>
+
+<ol>
+<li>Készíts egy 2 szállal működő programot, amelyek neve térjen el! A szálak
+tízszer egymás után írják ki a képernyőre a nevüket, majd várjanak egy keveset
+(0-5 másodpercet, véletlenszerűen).</li>
+<li>Készíts 5 szálat, amelyek a következő prioritás-szintekkel futnak: <code>3</code>, <code>4</code>,
+<code>5</code>, <code>6</code>, <code>7</code> (ez szerepeljen a szálak nevében is!). A szálak egy végtelen
+ciklusban írják ki a nevüket. Elemezd az eredményt!</li>
+<li>Készíts egy 5 szállal dolgozó programot, amelyek ugyanazt a közös változót
+kiírják, majd csökkentik (<code>100</code>-ról <code>0</code>-ra). Figyelj a szinkronizációra, és a
+végén ellenőrizd le, hogy valóban helyes outputot kaptál-e!</li>
+<li>Készíts egy 3 szálú alkalmazást! Legyen egy termelő, és két fogyasztó szálunk.
+Az termelő szál induljon el, és töltsön fel egy kollekciót 10 db véletlen
+számmal (a másik két szál indulás után várjon)! Ezután jelezzen a másik két
+szálnak (<code>wait()</code>, <code>notify()</code>), hogy elkezdhetik a számok feldolgozását: adják
+össze őket. Az eredeti szál várja be a feldolgozást, majd írja ki a
+részösszegek összegét!</li>
+<li>Kérdezd le egy új szálban az összes futó szálat, és írd ki azok neveit!
+Értékeld a látottakat egy grafikus alkalmazás indítása eseten (ehhez
+rekurzívan be kell járni a <code>getParent()</code>-eket)!</li>
+<li>Készíts 2 szálat! Az első állítsa elő az első tíz hatványát a kettes számnak
+(majd várjon egy másodpercet), a másik legyen egy daemon szál, amely a nevét
+írja ki, majd vár egy másodpercet egy végtelen ciklusban.</li>
+<li><p>Készíts 5 szálat, amelyek egy saját csoportban vannak! A szálak egy véletlen
+számot választanak az <code>[1..100]</code> intervallumból, és fél másodpercenként
+növelnek egy saját számlálót ezzel az értékkel, amíg az meg nem haladja az
+<code>1000</code>-et.</p>
+
+<p>A szálak elindítása után a fő szálban várjunk 10 másodpercet, majd listázzuk
+ki az aktív szálakat, a maximális prioritást a szálak között, és írjunk ki egy
+listát a szálakról és azok tulajdonságairól! Ezután függesszük fel az összes
+szálat, írjuk ki a szülő <code>ThreadGroup</code> nevét, majd újra indítsuk el az összes
+szálat a saját csoportunkban. A végén pedig várjuk be az összes szálat!</p></li>
+<li><p>Készíts egy egyszerű grafikus alkalmazást, amely egyetlen panelt tartalmaz, az
+aktuális idővel. A panelen található információt másodpercenként frissítsd! Az
+osztály definíciója nézzen ki a következőképpen:</p>
+
+<p><code>java
+public class ... extends JFrame implements Runnable {
+    ...
+}
+</code></p></li>
+<li>Egészítsd ki az előző feladatot úgy, hogy ha ráklikkel a felhasználó a
+megjelenített <code>JLabel</code>-re, akkor szüneteltesse a frissítést a program. Ha újra
+ráklikkel a felhasználó, akkor folytassa a számlálást!</li>
+</ol>
+
+<h3>ParallelPortScanner</h3>
+
+<p>Egészítsd ki a <em>Networking</em> gyakorlaton készített port scanner alkalmazást, hogy
+2. parancssori argumentumként meg lehessen mondani hány szállal hajtsa végre
+párhuzamosan a vizsgálatot!</p>
+
+<h3>Parallel keresőmotor</h3>
+
+<p>Készítsünk egy saját WWW keresőmotort, amely egy cím &rarr; URL kereső
+adatbázist képes készíteni! A program 5 szál használatával keressen az
+interneten, minden szám max. 50 weboldalt járjon végig, és írják ki egy közös
+fájlba soronként a weboldal címét (a <code>&lt;meta name="title" content="xxx"&gt;</code>
+értékét), valamint az éppen vizsgált URL-t. Parancssori argumentumként kapjon
+egy URL címet, amelyet végigolvasva további URL címeket keressenek a szálak.</p>
+
+<h3>Chat alkalmazás</h3>
+
+<p>Dolgozzatok csoportokban, és készítsetek egy egyszerű chat alkalmazást!
+A csoport egy tagja készítse el a szervert, a többiek pedig a kliens alkalmazásokat!</p>
+
+<h4>Szerver</h4>
+
+<p>A szerver legyen egy többszálú alkalmazás: minden klienst egy-egy saját szálban
+szolgáljon ki.</p>
+
+<p>A szerver váza a következőképpen nézhet ki például:</p>
+
+<p>``` java
+public class ChatServer {
+    public static final int PORT = 2442;</p>
+
+<pre><code>public static void main(final String[] args) {
+    try (ServerSocket socket = new ServerSocket( PORT )) {
+        long ctr = 0;
+        System.out.println( "Server active, listening..." );
+        while ( true ) {
+            final Thread handler = new ClientHandler( ctr++, socket.accept() );
+            handler.start();
+
+            System.out.println( "New handler initiated: " + handler );
+        }
+    } catch (final IOException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Megvalósítandó a <code>ClientHandler</code> osztály, mely származzon a <code>Thread</code> osztályból!</p>
+
+<p>Konstruktorának első paramétere egy egyedi ID, második pedig a fogadott <code>Socket</code> kapcsolat.</p>
+
+<p>Az osztály statikus adattagként tartalmazzon egy listát, amely tartalmazza az összes, már
+csatlakozott kliens példányát!</p>
+
+<p>A <code>ClientHandler</code> egy ciklusban figyeli, hogy jön-e üzenet az adott klienstől, és ha kap
+egyet, azt továbbküldi az összes többinek (<em>broadcast</em>).</p>
+
+<p>Figyelj a szinkronizációra, az erőforrások helyes használatára, indokolt esetben megfelelő
+szinkronizált adatszerkezet használatára, és az esetlegesen fellépő hibák megfelelő kezelésére
+(nem célszerű, ha az egész szerver meghal, ha egy kliens véletlenül lekapcsolódik)!</p>
+
+<h4>Kliens</h4>
+
+<p>A kliens viszonylag egyszerű:</p>
+
+<p>``` java
+public class ChatClient {
+    private final Thread reader;
+    private final Thread writer;</p>
+
+<pre><code>public ChatClient(final Socket socket)
+        throws IOException {
+    reader = new ConsoleReader( socket );
+    writer = new ConsoleWriter( socket );
+}
+
+public void begin()
+        throws InterruptedException {
+    reader.start();
+    writer.start();
+
+    reader.join();
+    writer.join();
+}
+
+public static void main(final String[] args) {
+    try (Socket socket = new Socket( "localhost", ChatServer.PORT )) {
+        final ChatClient client = new ChatClient( socket );
+        client.begin();
+    } catch (final IOException | InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Készíts egy <code>ConsoleReader</code> és egy <code>ConsoleWriter</code> szálat (mindkettő legyen a
+<code>Thread</code> osztály leszármazottja). A program indulásakor induljon el mindkét szál,
+majd várja is be őket (<code>join()</code> utasítás).</p>
+
+<p>A <code>ConsoleWriter</code> osztály feladata, hogy folyamatosan olvas a standard inputról,
+és minden beolvasott sort továbbít a szerver felé (azaz <em>"beleírja a socketbe"</em>).</p>
+
+<p>A <code>ConsoleReader</code> osztály feladata, hogy folyamatosan figyeli a socketről érkező
+információt, és ha beolvas valamit, akkor kiírja azt a standard inputra (azaz
+<em>"kiolvas minden adatot a socketből"</em>).</p>
+
+<h4>Továbbfejlesztési lehetőségek</h4>
+
+<ul>
+<li>A szerver host (kliens esetében) és port (mind a kliens, mind a szerver esetében) legyen
+parancssori argumentum.</li>
+<li>Minden üzenet körbeküldése esetén tartalmazza az üzenet a küldő fél egyedi azonosítóját.</li>
+<li>Minden esetben, amikor egy kliens csatlakozik a szerverhez, legyen egy körüzenet a többi
+kliens felé, hogy az adott azonosítójú kliens belépett a beszélgetésbe.</li>
+<li>Minden esetben, amikor egy kliens lekapcsolódik a szerverről, legyen egy körüzenet a többi
+kliens felé, hogy az adott azonosítójú kliens kilépett a beszélgetésből.</li>
+<li>Amikor egy kliens csatlakozik a szerverhez, első üzenetként adja meg a használni kívánt
+azonosítót (egyetlen szó). Amennyiben az már foglalt, a szerver ne engedje kapcsolódni a
+klienst, valamint adjon neki megfelelő hibaüzenetet.</li>
+</ul>

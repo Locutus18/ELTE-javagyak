@@ -1,0 +1,206 @@
+<h1>Annotációk</h1>
+
+<p>Dekorációk a forráskódban, első sorban külső toolok számára hasznos eszközök, de
+pl. a fordító, ill. maga a program is hasznukat veheti (voltak <em>ad hoc</em> jellegű
+megfelelőik eddig is, pl. a <code>@deprecated</code> <code>javadoc</code> tag). Általános célú
+eszköz, Java 5.0 óta, metainformációt közölhetnek.</p>
+
+<p>A program szemantikájára direkt módon nincsenek hatással, viszont különböző
+eszközök, libek ezt az információt már felhasználhatják a program futásának
+módosítására. Kiegészítik a <code>javadoc</code> tageket.</p>
+
+<p>Felhasználási lehetőségek:</p>
+
+<ul>
+<li>Információ a fordítónak (pl. warningok kikapcsolása, elavult kódrészletek
+jelzése)</li>
+<li>Fordítási, deployment információk (pl. kódgenerálás)</li>
+<li>Futásidejű feldolgozás (pl. egyes annotációk futási időben is elérhetők)</li>
+</ul>
+
+<h2>Fontosabb beépített annotációk</h2>
+
+<blockquote>
+  <p><strong>Fun Fact</strong> <code>@ = "AT"</code>, mint <code>"Annotation Type"</code></p>
+</blockquote>
+
+<ul>
+<li><code>@Override</code> Felüldefiniált metódusok jelzésére, fordítási idejű ellenőrzéshez.</li>
+</ul>
+
+<p><code>java
+@Override
+public String toString() { ... }
+</code></p>
+
+<ul>
+<li><code>@Deprecated</code> Elavult, ám <em>reverse compatibility</em> miatt fontos függvények
+jelölésére. Fordítási idejű ellenőrzés, warningot generál.</li>
+</ul>
+
+<p><code>java
+@Deprecated
+public void someChaoticMethod { ... }
+</code></p>
+
+<ul>
+<li><code>@SuppressWarnings</code> Adott kódrészletben a fordítási idejű figyelmeztetések
+kikapcsolása (kódrészlet = <code>TYPE</code>, <code>FIELD</code>, <code>METHOD</code>, <code>PARAMETER</code>,
+<code>CONSTRUCTOR</code>, <code>LOCAL_VARIABLE</code>). Opciók lehetnek: <code>"deprecation"</code>,
+<code>"unchecked"</code>, <code>"unused"</code>.</li>
+</ul>
+
+<p>``` java
+@SuppressWarnings("deprecation")
+public int someChaoticFunction() { ... }</p>
+
+<p>@SuppressWarnings({ "deprecation", "unchecked" }) // ld. kesobb
+public int someVeryChaoticFunction() { ... }
+```</p>
+
+<h2>Definiálás</h2>
+
+<p>Kiterjeszthető: saját változatokat is lehet definiálni, <code>@interface</code> kulcsszó.
+Paraméter nélkül <em>marker</em>:</p>
+
+<p>``` java
+@interface MayBeNull {}</p>
+
+<p>class PersonalData {
+    @MayBeNull private String maidenName;
+}
+```</p>
+
+<p>Ha egyetlen értéke van, azt érdemes <code>value()</code>-nak hívni, mert rövidebb
+használni:</p>
+
+<p>``` java
+@interface MayBeNull {
+    String value();
+}</p>
+
+<p>class PersonalData {
+    @MayBeNull("if (gender == male)")
+    String private maidenName;
+}
+```</p>
+
+<p>Ha a <code>value()</code> <code>String[]</code> típusú, akkor használható egyszerűen a <code>""</code> vagy
+<code>{ "", "" }</code> forma is:</p>
+
+<p>``` java
+@interface MayBeNull {
+    String[] value();
+}</p>
+
+<p>class PersonalData {
+    @MayBeNull("if (gender == male)")
+    private String maidenName;</p>
+
+<pre><code>@MayBeNull({"agreed to term of usage", "specified value"})
+private int salary;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Különben ki kell írni az annotáció használatánál a <code>tag = érték</code> párokat:</p>
+
+<p>``` java
+@interface MayBeNull {
+    String description();
+}</p>
+
+<p>class PersonalData {
+    @MayBeNull(description = "if (gender == male)")
+    private String maidenName;
+}
+```</p>
+
+<p>Több tag is megadható, vesszővel elválasztva. Alapértelmezett érték is
+definiálható:</p>
+
+<p>``` java
+@interface MayBeNull {
+    String description();
+    boolean managed() default false;
+}</p>
+
+<p>class PersonalData {
+    @MayBeNull(description = "if (gender == male)")
+    private String maidenName;
+}
+```</p>
+
+<h2>Megszorítások</h2>
+
+<ul>
+<li>Nem lehet generikus</li>
+<li>A függvények
+<ul>
+<li>sem lehetnek generikusak</li>
+<li>nem lehetnek paraméterei</li>
+<li>nem tartalmazhatnak <code>throws</code> deklarációt</li>
+<li>visszatérési értékük csak a következő lehet: primitív típus, <code>String</code>,
+<code>enum</code>, <code>Class</code>, annotáció (ciklikus hivatkozás szintén tilos), ill.
+ezekből képzett 1 dimenziós tömb.</li>
+</ul></li>
+<li>nem lehet szülőinterfésze, de implicit módon kiterjeszti a
+<code>java.lang.Annotation</code> osztályt. Metódusai nem ütközhetnek sem az ebben, sem
+az <code>Object</code>-ben definiált metódusokkal.</li>
+<li><em>De:</em> mint az interfészek, tartalmazhatnak osztály, interfész, enum, etc.
+definíciókat.</li>
+</ul>
+
+<h2>Meta-annotációk</h2>
+
+<p>A API-ban a <code>java.lang.annotation.*</code> csomag
+* <code>@Retention()</code> Annotáció hozzáférhetőségének szabályozása, <code>java.lang</code> csomag
+    * <code>RetentionPolicy.SOURCE</code> Csak forráskódban látható, fordításnál kiesik
+      (akárcsak egy egyszerű comment)
+    * <code>RetentionPolicy.RUNTIME</code> Futtatási időben is hozzáférhető
+    * <code>RetentionPolicy.CLASS</code> A class file-ba belekerül, de a JVM nem fér hozzá
+* <code>@Target()</code> Annotáció használhatóságának szabályozása,
+  <code>java.lang.annotation.ElementType</code> használatával: <code>ANNOTATION_TYPE</code>,
+  <code>CONSTRUCTOR</code>, <code>FIELD</code>, <code>LOCAL_VARIABLE</code>, <code>METHOD</code>, <code>PACKAGE</code>, <code>PARAMETER</code>,
+  <code>TYPE</code>, <code>TYPE_PARAMETER</code>, <code>TYPE_USE</code>
+* <code>@Inherited</code> Kizárólag osztálydefinícióra, származtatásnál az adott annotáció
+  is öröklődik
+* <code>@Documented</code> Bekerül a <code>javadoc</code>-kal generált API leírásba is</p>
+
+<h3>Példa</h3>
+
+<p><code>java
+@Retention(RetentionPolicy.SOURCE)
+@Target( { ElementType.FIELD, ElementType.PARAMETER,
+    ElementType.LOCAL_VARIABLE } )
+@interface MayBeNull {
+    String value();
+}
+</code></p>
+
+<h2>Felhasználás</h2>
+
+<p>``` java
+@SuppressWarnings("deprecation")
+public void deprecatedFunction() {
+    JFrame frame = new JFrame();
+    frame.show(); // deprecated
+}</p>
+
+<p>@SuppressWarnings("unchecked")
+public void supressedFunction() {
+    Vector v = new Vector(); // warning
+}
+```</p>
+
+<p>Futási időben való elemzés: később, a reflection tárgyalásánál.</p>
+
+<h2>Feladat</h2>
+
+<p>Készíts egy saját <code>@WrittenBy</code> annotációt, amely tartalmazza az adott osztály,
+függvény szerzőjének nevét (<code>author</code>, amely alapértelmezetten a te nevedet
+tartalmazza), az utolsó módosítás dátumát (szintén egy <code>Stringben</code>), valamint a
+verziószámot, amely egy double (és alapértelmezett értéke <code>1.0</code>). Gondoskodj
+róla, hogy az adott annotációt csak osztály és függvénydefiníció esetén lehessen
+alkalmazni, valamint hogy kerüljön bele a generált dokumentációba!</p>

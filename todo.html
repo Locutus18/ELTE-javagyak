@@ -1,0 +1,288 @@
+<h1>TODO</h1>
+
+<h1>Aktuális</h1>
+
+<ul>
+<li>Contribution guide: lehetőleg darabokban, ne egyben, legalább külön fejezetenként (a commit olcsó!)</li>
+<li>Java 7 újdonságok</li>
+<li>Jó kis feladatok ebben a cikkben:
+http://www.ibm.com/developerworks/java/library/j-ft1/</li>
+</ul>
+
+<h2>Jelölések</h2>
+
+<ul>
+<li><code>$</code>: command prompt</li>
+</ul>
+
+<h2>Eldöntendő</h2>
+
+<ul>
+<li>Mi legyen a README-ben, és mi az intróban? És mi a Wikiben?</li>
+<li>Mit tudok csinálni a képekkel? A Githubos Markdown megjelenítő baszik
+megmutatni a fájl <strong>mellett</strong> lévő képeket</li>
+</ul>
+
+<h2>Anyagok rendezése</h2>
+
+<p>Függőségek:</p>
+
+<ul>
+<li>Generics: collections (vagy fordítva)</li>
+<li>JDBC: reflection, esetleg a szálak</li>
+<li>Socket: I/O, szálak</li>
+<li>Networking -> szálak (alap) -> networking (14 + 16 esetleg összegyúrható, ha
+15 után vannak?) </li>
+<li>Névtelen osztályok: valahol a GUI akciókezelés környékén? És a threadeknél...</li>
+<li>Szerializáció: I/O</li>
+<li>RMI: szerializáció, socketek</li>
+</ul>
+
+<h2>Wiki</h2>
+
+<ul>
+<li>Használt eszközök:
+<ul>
+<li>Markdown: mert egyszerű, majd hogy nem plaintext (régen LaTeX volt, de nem
+tudták rendesen használni, ezért áttértem erre :-)</li>
+</ul></li>
+<li>Usage: kell a <code>pandoc</code> vagy <code>Markdown.pl</code> (+ActivePerl)</li>
+</ul>
+
+<h2>Buildelés</h2>
+
+<ul>
+<li>Kell egy build script</li>
+<li>Kell egy script, ami gitből kiszedi a contributorokat (ld. progit script)</li>
+</ul>
+
+<h2>Legal stuff</h2>
+
+<ul>
+<li>Milyen CC licenc is kell nekem? Van vagy 5...</li>
+</ul>
+
+<h2>Anyag bővítése</h2>
+
+<ul>
+<li>Bevezetőnek pár megjegyzés az annotációkról: <code>@SuppressWarnings</code>, <code>@Override</code></li>
+<li>Javadocról ser ártana pár szóban regélni</li>
+<li>Névtelen osztályok beleszövése: igazán az eseménykezeléshez, threadinghez
+kell, előbb nem nagyon van rá szükség</li>
+<li>Bevezető szöveg: Java vs. C++ (namespace + package, paraméterátadás,
+template-ek, stb.), bár nem kell sok, Tamás úgyis 3 EA-on keresztül ezzel
+foglalkozik :-)</li>
+<li>Ez nem egy teljes, önálló anyag: emlékeztetők, támpontok a gyakorlathoz, aktív
+órai munka és odafigyelés nélkül is lehet haszna, de így kevésbé lehet
+emészthető</li>
+<li>Kéne írni a tesztelésről (<em>unit testing</em>, <em>mock objects</em>)</li>
+</ul>
+
+<h2>Frissítés</h2>
+
+<ul>
+<li>Linkek átrágása (Sun --> Oracle ...) </li>
+<li>Kiegészítések összefűzése az eredeti anyaggal</li>
+</ul>
+
+<h2>Szószedet</h2>
+
+<ul>
+<li>wrapper: csomagoló osztályok</li>
+<li>String: karakterlánc</li>
+<li>Garbage Collector (GC): szemétgyűjtő</li>
+</ul>
+
+<h2>Gyakok</h2>
+
+<h3>01-bevezetes</h3>
+
+<p>Új feladat: konvertálj fokokat! Forrás: http://en.wikipedia.org/wiki/Celsius (2011.11.29.)</p>
+
+<p>from Celsius    to Celsius
+Fahrenheit  [°F] = [°C] × 9⁄5 + 32 [°C] = ([°F] − 32) × 5⁄9
+Kelvin  [K] = [°C] + 273.15    [°C] = [K] − 273.15
+Rankine [°R] = ([°C] + 273.15) × 9⁄5   [°C] = ([°R] − 491.67) × 5⁄9
+For temperature intervals rather than specific temperatures,
+ 1 °C = 1 K = 1.8 °F = 1.8 °R</p>
+
+<h3>02-fuggvenyek-csomagok</h3>
+
+<ul>
+<li>default konstruktor, main is dobhat kivételt, nem a szignatúra része</li>
+<li>csomagokat, láthatóságot, felsorolási típusokat, interfészeket,
+kivételkezelést, konstruktorokat</li>
+</ul>
+
+<h3>05-oo-adt</h3>
+
+<ul>
+<li>Kiegészítés: <code>toString()</code> (implicit) használata</li>
+<li><code>instanceof</code> operátor</li>
+<li><code>equals()</code>, <code>hashCode()</code> példa</li>
+<li>Beágyazott, statikus ill. példányszintű, lokális és anonymous osztályok</li>
+</ul>
+
+<h3>10-generics</h3>
+
+<ul>
+<li>comparable gányolós függvény</li>
+<li>típusbiztonság a lényeg</li>
+<li>altípusosság megértése talán a legnehezebb, mert erősen az ember intuíciója
+ellen megy. Az intuícióval az a probléma, hogy nem veszi számításba, hogy a
+kollekciók megváltozhatnak</li>
+<li><code>?</code> <code>Object</code>-ként kezelhető, de nem adható hozzá! Gondold végig! Szennyezed 
+kollekciót! (kivéve: a <code>null</code>, ami ugye minden típusba beleillik). Bounded
+típusnál persze más a helyzet.</li>
+<li>compiler infers most specific generic type</li>
+<li>generic függvények, ökölszabály: ha a típusok közötti polimorfikus
+függőségeket kell megfogalmazni</li>
+<li><ol>
+<li>oldal lap alja - nem vagom...</li>
+</ol></li>
+<li><p>A <code>Class</code> <code>Type</code> paramétertől függetlenül ugyanaz (ezért nem lehet pl.
+<code>static</code> blokkokban használni őket) + ez is igaz lesz:</p>
+
+<pre><code>List &lt;String&gt; l1 = new ArrayList&lt;String&gt;();
+List&lt;Integer&gt; l2 = new ArrayList&lt;Integer&gt;();
+</code></pre></li>
+<li><p><code>System.out.println(l1.getClass() == l2.getClass());</code></p></li>
+<li>Köv.: <code>instanceof</code>-fal sem használható</li>
+<li>Array + generic használata necces</li>
+<li>Array létrehozása necces</li>
+</ul>
+
+<h3>11-reflection</h3>
+
+<ul>
+<li><code>Modifier.toString()</code></li>
+</ul>
+
+<h3>12-gui-alapok</h3>
+
+<ul>
+<li>Tic-Tac-Toe feladat (régen volt?)</li>
+</ul>
+
+<h3>JDBC ###</h3>
+
+<ul>
+<li>Jó lenne 2 egyszerű példa: egy inicializáló alkalmazás (feltölt egy DB-t adattal, etc.), illetve egy lekérdező alkalmazás (az meg kapcsolódhatna a már létrehozott DB-hez, és lekérdezhetne). A <code>shutdown=true</code> már kiszedhető, nem kell az új változatokban.</li>
+</ul>
+
+<h3>D-assert</h3>
+
+<ul>
+<li>DbC szekciót kiegészíteni</li>
+</ul>
+
+<h2>Final stuff</h2>
+
+<ul>
+<li>Kéne csinálni egy nagyobb review-t, hogy nem maradtak-e ki véletlen értékesebb
+bekezdések az összefésülés, újraformázás során.</li>
+<li>Lehet lopni szerkezeti ötleteket a srácoktól: <a href="https://github.com/mojombo/ernie">https://github.com/mojombo/ernie</a>
+(Github alapító srác egyik projectje, LICENSE directory, stb.)</li>
+</ul>
+
+<h1>Kivételes részhez valami példa</h1>
+
+<p>Hali! Elvileg minden beadandót megnéztem, amit kaptam, err&#245;l szokás szerint
+mindenki külön levelet kapott. Adminisztráltam a dolgot az oldalamon, aki valami
+problémát észlel, jelezze plz minél hamarabb!</p>
+
+<p>Azokat a beadandókat, amiket még nem kaptam meg, szerda estig lehet pótolni,
+csütörtökön fogok csak tudni ezekkel foglalkozni.</p>
+
+<p>Általános megjegyzéseim nem nagyon vannak, talán az, hogy Stringet még mindig
+nem hasonlítunk össze == operátorral, illetve a kivételkezelést még sokan
+if-then-else-szer&#251;en használjátok - pedig pont annak a kiváltására találták
+ki. Ezt fontosnak tartom átbeszélni még egyszer.</p>
+
+<p>Ha írsz egy kódot, akkor ne kelljen soronként azzal foglalkozni, hogy mi van, ha
+nem jó értéket ad vissza az a függvény, nem jó inputot kap, nem lehetett
+végrehajtani az adott utasítást, etc., hanem te csak megírod a kódot, ami az
+esetek 90%-ban fog lefutni, és <em>utána</em> foglalkozol azzal, hogy mi van, ha valami
+gáz van, és megírod a hibakezelést a különböző hibaosztályokra.</p>
+
+<p>Nézzünk egy példát, mondjuk a szerver bindot!</p>
+
+<p>int port = -1;</p>
+
+<p>try {
+ port = Integer.parseInt(serverPort);
+ } catch (NumberFormatException e) {
+ e.printStackTrace();
+ return;
+ }</p>
+
+<p>ServerSocket server = null;</p>
+
+<p>try {
+ server = new ServerSocket(port);
+ } catch (IOException e) {
+ e.printStackTrace();
+ return;
+ }</p>
+
+<p>try {
+ System.out.println("Server listening @" + InetAddress.getLocalHost());
+ } catch(UnknownHostException e) {
+ e.printStackTrace();
+ }</p>
+
+<p>Socket client = null;</p>
+
+<p>while (true) {
+ try {
+ client = server.accept();
+ ...
+ } catch (IOException e) {
+ e.printStackTrace();
+ }
+ }</p>
+
+<p>Nos, miért is gázos ez?</p>
+
+<p>i) Össze-vissza van keverve a tényleges kód és a hibakezel&#245; kód.
+ii) Gyakorlatilag az egész nem más, mint egy csomó if (error) { hibaüzenet,
+return } vizsgálat.
+iii) Ha valahol elfelejtjük a return utasítást (pl. bevezetünk egy új
+ellen&#245;rzést), akkor reccsenés lesz, mint ahogy én azt meg is tettem pl. az
+InetAddress-es sornál. Na kinek tünt fel ránézésre, hogy ott gáz van?
+iv) Így ránézésre nem lehet tudni, hogy a program adott pontján egy változónak
+most milyen értéke van (helyesen inicializált, vagy valami default-null értéke
+van-e).</p>
+
+<p>Nézzük meg, hogy néz ez ki, ha proper exception handlinget használunk!</p>
+
+<p>try {
+ int port = Integer.parseInt(serverPort);
+ ServerSocket server = new ServerSocket(port);
+ System.out.println("Server listening @" + InetAddress.getLocalHost());</p>
+
+<p>Socket client = null;</p>
+
+<p>while (true) {
+ client = server.accept();
+ ...
+ }
+ } catch (NumberFormatException e) {
+ e.printStackTrace();
+ } catch (IOException e) {
+ e.printStackTrace();
+ } catch(UnknownHostException e) {
+ e.printStackTrace();
+ }</p>
+
+<p>Remélem sikerült egy kicsit segíteni a megértést ezen a példán keresztül.</p>
+
+<hr />
+
+<p>Feladatnak jó lehet (Software Engineering Tech Trends - May Issue, 2012)</p>
+
+<p>The cube is one of five Platonic solids. Platonic solids are regular convex polyhedrons whose faces are congruent regular polygons. There are five Platonic solids: the tetrahedron (4 faces, each a equilateral triangle), the hexahedron (or the cube, 6 faces, each a square), octahedron (8 faces, each a triangle), dodecahedron (12 faces, each a pentagon), and icosahedron (20 faces, each a triangle.)</p>
+
+<hr />
+
+<p>JSP: Include picture</p>

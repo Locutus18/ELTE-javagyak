@@ -1,0 +1,288 @@
+<h1>Kapcsolat az adatbázissal</h1>
+
+<p>Kliens-szerver architektúra kiváló különböző adatbázisok eléréséhez:
+<em>Java DataBase Connectivity</em>. Ez egy szabványos API, <code>java.sql.*</code> (<em>Core API</em>),
+<code>javax.sql.*</code> (<em>Extension</em>) csomagokban definiált osztályok (v.ö. ODBC).</p>
+
+<p>A szolgáltatások három csoportba sorolhatók:</p>
+
+<ul>
+<li>Kapcsolódás a DB-hez</li>
+<li>Utasítások végrehajtása</li>
+<li>Eredmény lekérdezése</li>
+</ul>
+
+<p>A DB elérhető natívan is (kétrétegű modell), de az API három rétegű: egy
+absztrakt szint bevezetésével leválaszthatók a DB-specifikus dolgok, a
+kommunikáció a JDBC-n keresztül történik.</p>
+
+<h2>Meghajtóprogramok</h2>
+
+<p>Minden kapcsolathoz szükséges a hozzá tartozó meghajtóprogram betöltése, amely
+kezeli a kapcsolatot, megoldja a hívások értelmezését és kiszolgálását (változó,
+hogy milyenek vannak, pl. Oracle fizetős, MySQL ingyenes). Minden ilyen osztály
+a <code>Driver</code> interfészt implementálja. A futtatáshoz kell a megfelelő meghajtó
+<em>jar</em> fájl is, pl.:</p>
+
+<pre><code>$ java -cp .;lib/mysql.jar MyMySQLTestClass
+</code></pre>
+
+<p>Nem kötelező kézzel betölteni, ha több DB-t is támogat a programunk,
+használhatjuk a <code>DriverManager</code> osztályt, amely megpróbálja betölteni az éppen
+aktuálisan használt DB-hez a megfelelő meghajtóprogramot.</p>
+
+<p>A kapcsolat a DB-vel a <code>Connection</code> osztályon keresztül történik (egyszerre több
+kapcsolat is fenntartható, ez a DB beállításától függő érték). Ezt egy URL-ben
+kell megadni, amely a következő formátummal rendelkezik:</p>
+
+<pre><code>jdbc:alprotokoll:adatforrás_leírása
+</code></pre>
+
+<p>Ahol:</p>
+
+<ul>
+<li>maga a protokoll a <code>jdbc</code></li>
+<li>az alprotokoll megegyezik a forgalmazó nevével</li>
+<li>az adatforrás leírása pedig tartalmazhatja a DB szerver címét (<em>host:port</em>),
+az adattábla nevét, és tartalmazhatja a felhasználó nevét, jelszavát</li>
+</ul>
+
+<p><strong>Itt a gyakon egy egyszerű, minimális DB kezelőt, a Derby-t fogjuk használni (<em>"Java DB is a free, fast, robust, full-featured pure Java database that fits in a 2.5MB JAR file, blah-blah-buzzword-blah-blah)"</em>.</strong>
+Elérhető az alábbi címen: <a href="http://www.oracle.com/technetwork/java/javadb/overview/index.html">http://www.oracle.com/technetwork/java/javadb/overview/index.html</a>, azonban JDK 1.6 óta része a standard JDK-nak is JavaDB néven (már a default installnak), és általában a <code>jdk/db</code> könyvtár alatt található az összes szükséges állománnyal.
+Ehhez a következő osztály dinamikus betöltésére van szükség (ő implementálja a
+<code>Driver</code> interfészt):</p>
+
+<p><code>java
+Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+</code></p>
+
+<p>A driverek specifikáció szerint osztálybetöltéskor egy statikus inicializátor
+blokkban bejegyzik magukat a <code>DriverManager</code> osztályban, így rendelkezésre
+állnak. A kapcsolat kiépítéséhez a következő URL-t használhatjuk:</p>
+
+<pre><code>jdbc:derby:[//host:port//]&lt;dbName&gt;[properties]
+</code></pre>
+
+<p>Ahol a <code>properties</code> tartalmazhatja a következő információkat (ezeket <code>;</code>
+karakterekkel választhatjuk el):</p>
+
+<ul>
+<li><code>create=true</code> Megpróbálja létrehozni a DB-t, ha még nincs. Adattáblákat nem
+csinál.</li>
+<li><code>user=userName</code> DB felhasználó neve.</li>
+<li><code>password=userPassword</code> DB felhasználó jelszava.</li>
+<li><code>shutdown=true</code></li>
+</ul>
+
+<p>Példa a használatára:</p>
+
+<p>``` java
+Connection dbConnection = null;
+String strUrl = "jdbc:derby:DefaultAddressBook;user=dbuser;password=dbuserpwd";
+try {
+    dbConnection = DriverManager.getConnection(strUrl);</p>
+
+<pre><code>// ...
+</code></pre>
+
+<p>} catch (SQLException e) {
+    e.printStackTrace();
+}
+```</p>
+
+<p>Másik megoldás (kicsit biztonságosabb), ha property-kbe rakjuk a felhasználó
+nevét és jelszavát:</p>
+
+<p>``` java
+Connection dbConnection = null;
+String strUrl = "jdbc:derby:DefaultAddressBook";</p>
+
+<p>Properties props = new Properties();
+props.put("user", "dbuser");
+props.put("password", "dbuserpwd");</p>
+
+<p>try {
+    dbConnection = DriverManager.getConnection(strUrl, props);</p>
+
+<pre><code>// ...
+</code></pre>
+
+<p>} catch(SQLException sqle) {
+    sqle.printStackTrace();
+}
+```</p>
+
+<p>Hova kerül a DB? A <code>derby.system.home</code> system property által beállított érték
+határozza meg. Ezt vagy kódból lehet beállítani (<strong>fontos</strong>, hogy a <code>Driver</code>
+<strong>betöltése előtt</strong> tegyük ezt meg, különben a derby az aktuális könyvtárba
+szemetel):</p>
+
+<p><code>java
+System.setProperty("derby.system.home", "/tmp");
+</code></p>
+
+<p>vagy futtatásnál lehet megadni:</p>
+
+<pre><code>$ java -cp .;lib/mysql.jar -Dderby.system.home="/tmp" MyDerbyTestClass
+</code></pre>
+
+<p><strong>Ezt a kapcsolatot is ugyanúgy le kell zárni, mint a streameket. És nem, nem a <code>finalize()</code> függvényben!!</strong>
+A kapcsolatról rengeteg hasznos információ elkérhető a <code>getMetaData()</code>
+függvényhívással.</p>
+
+<h2>Tranzakciókezelés</h2>
+
+<p>Tranzakciókezelés támogatott (csak olyan SQL utasítás hajtható végre, amelynek
+eredményét vagy véglegesítjük a DB-ben (<em>commit</em>), vagy visszavonunk minden
+változtatást (<em>rollback</em>)). Ez alapból be van kapcsolva, aki kikapcsolja vagy
+tudja, hogy mit csinál, vagy vessen magára.</p>
+
+<h2>JDBC - Java type mapping</h2>
+
+<p>TODO: táblázat</p>
+
+<h2>Utasítások végrehajtása</h2>
+
+<p>Három lehetőség:</p>
+
+<ul>
+<li><code>Statement</code>: egyszerű SQL utasításokhoz. <strong>Gyakon csak ez.</strong></li>
+<li><code>PreparedStatement</code>: bemenő paramétereket tartalmazó, előfordított SQL
+utasításokhoz.</li>
+<li><code>CallableStatement</code>: bemenő, kimenő paramétereket tartalmazó, tárolt eljárások
+hívásához.</li>
+</ul>
+
+<h2>Statement végrehajtása</h2>
+
+<ul>
+<li><p><code>execute(String)</code>: tetszőleges utasításhoz, pl. tábla létrehozása (az
+áttekinthetőség érdekében a <code>String</code> literál lezáró <code>"</code> jeleket és a
+konkatenációt elhagytam):</p>
+
+<p>``` java
+String strCreateTable = "CREATE TABLE inventory" +
+    "(" +
+    "id INT PRIMARY KEY," +
+    "product VARCHAR(50)," +
+    "quantity INT," +
+    "price DECIMAL" +
+    ")";</p>
+
+<p>Statement statement = dbConnection.createStatement();
+statement.execute(strCreateTable);
+```</p></li>
+<li><p><code>executeQuery(String)</code>: lekérdezéshez, az eredmény egy <code>ResultSet</code> objektum
+lesz. <em>Mindig olvassátok végig az eredményt, mert addig nem záródik.</em> Pl.:</p>
+
+<p><code>java
+ResultSet rs = statement.executeQuery("SELECT * FROM inventory");
+while (rs.next()) {
+    String p = rs.getString("product");
+    int q = rs.getInt("quantity");
+    double d = rs.getDouble("price");
+    ...
+}
+</code></p></li>
+<li><p><code>executeUpdate(String)</code>: insert, update, delete, és adatdefiníciós
+utasításokhoz, az eredmény a módosított sorok száma (vagy 0). Pl.:</p>
+
+<p><code>java
+statement.executeUpdate("DELETE WHERE id=0");
+</code></p></li>
+</ul>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> A Java 7 óta viszonylag egyszerűbb a kezelés, automatikusan
+lezárható (részletesen a <a href="https://github.com/rlegendi/ELTE-javagyak/blob/master/I-java-1.7/try-with-resources.md">kiegészítő anyagban</a>):</p>
+
+<p>try ( Statement stmt = con.createStatement() ) {
+      ...
+  }</p>
+</blockquote>
+
+<h2>Kötegelt végrehajtás</h2>
+
+<p>Van rá lehetőség, hogy parancsokat összefogjunk, és egyszerre küldjünk el a
+szervernek feldolgozásra, így sok kis adatmódosító utasítás gyorsabban lefuthat,
+mintha külön-külön futtattatnánk le őket. Pl.:</p>
+
+<p><code>java
+statement.addBatch("Create TABLE ...");
+statement.addBatch("INSERT INTO ...");
+statement.addBatch("INSERT INTO ...");
+statement.addBatch("INSERT INTO ...");
+...
+statement.executeBatch();
+</code></p>
+
+<p>Az <code>executeBatch()</code> egy tömbbel tér vissza, hogy az egyes utasítások hány sort
+változtattak a DB-ben (itt <code>[0, 1, 1, 1, ...]</code> lesz).</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong></p>
+
+<ul>
+<li><a href="http://download.oracle.com/javase/tutorial/jdbc/index.html">http://download.oracle.com/javase/tutorial/jdbc/index.html</a></li>
+<li><a href="http://www.jdbc-tutorial.com/">http://www.jdbc-tutorial.com/</a></li>
+<li><a href="http://java.sun.com/developer/technicalArticles/J2SE/Desktop/javadb/">http://java.sun.com/developer/technicalArticles/J2SE/Desktop/javadb/</a></li>
+</ul>
+</blockquote>
+
+<h2>Feladatok</h2>
+
+<ul>
+<li>A megvalósításhoz használjátok a következő címen elérhető <code>derby.jar</code> fájlt:
+<a href="http://people.inf.elte.hu/legendi/resources/java/materials/derby.jar">http://people.inf.elte.hu/legendi/resources/java/materials/derby.jar</a></li>
+<li>A program az aktuális könyvtár alá, egy <code>derby</code> könyvtárba tegye az adatbázis
+fájlokat!</li>
+<li>Egy statikus inicializáló blokkban próbáljuk meg betölteni a szükséges
+meghajtó osztályt! Ha ez nem megy, termináljon a program.</li>
+<li>Az utasítás végrehajtásához használjátok az <code>execute(String sql)</code> függvényt!</li>
+<li>Az eredmény objektum bejárásánál elég, ha az elemeket a <code>getString(int)</code>
+metódussal írjátok ki. Ehhez tudnotok kell, hogy hány oszlop található az
+eredményben, ezt a <code>ResultSet#getMetaData()</code> függvényen keresztül elért
+objektumtól tudjátok lekérdezni.</li>
+</ul>
+
+<h3>Grafikus Kliens</h3>
+
+<p>Készítsetek egy egyszerű adatbázis kezelő grafikus felületet, amely az alábbi
+ábrán látható! A program tartalmazzon egy <code>JTextField</code> komponenst, ahol a
+lekérdezést lehet megadni, egy <code>JTextArea</code> komponenst, ahol megjeleníti az
+eredményt, valamint egy gombot, amivel le lehet futtatni a megadott SQL
+utasítást.</p>
+
+<p><img src="https://github.com/rlegendi/ELTE-javagyak/raw/master/17-jdbc/jdbc_application.png" alt="JDBC alkalmazás" title="JDBC alkalmazás" /></p>
+
+<p><strong>Képernyőkép</strong> - A program grafikus szerkezete</p>
+
+<h3>Névjegyzék</h3>
+
+<p>Készítsetek egy szerveralkalmazást, amely adatbázisban képes tárolni elérhetőségeket!</p>
+
+<p>A következő adatok szükségesek egy bejegyzéshez:</p>
+
+<ul>
+<li>Név</li>
+<li>Becenév (opcionális)</li>
+<li>Telefonszám</li>
+<li>E-mail cím</li>
+<li>Cím</li>
+<li>Születésnap</li>
+<li>Kép (URL)</li>
+</ul>
+
+<p>A szerverhez kliensek csatlakoznak (egyelőre egyszerre egy), és képesek ezeket az adatokat létrehozni, lekérdezni, frissíteni és törölni (CRUD). A kliens elég, ha egyszerű konzolos felülettel rendelkezik.</p>
+
+<p>A feladatot vagy RMI, vagy saját protokoll implementálásával socketeken keresztül oldhatod meg.</p>
+
+<h4>Továbbfejlesztési lehetőségek</h4>
+
+<ul>
+<li>Feltesszük, hogy egy személynek egyszerre csak egy elérhetősége van. Készíts egy másik táblát, ami a névhez különböző elérhetőségeket rendel.</li>
+<li>Készítsd fel az alkalmazást tranzakciókezelésre.</li>
+<li>Egyszerre akár több kliens is használhassa párhuzamosan a szervert.</li>
+<li>A kliens képes legyen egy egyszerű CSV (<em>Coma Separated Values</em>) fájlból adatokat beolvasni, és azokat egyszerre továbbítva tárolni a szerverben.</li>
+<li>A kliens legyen képes egy egyszerű HTML formátumű listát generálni a szerveren tárolt azonosítókból.</li>
+</ul>

@@ -1,0 +1,191 @@
+<h1>Remote Method Invocation</h1>
+
+<p>Hálózatkezelés: eddig TCP/UDP és kliens-szerver architektúra. Ezt viszont sajnos
+sok tényező nehezíti:</p>
+
+<ul>
+<li>Ha már egy létező alkalmazást kell felkészíteni hálózati kommunikációra, ahhoz
+az egészet újra részekre kell bontani (refactor)</li>
+<li>Halom boilerplate kódot kell írni: a teljes hálózati protokollt újra kell
+implementálni az adatátvitelhez, ez elég error-prone feladat.</li>
+</ul>
+
+<p>Megoldás: távoli eljáráshívás. Ez egy magasabb szintű absztrakciós eszköz,
+lehetővé teszi a procedurális programtervezést: távoli számítógépen lévő
+függvényeket tudunk hívni (ez persze mindenféle problémákkal járhat). A hívó
+folyamat felveszi a kapcsolatot a kiszolgáló számítógéppel, becsomagolva elküldi
+az adatokat, és felfüggesztődik, míg azokat vissza nem kapja.</p>
+
+<p>Javaban ez Remote Method Invocation (RMI, v.ö. RPC) néven fut, hogy illeszkedjen
+a nyelv OO szemléletéhez (vannak magasabb szintű frameworkok, v.ö. CORBA).
+Segítségével egy távoli gépen lévő JVM objektumot tudok megszólítani.</p>
+
+<h2>Modell</h2>
+
+<p>A távoli objektumoknak egy távoli interfészt kell megvalósítaniuk
+(<code>java.rmi.Remote</code>). Ehhez minden konstruktorának, és minden függvényének
+deklaráltan dobnia kell a <code>java.rmi.RemoteException</code> kivételt. Ami ebben az
+interfészben nincs definiálva, az a kliensek felé <em>nem fog látszani</em>.</p>
+
+<p>``` java
+import java.rmi.Remote;
+import java.rmi.RemoteException;</p>
+
+<p>public interface IEchoRemote extends Remote {
+    public abstract String hi() throws RemoteException;
+}
+```</p>
+
+<h2>Paraméter átadás</h2>
+
+<p>Szerializáció segítségével minden. Az elemi adattípusok JVM-ben történő
+ábrázolása rögzített (a típuskonstrukciókkal együtt), így a konverziókkal nem
+kell foglalkozni (v.ö. C). A szerializált objektum egy bájtsorozatként
+socketeken átmegy, a visszatérési érték hasonlóan jön vissza.</p>
+
+<h2>A kliens és szerver összekapcsolása</h2>
+
+<p>Alapvetően két módszer lehetséges:</p>
+
+<ul>
+<li>"Bedrótozzuk" a szerver címét</li>
+<li>Használunk egy telefonkönyv-szerű szerverprogramot (<em>registry</em>). Ha a szerver
+elindul, bejegyzi magát az elérhetőségével, a kliensek pedig innen kérdezhetik
+azt le. Ez hasznos lehet még, ha pl. terhelésmegosztást (<em>load balancing</em>)
+szeretnénk megvalósítani.</li>
+</ul>
+
+<p>A <code>java.rmi.Naming</code> osztály műveletei használatának segítségével (<code>lookup()</code>,
+<code>bind</code>, etc.).</p>
+
+<h2>Felmerülő problémák</h2>
+
+<p>A hálózati fejlesztés így ugyanolyan elvek alapján történhet, mint egy sima
+desktop alkalmazás fejlesztése, ugyanolyan szintaxissal. Mégis, felmerülhetnek
+speciális problémák:</p>
+
+<ul>
+<li>A hálózati adatok elveszhetnek</li>
+<li>A hálózati végpontok leállhatnak</li>
+<li>Az adatátviteli vonal elromolhat</li>
+</ul>
+
+<p>Probléma: nem tudhatjuk, hogy meddig jutott el a feldolgozásban a szerver, ha
+nem kapunk tőle választ. Az ilyen esetekre külön fel kell készülni (pl.
+nyugtázással). Elv: <em>idempotens műveletek</em> (ne legyen felesleges mellékhatása).</p>
+
+<h2>A távoli objektum implementációja</h2>
+
+<p>Származtassunk a <code>java.rmi.server.UnicastRemoteObject</code> osztályt, ez elérhetővé
+teszi az osztályunkat (megjegyzés: ez nem kötelező, de akkor kézzel kell mindent
+csinálni, pl. <code>toString()</code>, <code>hashCode()</code>, <code>equals()</code> megfelelő implementálása). </p>
+
+<p>``` java
+import java.io.File;
+import java.net.MalformedURLException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;</p>
+
+<p>public class EchoServer
+    extends UnicastRemoteObject
+    implements IEchoRemote {</p>
+
+<pre><code>private static final long serialVersionUID = 1L;
+public static final String ADDRESS = "rmi://localhost:1099/echo";
+
+protected EchoServer() throws RemoteException {
+    super();
+}
+
+@Override
+public String hi() throws RemoteException {
+    return "Hoi!";
+}
+
+public static void main(final String[] args)
+    throws RemoteException, MalformedURLException {
+    if (null == System.getSecurityManager() ) {
+        System.setSecurityManager(new RMISecurityManager());
+    }
+
+    final EchoServer server = new EchoServer();
+    Naming.rebind(ADDRESS, server);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>A kliens implementációja</h2>
+
+<p>``` java
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;</p>
+
+<p>public class EchoClient {
+    public static void main(final String[] args)
+            throws MalformedURLException, RemoteException, NotBoundException {
+        final IEchoRemote remote = (IEchoRemote) Naming.lookup( EchoServer.ADDRESS );
+        System.out.println( remote.hi() );
+    }
+}
+```</p>
+
+<h2>Futtatás</h2>
+
+<ol>
+<li><p>El kell indítani egy registry szolgáltatást a szerver gépen:</p>
+
+<pre><code>::Windows
+start rmiregistry 
+
+
+# Unix
+rmiregistry &amp;
+</code></pre></li>
+<li><p>Le kell fordítani a kliens és szerveralkalmazást</p></li>
+<li><p>Hozzuk létre a következő policy fájlt:</p>
+
+<pre><code>grant {
+    permission java.security.AllPermission;
+};
+</code></pre></li>
+<li><p>Futtatni kell a szervert, a következő paraméterekkel:</p>
+
+<pre><code>-Djava.security.policy=server.policy
+-Djava.rmi.server.codebase=file:/&lt;path_a_classfile_okhoz&gt;
+</code></pre>
+
+<blockquote>
+  <p><strong>Megjegyzés</strong> Figyelni, itt <strong>nem</strong> <code>file://</code> kell!</p>
+</blockquote></li>
+<li><p>Futtassuk a klienst!</p></li>
+</ol>
+
+<h2>Feladatok</h2>
+
+<ul>
+<li><p>Készítsetek egy egyszerű hálózati naplózó alkalmazást! A szerver tudjon
+lementeni sztringeket egy dedikált fájlba, és a tartalmát is le lehessen
+kérdezni a kliensekből! A szerver szolgáltatásait RMI segítségével érd el!</p></li>
+<li><p>Készíts egy egyszerű számológép szervert. Tudjon összeadni, kivonni, osztani,
+szorozni. A műveleteit RMI segítségével érd el!</p>
+
+<blockquote>
+  <p><strong>Részletesen</strong> <a href="http://java.sun.com/developer/onlineTraining/rmi/RMI.html">http://java.sun.com/developer/onlineTraining/rmi/RMI.html</a></p>
+</blockquote></li>
+<li><p>Készítsetek egy alkalmazást, amely kilistázza a megadott registry szerver
+összes szolgáltatását!</p></li>
+<li><p>A szerializációval kapcsolatos gyakorlaton létrehozott <code>Circle</code> osztályt
+adjátok át paraméterként egy RMI szervernek, amely legyen képes visszaadni
+annak területét!</p></li>
+<li><p>Készítsetek egy <em>remote shell</em> alkalmazást! A kliens egy interaktív konzolos
+alkalmazás legyen. Ha a felhasználó beír egy parancsot, azt küldje el a
+szervernek, az hajtsa végre, és az outputot küldje vissza a kliensnek (a
+végrehajtáshoz használd a <code>Runtime.exec(String cmd)</code> függvényt)!</p></li>
+</ul>
